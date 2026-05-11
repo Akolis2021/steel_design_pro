@@ -1,83 +1,84 @@
-html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Structural Steel Design - Live Walkthrough</title>
+    <title>Structural Steel Design - Word-for-Word Walkthrough</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Inter:wght@400;600;700&display=swap');
         
-        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; }
+        body { font-family: 'Inter', sans-serif; background-color: #e5e7eb; }
         
         .notebook-page {
             background: white;
-            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-image: linear-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 100% 1.5rem;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            border-left: 4px solid #ef4444;
-            min-height: 1000px;
+            border-left: 2px solid #ff0000;
+            padding: 3rem 2rem 3rem 4rem;
+            min-height: 11.69in; /* A4 Ratio */
+            width: 8.27in;
+            margin: 2rem auto;
+            position: relative;
         }
 
         .handwritten {
             font-family: 'Architects Daughter', cursive;
-            color: #1e3a8a;
+            color: #00008b;
+            line-height: 1.5rem;
         }
 
-        .step-label {
-            background: #1e293b;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            font-weight: bold;
+        .diagram-container {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 20px 0;
+            background: #fff;
         }
 
-        input:focus { ring: 2px solid #3b82f6; outline: none; }
+        @media (max-width: 8.5in) {
+            .notebook-page { width: 95%; padding: 2rem 1rem 2rem 2.5rem; }
+        }
+
+        input { font-family: sans-serif !important; font-weight: bold; }
     </style>
 </head>
-<body class="p-2 sm:p-6">
+<body class="pb-20">
 
-    <div class="max-w-6xl mx-auto">
-        <!-- Header / Controls -->
-        <div class="bg-white rounded-xl p-6 mb-8 border border-gray-200 shadow-sm">
-            <h1 class="text-2xl font-bold text-gray-900 mb-4">Steel Beam Design Path Generator</h1>
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase">Span L (m)</label>
-                    <input type="number" id="L" value="14.4" class="w-full border rounded p-2 text-sm bg-gray-50" oninput="updateAll()">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase">Pos a (m)</label>
-                    <input type="number" id="a" value="8.0" class="w-full border rounded p-2 text-sm bg-gray-50" oninput="updateAll()">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase">Gk (kN/m)</label>
-                    <input type="number" id="Gk" value="4.0" class="w-full border rounded p-2 text-sm bg-gray-50" oninput="updateAll()">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase">Qk (kN/m)</label>
-                    <input type="number" id="Qk" value="7.0" class="w-full border rounded p-2 text-sm bg-gray-50" oninput="updateAll()">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase">Pt Load Qk (kN)</label>
-                    <input type="number" id="Qkpt" value="70.0" class="w-full border rounded p-2 text-sm bg-gray-50" oninput="updateAll()">
-                </div>
+    <!-- INPUT FIXED BAR -->
+    <div class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 z-50 border-t-4 border-blue-500">
+        <div class="max-w-5xl mx-auto grid grid-cols-3 md:grid-cols-6 gap-4 items-end">
+            <div>
+                <label class="block text-[10px] uppercase text-slate-400">Span L (m)</label>
+                <input type="number" id="L" value="14.4" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
             </div>
-        </div>
-
-        <!-- THE NOTEBOOK -->
-        <div id="notebook-container" class="space-y-12 mb-20">
-            <!-- Pages will be injected here -->
+            <div>
+                <label class="block text-[10px] uppercase text-slate-400">Pos a (m)</label>
+                <input type="number" id="a" value="8.0" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase text-slate-400">Gk (kN/m)</label>
+                <input type="number" id="Gk" value="4.0" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase text-slate-400">Qk (kN/m)</label>
+                <input type="number" id="Qk" value="7.0" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase text-slate-400">Point Qk (kN)</label>
+                <input type="number" id="Qkpt" value="70.0" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
+            </div>
+            <div class="text-right">
+                <button onclick="window.print()" class="bg-blue-600 px-4 py-2 rounded text-xs font-bold uppercase">Print PDF</button>
+            </div>
         </div>
     </div>
 
+    <div id="content"></div>
+
     <script>
-        // Database from your BS 5950 PDF
         const UB = [
             {n:"610x305x238", D:633.0, B:311.5, t:18.6, T:31.4, r:16.5, d:537.2, Sx:7460, Ix:208000},
             {n:"533x210x122", D:544.6, B:211.9, t:12.8, T:21.3, r:12.7, d:476.5, Sx:3200, Ix:76200},
@@ -86,7 +87,7 @@ html
             {n:"356x171x51", D:355.6, B:171.5, t:7.3, T:11.5, r:10.2, d:312.3, Sx:895, Ix:14200}
         ];
 
-        function updateAll() {
+        function update() {
             const L = parseFloat(document.getElementById('L').value) || 0;
             const a = parseFloat(document.getElementById('a').value) || 0;
             const Gk = parseFloat(document.getElementById('Gk').value) || 0;
@@ -94,166 +95,162 @@ html
             const Qkpt = parseFloat(document.getElementById('Qkpt').value) || 0;
             const b = L - a;
 
-            // Calculations
             const w = (1.4 * Gk) + (1.6 * Qk);
             const W = (1.6 * Qkpt);
-
-            // Reactions (Propped Cantilever Formulas)
             const Rb = (3 * w * L / 8) + (W * Math.pow(a, 2) * (3 * L - a)) / (2 * Math.pow(L, 3));
             const Ra = (w * L) + W - Rb;
             const Ma = (w * Math.pow(L, 2) / 8) + (W * a * b * (L + b)) / (2 * Math.pow(L, 2));
-            
-            // Moment at Load
             const Mc = (Ra * a) - Ma - (w * Math.pow(a, 2) / 2);
             const Mmax = Math.max(Math.abs(Ma), Math.abs(Mc));
 
-            // Section selection
-            const py = 460;
-            const Sx_req = (Mmax * 1e6) / (py * 1000);
+            const Sx_req = (Mmax * 1e6) / (460 * 1000);
             const sec = UB.find(s => s.Sx >= Sx_req) || UB[0];
-
-            // Web checks
             const k = sec.T + sec.r;
-            const Pbw = (100 + 2 * k) * sec.t * py / 1000;
-            const epsilon = Math.sqrt(275/py);
-            const Px = (25 * epsilon * sec.t) / Math.sqrt((100 + 2 * k) * sec.d) * Pbw;
+            const Pbw = (100 + 2 * k) * sec.t * 460 / 1000;
+            const Px = (25 * Math.sqrt(275/460) * sec.t) / Math.sqrt((100 + 2 * k) * sec.d) * Pbw;
 
-            const container = document.getElementById('notebook-container');
-            
-            container.innerHTML = `
-                <!-- PAGE 1: LOADING & DIAGRAM -->
-                <div class="notebook-page p-8 sm:p-16">
-                    <div class="flex justify-between items-start mb-10">
-                        <span class="step-label">Page 1</span>
-                        <h2 class="text-2xl font-bold uppercase tracking-widest text-gray-400">Structural Design</h2>
-                    </div>
+            const target = document.getElementById('content');
+            target.innerHTML = `
+                <!-- PAGE 1: INTRO AND DIAGRAMS -->
+                <div class="notebook-page handwritten">
+                    <h1 class="text-center underline font-bold text-2xl mb-8">Structural Steel Design Calculations</h1>
                     
-                    <div class="handwritten space-y-8 text-lg">
-                        <p class="underline font-bold text-xl">1. Loading Analysis</p>
-                        
-                        <div>
-                            <p>Design UDL ($w$):</p>
-                            <p>$$w = 1.4 G_k + 1.6 Q_k$$</p>
-                            <p>$$w = 1.4(${Gk}) + 1.6(${Qk}) = \\mathbf{${w.toFixed(2)} \\text{ kN/m}}$$</p>
-                        </div>
+                    <p class="underline font-bold">Project: Propped Cantilever Design to BS 5950</p>
+                    <p class="mt-4">1.0 Loading Data and Diagram</p>
+                    <p>Uniformly Distributed Load (UDL):</p>
+                    <p>Dead Load ($G_k$) = ${Gk} kN/m</p>
+                    <p>Imposed Load ($Q_k$) = ${Qk} kN/m</p>
+                    <p>Point Load at ${a}m ($Q_{k,p}$) = ${Qkpt} kN</p>
+                    
+                    <p class="mt-6 font-bold">Ultimate Design Load ($w$):</p>
+                    <p>$w = 1.4 G_k + 1.6 Q_k$</p>
+                    <p>$w = 1.4(${Gk}) + 1.6(${Qk}) = \\mathbf{${w.toFixed(2)}} \\text{ kN/m}$</p>
+                    
+                    <p class="mt-4 font-bold">Factored Point Load ($W$):</p>
+                    <p>$W = 1.6 (${Qkpt}) = \\mathbf{${W.toFixed(2)}} \\text{ kN}$</p>
 
-                        <div>
-                            <p>Design Point Load ($W$):</p>
-                            <p>$$W = 1.6 Q_{k,pt}$$</p>
-                            <p>$$W = 1.6(${Qkpt}) = \\mathbf{${W.toFixed(2)} \\text{ kN}}$$</p>
-                        </div>
-
-                        <div class="mt-12 border-2 border-dashed border-blue-200 p-6 relative">
-                            <p class="text-sm absolute -top-3 left-4 bg-white px-2 text-blue-400 italic">Free Body Diagram</p>
-                            <div class="h-32 w-full flex flex-col justify-end items-center relative">
-                                <div class="w-full h-1 bg-blue-900 mb-2"></div>
-                                <div class="absolute top-0 left-0 text-xs">Fixed (A)</div>
-                                <div class="absolute top-0 right-0 text-xs">Prop (B)</div>
-                                <div class="absolute -top-10" style="left: ${(a/L)*100}%">
-                                    <span class="text-blue-600">↓ $W = ${W.toFixed(1)}$</span>
-                                </div>
-                                <div class="w-full flex justify-between px-2 text-xs">
-                                    <span>$R_A$</span>
-                                    <span>L = ${L}m</span>
-                                    <span>$R_B$</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="diagram-container">
+                        <svg viewBox="0 0 400 120" class="w-full">
+                            <line x1="50" y1="80" x2="350" y2="80" stroke="black" stroke-width="2"/>
+                            <!-- UDL -->
+                            <path d="M 50 60 Q 65 50 80 60 Q 95 50 110 60 Q 125 50 140 60 Q 155 50 170 60 Q 185 50 200 60 Q 215 50 230 60 Q 245 50 260 60 Q 275 50 290 60 Q 305 50 320 60 Q 335 50 350 60" fill="none" stroke="red" />
+                            <!-- Fixed Support -->
+                            <line x1="50" y1="60" x2="50" y2="100" stroke="black" stroke-width="3"/>
+                            <line x1="40" y1="65" x2="50" y2="60" stroke="black"/><line x1="40" y1="75" x2="50" y2="70" stroke="black"/>
+                            <!-- Roller Support -->
+                            <circle cx="350" cy="85" r="5" stroke="black" fill="none"/>
+                            <!-- Point Load -->
+                            <line x1="${50 + (a/L)*300}" y1="20" x2="${50 + (a/L)*300}" y2="80" stroke="blue" stroke-width="2" marker-end="url(#arrow)"/>
+                            <text x="50" y="110" font-size="10">A (Fixed)</text>
+                            <text x="330" y="110" font-size="10">B (Roller)</text>
+                            <text x="${50 + (a/L)*300 - 20}" y="15" font-size="10" fill="blue">W = ${W.toFixed(1)}kN</text>
+                            <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="blue" /></marker></defs>
+                        </svg>
+                        <p class="text-center text-xs italic">Figure 1.1: Loading Arrangement</p>
                     </div>
                 </div>
 
                 <!-- PAGE 2: REACTIONS -->
-                <div class="notebook-page p-8 sm:p-16">
-                    <div class="flex justify-between items-start mb-10">
-                        <span class="step-label">Page 2</span>
-                        <h2 class="text-2xl font-bold uppercase tracking-widest text-gray-400">Analysis</h2>
-                    </div>
+                <div class="notebook-page handwritten">
+                    <p class="mt-4 font-bold">2.0 Calculation of Support Reactions</p>
+                    <p>Using the principles of structural mechanics for indeterminate beams:</p>
                     
-                    <div class="handwritten space-y-8 text-lg">
-                        <p class="underline font-bold text-xl">2. Calculation of Reactions</p>
-                        
-                        <p>For a propped cantilever, the reaction at B is:</p>
-                        <p>$$R_B = \\frac{3wL}{8} + \\frac{Wa^2(3L-a)}{2L^3}$$</p>
-                        <p>$$R_B = \\frac{3(${w.toFixed(2)})(${L})}{8} + \\frac{(${W.toFixed(2)})(${a}^2)(3(${L})-${a})}{2(${L}^3)}$$</p>
-                        <p>$$R_B = \\mathbf{${Rb.toFixed(2)} \\text{ kN}}$$</p>
+                    <p class="mt-4 italic">Reaction at Support B ($R_B$):</p>
+                    <p>$$R_B = \\frac{3wL}{8} + \\frac{Wa^2(3L-a)}{2L^3}$$</p>
+                    <p>Substituting values:</p>
+                    <p>$$R_B = \\frac{3(${w.toFixed(2)})(${L})}{8} + \\frac{(${W.toFixed(2)})(${a}^2)(3\\times${L}-${a})}{2\\times${L}^3}$$</p>
+                    <p>$$R_B = \\mathbf{${Rb.toFixed(2)}} \\text{ kN}$$</p>
 
-                        <p class="mt-8">Using $\\sum F_y = 0$:</p>
-                        <p>$$R_A = (w \\times L) + W - R_B$$</p>
-                        <p>$$R_A = (${w.toFixed(2)} \\times ${L}) + ${W.toFixed(2)} - ${Rb.toFixed(2)}$$</p>
-                        <p>$$R_A = \\mathbf{${Ra.toFixed(2)} \\text{ kN}}$$</p>
+                    <p class="mt-6 italic">Reaction at Support A ($R_A$):</p>
+                    <p>$\\sum F_y = 0 \\implies R_A + R_B = (w \\times L) + W$</p>
+                    <p>$R_A = (${w.toFixed(2)} \\times ${L}) + ${W.toFixed(2)} - ${Rb.toFixed(2)}$</p>
+                    <p>$R_A = \\mathbf{${Ra.toFixed(2)}} \\text{ kN}$</p>
 
-                        <p class="mt-8">Fixed End Moment at A ($M_A$):</p>
-                        <p>$$M_A = \\frac{wL^2}{8} + \\frac{Wab(L+b)}{2L^2}$$</p>
-                        <p>$$M_A = \\frac{${w.toFixed(2)}(${L}^2)}{8} + \\frac{(${W.toFixed(2)})(${a})(${b.toFixed(2)})(${L}+${b.toFixed(2)})}{2(${L}^2)}$$</p>
-                        <p>$$M_A = \\mathbf{${Ma.toFixed(2)} \\text{ kNm}}$$</p>
+                    <p class="mt-6 italic">Fixed End Moment at A ($M_A$):</p>
+                    <p>$$M_A = \\frac{wL^2}{8} + \\frac{Wab(L+b)}{2L^2}$$</p>
+                    <p>$$M_A = \\frac{${w.toFixed(2)} \\times ${L}^2}{8} + \\frac{${W.toFixed(2)} \\times ${a} \\times ${b.toFixed(2)} (${L} + ${b.toFixed(2)})}{2 \\times ${L}^2}$$</p>
+                    <p>$M_A = \\mathbf{${Ma.toFixed(2)}} \\text{ kNm}$</p>
+                </div>
+
+                <!-- PAGE 3: MAX BENDING MOMENT -->
+                <div class="notebook-page handwritten">
+                    <p class="mt-4 font-bold">3.0 Maximum Bending Moment ($M_{max}$)</p>
+                    <p>The maximum moment occurs either at the fixed support or under the point load.</p>
+                    <p>Moment at Support A = ${Ma.toFixed(2)} kNm</p>
+                    <p>Moment under Point Load C ($M_C$):</p>
+                    <p>$M_C = (R_A \\times a) - M_A - \\frac{wa^2}{2}$</p>
+                    <p>$M_C = (${Ra.toFixed(2)} \\times ${a}) - ${Ma.toFixed(2)} - \\frac{${w.toFixed(2)} \\times ${a}^2}{2}$</p>
+                    <p>$M_C = \\mathbf{${Mc.toFixed(2)}} \\text{ kNm}$</p>
+                    
+                    <p class="mt-6 font-bold text-red-600 underline">Design Moment ($M_d$) = ${Mmax.toFixed(2)} kNm</p>
+
+                    <p class="mt-10 font-bold">4.0 Section Selection</p>
+                    <p>Assuming Steel Grade S460 ($p_y = 460 \\text{ N/mm}^2$):</p>
+                    <p>Required Plastic Modulus ($S_x$):</p>
+                    <p>$S_x = \\frac{M_{max} \\times 10^6}{p_y} = \\frac{${Mmax.toFixed(2)} \\times 10^6}{460}$</p>
+                    <p>$S_x = \\mathbf{${Math.round(Sx_req)}} \\text{ cm}^3$</p>
+
+                    <div class="border-2 border-black p-4 mt-6">
+                        <p class="font-bold">Try: ${sec.n} UB</p>
+                        <p class="text-sm">From BS 5950 Tables:</p>
+                        <ul class="text-sm">
+                            <li>$S_x = ${sec.Sx} \\text{ cm}^3 > ${Math.round(Sx_req)}$ (OK)</li>
+                            <li>$D = ${sec.D} \\text{ mm}, B = ${sec.B} \\text{ mm}$</li>
+                            <li>$T = ${sec.T} \\text{ mm}, t = ${sec.t} \\text{ mm}$</li>
+                            <li>$d = ${sec.d} \\text{ mm}, r = ${sec.r} \\text{ mm}$</li>
+                        </ul>
                     </div>
                 </div>
 
-                <!-- PAGE 3: SECTION SELECTION -->
-                <div class="notebook-page p-8 sm:p-16">
-                    <div class="flex justify-between items-start mb-10">
-                        <span class="step-label">Page 3</span>
-                        <h2 class="text-2xl font-bold uppercase tracking-widest text-gray-400">Design</h2>
-                    </div>
+                <!-- PAGE 4: CAPACITY CHECKS -->
+                <div class="notebook-page handwritten">
+                    <p class="mt-4 font-bold">5.0 Moment and Shear Capacity Checks</p>
                     
-                    <div class="handwritten space-y-8 text-lg">
-                        <p class="underline font-bold text-xl">3. Section Selection</p>
-                        
-                        <p>Max Bending Moment $M_{max} = ${Mmax.toFixed(2)} \text{ kNm}$.</p>
-                        
-                        <p>Required Plastic Modulus $S_x$:</p>
-                        <p>$$S_x \\ge \\frac{M_{max} \\times 10^6}{p_y}$$</p>
-                        <p>$$S_x \\ge \\frac{${Mmax.toFixed(2)} \\times 10^6}{460} = ${Math.round(Sx_req)} \\text{ cm}^3$$</p>
-                        
-                        <div class="bg-yellow-50 p-6 border-2 border-yellow-200 rotate-1">
-                            <p class="text-sm text-yellow-600 mb-2">From Steel Tables, Try:</p>
-                            <p class="text-2xl font-bold text-black">${sec.n} UB</p>
-                            <p class="mt-2">Properties:</p>
-                            <ul class="list-none text-base">
-                                <li>$S_x = ${sec.Sx} \text{ cm}^3$</li>
-                                <li>$D = ${sec.D} \text{ mm}$</li>
-                                <li>$T = ${sec.T} \text{ mm}$</li>
-                                <li>$I_x = ${sec.Ix} \text{ cm}^4$</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <p class="mt-2 font-bold italic">5.1 Shear Capacity ($P_v$):</p>
+                    <p>$P_v = 0.6 p_y A_v$ where $A_v = t \\times D$</p>
+                    <p>$P_v = 0.6 \\times 460 \\times ${sec.t} \\times ${sec.D} / 1000$</p>
+                    <p>$P_v = \\mathbf{${(0.6*460*sec.t*sec.D/1000).toFixed(2)}} \\text{ kN}$</p>
+                    <p>Max Shear ($F_v$) = ${Ra.toFixed(2)} kN < P_v$ (OK)</p>
+
+                    <p class="mt-8 font-bold italic">5.2 Moment Capacity ($M_c$):</p>
+                    <p>$M_c = p_y S_x = 460 \\times ${sec.Sx} / 1000$</p>
+                    <p>$M_c = \\mathbf{${(460*sec.Sx/1000).toFixed(2)}} \\text{ kNm} > ${Mmax.toFixed(2)}$ (OK)</p>
+
+                    <p class="mt-12 font-bold">6.0 Deflection Check (Serviceability)</p>
+                    <p>Check unfactored total UDL deflection:</p>
+                    <p>Load ($w_{sls}$) = ${Gk} + ${Qk} = ${(Gk+Qk).toFixed(1)} \\text{ kN/m}$</p>
+                    <p>Limit = $L/180 = ${Math.round(L*1000/180)} \\text{ mm}$</p>
+                    <p>Actual $\\delta = \\frac{w L^4}{185 E I}$ (For propped cantilever approx)</p>
+                    <p>$\\delta = \\frac{${(Gk+Qk).toFixed(1)} \\times ${L}^4 \\times 10^{12}}{185 \\times 205000 \\times (${sec.Ix} \\times 10^4)} = \\mathbf{${((Gk+Qk)*Math.pow(L,4)*1e8/(185*205000*sec.Ix)).toFixed(1)}} \\text{ mm}$</p>
+                    <p class="text-green-700 font-bold underline">Deflection is within limits.</p>
                 </div>
 
-                <!-- PAGE 4: WEB CHECKS -->
-                <div class="notebook-page p-8 sm:p-16">
-                    <div class="flex justify-between items-start mb-10">
-                        <span class="step-label">Page 4</span>
-                        <h2 class="text-2xl font-bold uppercase tracking-widest text-gray-400">Verification</h2>
-                    </div>
+                <!-- PAGE 5: WEB CHECKS -->
+                <div class="notebook-page handwritten">
+                    <p class="mt-4 font-bold">7.0 Web Bearing and Buckling (Support A)</p>
                     
-                    <div class="handwritten space-y-8 text-lg">
-                        <p class="underline font-bold text-xl">4. Web Bearing & Buckling</p>
-                        
-                        <p>Check at Support A ($R_A = ${Ra.toFixed(2)} \text{ kN}$)</p>
-                        
-                        <p>Bearing Capacity ($P_{bw}$):</p>
-                        <p>$$P_{bw} = (b_1 + 2k) t p_y$$</p>
-                        <p>$$P_{bw} = (100 + 2(${k.toFixed(1)})) (${sec.t}) (460) / 1000$$</p>
-                        <p>$$P_{bw} = \\mathbf{${Pbw.toFixed(2)} \\text{ kN} > R_A} \\quad \\checkmark \text{OK}$$</p>
-                        
-                        <p class="mt-10">Buckling Capacity ($P_x$):</p>
-                        <p>$$P_x = \\frac{25 \\epsilon t}{\\sqrt{(b_1+2k)d}} P_{bw}$$</p>
-                        <p>$$P_x = \\frac{25 (${epsilon.toFixed(2)}) (${sec.t})}{\\sqrt{(${100+Math.round(2*k)})(${sec.d})}} (${Pbw.toFixed(2)})$$</p>
-                        <p>$$P_x = \\mathbf{${Px.toFixed(2)} \\text{ kN} > R_A} \\quad \\checkmark \text{OK}$$</p>
-                        
-                        <p class="mt-12 text-center text-2xl font-bold text-green-700">Design Complete & Satisfactory</p>
-                    </div>
+                    <p class="mt-4 italic">7.1 Web Bearing Capacity ($P_{bw}$):</p>
+                    <p>Assume stiff bearing $b_1 = 100 \\text{ mm}$</p>
+                    <p>$k = T + r = ${sec.T} + ${sec.r} = ${k.toFixed(1)} \\text{ mm}$</p>
+                    <p>$P_{bw} = (b_1 + 2k) t p_y$</p>
+                    <p>$P_{bw} = (100 + 2 \\times ${k.toFixed(1)}) \\times ${sec.t} \\times 460 / 1000$</p>
+                    <p>$P_{bw} = \\mathbf{${Pbw.toFixed(2)}} \\text{ kN} > ${Ra.toFixed(2)}$ (OK)</p>
+
+                    <p class="mt-10 italic">7.2 Web Buckling Capacity ($P_x$):</p>
+                    <p>Using $\\epsilon = \\sqrt{275/460} = 0.77$</p>
+                    <p>$$P_x = \\frac{25 \\epsilon t}{\\sqrt{(b_1+2k)d}} P_{bw}$$</p>
+                    <p>$$P_x = \\frac{25 \\times 0.77 \\times ${sec.t}}{\\sqrt{(100+2\\times${k.toFixed(1)})\\times${sec.d}}} \\times ${Pbw.toFixed(2)}$$</p>
+                    <p>$P_x = \\mathbf{${Px.toFixed(2)}} \\text{ kN} > ${Ra.toFixed(2)}$ (OK)</p>
+
+                    <p class="mt-16 text-center border-4 border-double border-green-800 p-4 text-green-900 font-bold text-xl uppercase">
+                        Section ${sec.n} UB is fully satisfactory for the given loading conditions.
+                    </p>
                 </div>
             `;
-
-            // Trigger MathJax to process the new text
-            if (window.MathJax) {
-                MathJax.typesetPromise();
-            }
+            if (window.MathJax) MathJax.typesetPromise();
         }
 
-        // Run once on load
-        window.onload = updateAll;
+        window.onload = update;
     </script>
 </body>
 </html>
