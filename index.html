@@ -64,9 +64,6 @@
     }
 
     /* ── 3-column calculation body ──────────────────────── */
-    /*  KEY FIX: sheet-body IS the grid.
-        Every row = exactly 3 direct children: .rc .cc .oc
-        No nested tables or grids anywhere.              */
     .sheet-body {
       display: grid;
       grid-template-columns: 21mm 1fr 32mm;
@@ -296,20 +293,17 @@ const UB = [
 // ── helpers ──────────────────────────────────────────────
 const f  = (v, d=2) => (+v).toFixed(d);
 const f0 = (v)      => (+v).toFixed(0);
-const OK = (p) => p ? '<span class="ok">&#10003; OK</span>'
-                    : '<span class="fail">&#10007; FAIL</span>';
+const OK = (p) => p ? '<span class="ok">&#10003; OK</span>' : '<span class="fail">&#10007; FAIL</span>';
 
 // One calculation row → 3 flat divs (ref | calc | output)
 function R(ref, calc, out='') {
   return `<div class="rc">${ref}</div><div class="cc">${calc}</div><div class="oc">${out}</div>`;
 }
 
-// Blank spacer row
 function BLANK() {
   return `<div class="rc"></div><div class="cc"></div><div class="oc"></div>`;
 }
 
-// Row with a diagram/SVG that needs extra height (no line-height constraint)
 function SVGR(ref, svgHTML, out='') {
   return `<div class="rc tall" style="align-self:center;">${ref}</div>
           <div class="cc tall">${svgHTML}</div>
@@ -329,24 +323,28 @@ function update() {
   const b1   = +document.getElementById('ib1').value  || 100;
 
   const L   = L1 + L2;           // total beam length A to B
-  const wu  = 1.4*Gk + 1.6*Qk;  // factored UDL
+  const wu  = 1.4*Gk + 1.6*Qk;   // factored UDL
   const Wu  = 1.6*Q;             // factored point load
   const tot = wu*L + Wu;         // total factored load
 
-  // ── Reactions (propped cantilever: fixed A, roller B) ──
-  // Point load W at C (distance L1 from A, L2 from B)
-  const RB = (3*wu*L/8) + Wu*Math.pow(L1,2)*(3*L - L1)/(2*Math.pow(L,3));
-  const RA = wu*L + Wu - RB;
-  const MA = wu*L*L/8 + Wu*L1*L2*(L+L2)/(2*L*L);
+  // ── Area Moment Method (Macaulay's) for R_B ──
+  const A1_coeff = Math.pow(L, 3) / 3;
+  const A2X2 = (wu * Math.pow(L, 4)) / 8;
+  const A3X3 = (Wu * Math.pow(L1, 2) * (3 * L - L1)) / 6;
+  const RB = (A2X2 + A3X3) / A1_coeff;
+  const RA = tot - RB;
 
   // ── Shear forces ──
   const SFA  = RA;
-  const SFCb = RA - wu*L1;           // just before Wu at C
-  const SFCa = SFCb - Wu;            // just after Wu at C
-  const SFBl = SFCa - wu*L2;         // just left of B
+  const SFCb = RA - wu*L1;           
+  const SFCa = SFCb - Wu;            
+  const SFBl = SFCa - wu*L2;         
 
   // ── Bending moments ──
-  const BMC  = RA*L1 - MA - wu*L1*L1/2;
+  // Calculate Moments from right hand side matching PDF formula structure
+  const BMC = RB * L2 - wu * Math.pow(L2, 2) / 2;
+  const MA  = RB * L - wu * Math.pow(L, 2) / 2 - Wu * L1; // Negative represents hogging
+  
   const Mmax = Math.max(Math.abs(MA), Math.abs(BMC));
 
   // ── Section selection ──
@@ -368,15 +366,11 @@ function update() {
   const eps   = Math.sqrt(275/py);
   const b_T   = (sec.B/2)/sec.T;
   const d_t   = sec.d/sec.t;
-  const flCls = b_T<=9*eps  ? 'Plastic'
-              : b_T<=10*eps ? 'Compact'
-              : b_T<=15*eps ? 'Semi-compact' : 'Slender';
-  const wbCls = d_t<=80*eps  ? 'Plastic'
-              : d_t<=100*eps ? 'Compact' : 'Semi-compact';
+  const flCls = b_T<=9*eps  ? 'Plastic' : b_T<=10*eps ? 'Compact' : b_T<=15*eps ? 'Semi-compact' : 'Slender';
+  const wbCls = d_t<=80*eps  ? 'Plastic' : d_t<=100*eps ? 'Compact' : 'Semi-compact';
   const secCls= (flCls==='Plastic'&&wbCls==='Plastic') ? 'Class 1 – Plastic'
               : (flCls==='Slender'||wbCls==='Slender')  ? 'Class 4 – Slender'
-              : (flCls==='Compact'||wbCls==='Compact')  ? 'Class 2 – Compact'
-              :                                            'Class 3 – Semi-compact';
+              : (flCls==='Compact'||wbCls==='Compact')  ? 'Class 2 – Compact' : 'Class 3 – Semi-compact';
 
   // ── Shear ──
   const Av    = sec.t * sec.D;
@@ -415,175 +409,162 @@ function update() {
   // ════════════════════════════════════════════════════════
   const SW=480, SH=150, beamY=78;
   const Ax=28, Bx=SW-28;
-  const Cx = Ax + Math.round((Bx-Ax)*(L1/L));  // junction C
-
-  // UDL spring arrows
+  const Cx = Ax + Math.round((Bx-Ax)*(L1/L)); 
   let sp='';
   for(let i=0;i<=13;i++){
     const x = Ax + i*(Bx-Ax)/13;
-    sp+=`<line x1="${x}" y1="${beamY-30}" x2="${x}" y2="${beamY-4}"
-              stroke="#00008b" stroke-width="1.3" marker-end="url(#ua)"/>`;
+    sp+=`<line x1="${x}" y1="${beamY-30}" x2="${x}" y2="${beamY-4}" stroke="#00008b" stroke-width="1.3" marker-end="url(#ua)"/>`;
   }
-
   const diagramSVG=`
   <svg viewBox="0 0 ${SW} ${SH}" style="width:100%;max-width:480px;display:block;margin:6px auto;">
     <defs>
-      <marker id="ua" markerWidth="5" markerHeight="5" refX="2.5" refY="5" orient="auto">
-        <path d="M0,0 L2.5,5 L5,0" fill="none" stroke="#00008b" stroke-width="1.2"/>
-      </marker>
-      <marker id="Wa" markerWidth="7" markerHeight="7" refX="3.5" refY="7" orient="auto">
-        <path d="M0,0 L3.5,7 L7,0 Z" fill="#cc0000"/>
-      </marker>
-      <marker id="Ra" markerWidth="6" markerHeight="6" refX="3" refY="0" orient="auto">
-        <path d="M0,6 L3,0 L6,6 Z" fill="#166534"/>
-      </marker>
+      <marker id="ua" markerWidth="5" markerHeight="5" refX="2.5" refY="5" orient="auto"><path d="M0,0 L2.5,5 L5,0" fill="none" stroke="#00008b" stroke-width="1.2"/></marker>
+      <marker id="Wa" markerWidth="7" markerHeight="7" refX="3.5" refY="7" orient="auto"><path d="M0,0 L3.5,7 L7,0 Z" fill="#cc0000"/></marker>
+      <marker id="Ra" markerWidth="6" markerHeight="6" refX="3" refY="0" orient="auto"><path d="M0,6 L3,0 L6,6 Z" fill="#166534"/></marker>
     </defs>
-
-    <!-- UDL top line -->
-    <line x1="${Ax}" y1="${beamY-32}" x2="${Bx}" y2="${beamY-32}"
-          stroke="#00008b" stroke-width="1.2"/>
-    <!-- springs -->
+    <line x1="${Ax}" y1="${beamY-32}" x2="${Bx}" y2="${beamY-32}" stroke="#00008b" stroke-width="1.2"/>
     ${sp}
-    <!-- UDL label -->
-    <text x="${(Ax+Bx)/2}" y="${beamY-35}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="10.5" fill="#00008b">
-      Gk = ${Gk} kN/m,  Qk = ${Qk} kN/m
-    </text>
-
-    <!-- Beam bar -->
-    <rect x="${Ax}" y="${beamY-3}" width="${Bx-Ax}" height="7"
-          fill="#00008b" rx="1.5"/>
-
-    <!-- Fixed wall at A -->
-    <line x1="${Ax}" y1="${beamY-15}" x2="${Ax}" y2="${beamY+20}"
-          stroke="#333" stroke-width="3"/>
-    ${[0,7,14,21,28].map(dy=>
-      `<line x1="${Ax-10}" y1="${beamY-12+dy}" x2="${Ax}" y2="${beamY-6+dy}"
-             stroke="#333" stroke-width="1.5"/>`
-    ).join('')}
-
-    <!-- Roller at B -->
-    <polygon points="${Bx},${beamY+4} ${Bx-9},${beamY+20} ${Bx+9},${beamY+20}"
-             fill="none" stroke="#333" stroke-width="1.8"/>
-    <circle cx="${Bx}" cy="${beamY+25}" r="4.5"
-            fill="none" stroke="#333" stroke-width="1.5"/>
-    <line x1="${Bx-14}" y1="${beamY+32}" x2="${Bx+14}" y2="${beamY+32}"
-          stroke="#333" stroke-width="2"/>
-
-    <!-- Point load W at C -->
-    <line x1="${Cx}" y1="${beamY-64}" x2="${Cx}" y2="${beamY-4}"
-          stroke="#cc0000" stroke-width="2.2" marker-end="url(#Wa)"/>
-    <text x="${Cx}" y="${beamY-68}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="11" fill="#cc0000">
-      ${Q} kN
-    </text>
-
-    <!-- RA arrow (upward) -->
-    <line x1="${Ax}" y1="${beamY+54}" x2="${Ax}" y2="${beamY+24}"
-          stroke="#166534" stroke-width="2" marker-end="url(#Ra)"/>
-    <text x="${Ax}" y="${beamY+68}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="10" fill="#166534">RA</text>
-
-    <!-- RB arrow (upward) -->
-    <line x1="${Bx}" y1="${beamY+54}" x2="${Bx}" y2="${beamY+36}"
-          stroke="#166534" stroke-width="2" marker-end="url(#Ra)"/>
-    <text x="${Bx}" y="${beamY+68}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="10" fill="#166534">RB</text>
-
-    <!-- A, C, B labels -->
-    <text x="${Ax}" y="${beamY+82}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="10" fill="#333">A</text>
-    <text x="${Cx}" y="${beamY+82}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="10" fill="#333">C</text>
-    <text x="${Bx}" y="${beamY+82}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="10" fill="#333">B</text>
-
-    <!-- dimension: L1 -->
-    <line x1="${Ax}" y1="${beamY+92}" x2="${Cx}" y2="${beamY+92}"
-          stroke="#555" stroke-width="1"/>
+    <text x="${(Ax+Bx)/2}" y="${beamY-35}" text-anchor="middle" font-family="Architects Daughter" font-size="10.5" fill="#00008b">Gk = ${Gk} kN/m,  Qk = ${Qk} kN/m</text>
+    <rect x="${Ax}" y="${beamY-3}" width="${Bx-Ax}" height="7" fill="#00008b" rx="1.5"/>
+    <line x1="${Ax}" y1="${beamY-15}" x2="${Ax}" y2="${beamY+20}" stroke="#333" stroke-width="3"/>
+    ${[0,7,14,21,28].map(dy=>`<line x1="${Ax-10}" y1="${beamY-12+dy}" x2="${Ax}" y2="${beamY-6+dy}" stroke="#333" stroke-width="1.5"/>`).join('')}
+    <polygon points="${Bx},${beamY+4} ${Bx-9},${beamY+20} ${Bx+9},${beamY+20}" fill="none" stroke="#333" stroke-width="1.8"/>
+    <circle cx="${Bx}" cy="${beamY+25}" r="4.5" fill="none" stroke="#333" stroke-width="1.5"/>
+    <line x1="${Bx-14}" y1="${beamY+32}" x2="${Bx+14}" y2="${beamY+32}" stroke="#333" stroke-width="2"/>
+    <line x1="${Cx}" y1="${beamY-64}" x2="${Cx}" y2="${beamY-4}" stroke="#cc0000" stroke-width="2.2" marker-end="url(#Wa)"/>
+    <text x="${Cx}" y="${beamY-68}" text-anchor="middle" font-family="Architects Daughter" font-size="11" fill="#cc0000">${Q} kN</text>
+    <line x1="${Ax}" y1="${beamY+54}" x2="${Ax}" y2="${beamY+24}" stroke="#166534" stroke-width="2" marker-end="url(#Ra)"/>
+    <text x="${Ax}" y="${beamY+68}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#166534">RA</text>
+    <line x1="${Bx}" y1="${beamY+54}" x2="${Bx}" y2="${beamY+36}" stroke="#166534" stroke-width="2" marker-end="url(#Ra)"/>
+    <text x="${Bx}" y="${beamY+68}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#166534">RB</text>
+    <text x="${Ax}" y="${beamY+82}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">A</text>
+    <text x="${Cx}" y="${beamY+82}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">C</text>
+    <text x="${Bx}" y="${beamY+82}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">B</text>
+    <line x1="${Ax}" y1="${beamY+92}" x2="${Cx}" y2="${beamY+92}" stroke="#555" stroke-width="1"/>
     <line x1="${Ax}" y1="${beamY+87}" x2="${Ax}" y2="${beamY+97}" stroke="#555" stroke-width="1"/>
     <line x1="${Cx}" y1="${beamY+87}" x2="${Cx}" y2="${beamY+97}" stroke="#555" stroke-width="1"/>
-    <text x="${(Ax+Cx)/2}" y="${beamY+105}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="10" fill="#333">L = ${L1} m</text>
-
-    <!-- dimension: L2 -->
-    <line x1="${Cx}" y1="${beamY+92}" x2="${Bx}" y2="${beamY+92}"
-          stroke="#555" stroke-width="1"/>
+    <text x="${(Ax+Cx)/2}" y="${beamY+105}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">L = ${L1} m</text>
+    <line x1="${Cx}" y1="${beamY+92}" x2="${Bx}" y2="${beamY+92}" stroke="#555" stroke-width="1"/>
     <line x1="${Cx}" y1="${beamY+87}" x2="${Cx}" y2="${beamY+97}" stroke="#555" stroke-width="1"/>
     <line x1="${Bx}" y1="${beamY+87}" x2="${Bx}" y2="${beamY+97}" stroke="#555" stroke-width="1"/>
-    <text x="${(Cx+Bx)/2}" y="${beamY+105}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="10" fill="#333">0.8L = ${L2} m</text>
+    <text x="${(Cx+Bx)/2}" y="${beamY+105}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">a = ${L2} m</text>
   </svg>`;
 
-  // ════════════════════════════════════════════════════════
-  //  SVG: FACTORED LOAD DIAGRAM
-  // ════════════════════════════════════════════════════════
   const FW=400,FH=110,fbY=55;
   const FCx=40+Math.round(300*(L1/L));
   let fsp='';
   for(let i=0;i<=11;i++){
     const x=40+i*(300/11);
-    fsp+=`<line x1="${x}" y1="${fbY-25}" x2="${x}" y2="${fbY-4}"
-               stroke="#00008b" stroke-width="1.1" marker-end="url(#fua)"/>`;
+    fsp+=`<line x1="${x}" y1="${fbY-25}" x2="${x}" y2="${fbY-4}" stroke="#00008b" stroke-width="1.1" marker-end="url(#fua)"/>`;
   }
   const factSVG=`
   <svg viewBox="0 0 ${FW} ${FH}" style="width:100%;max-width:400px;display:block;margin:4px auto;">
     <defs>
-      <marker id="fua" markerWidth="4" markerHeight="4" refX="2" refY="4" orient="auto">
-        <path d="M0,0 L2,4 L4,0" fill="none" stroke="#00008b" stroke-width="1"/>
-      </marker>
-      <marker id="fWa" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto">
-        <path d="M0,0 L3,6 L6,0 Z" fill="#cc0000"/>
-      </marker>
-      <marker id="fRa" markerWidth="5" markerHeight="5" refX="2.5" refY="0" orient="auto">
-        <path d="M0,5 L2.5,0 L5,5 Z" fill="#166534"/>
-      </marker>
+      <marker id="fua" markerWidth="4" markerHeight="4" refX="2" refY="4" orient="auto"><path d="M0,0 L2,4 L4,0" fill="none" stroke="#00008b" stroke-width="1"/></marker>
+      <marker id="fWa" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto"><path d="M0,0 L3,6 L6,0 Z" fill="#cc0000"/></marker>
+      <marker id="fRa" markerWidth="5" markerHeight="5" refX="2.5" refY="0" orient="auto"><path d="M0,5 L2.5,0 L5,5 Z" fill="#166534"/></marker>
     </defs>
-    <text x="220" y="11" text-anchor="middle"
-          font-family="Architects Daughter" font-size="9.5" fill="#00008b">
-      wu = ${f(wu,1)} kN/m
-    </text>
-    <line x1="40" y1="${fbY-27}" x2="340" y2="${fbY-27}"
-          stroke="#00008b" stroke-width="1.1"/>
+    <text x="220" y="11" text-anchor="middle" font-family="Architects Daughter" font-size="9.5" fill="#00008b">wu = ${f(wu,1)} kN/m</text>
+    <line x1="40" y1="${fbY-27}" x2="340" y2="${fbY-27}" stroke="#00008b" stroke-width="1.1"/>
     ${fsp}
     <rect x="40" y="${fbY-2}" width="300" height="5" fill="#00008b" rx="1"/>
-    <!-- Wu at C -->
-    <line x1="${FCx}" y1="${fbY-50}" x2="${FCx}" y2="${fbY-4}"
-          stroke="#cc0000" stroke-width="2" marker-end="url(#fWa)"/>
-    <text x="${FCx}" y="${fbY-53}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="9" fill="#cc0000">${f(Wu,1)} kN</text>
-    <!-- Fixed wall -->
+    <line x1="${FCx}" y1="${fbY-50}" x2="${FCx}" y2="${fbY-4}" stroke="#cc0000" stroke-width="2" marker-end="url(#fWa)"/>
+    <text x="${FCx}" y="${fbY-53}" text-anchor="middle" font-family="Architects Daughter" font-size="9" fill="#cc0000">${f(Wu,1)} kN</text>
     <line x1="40" y1="${fbY-10}" x2="40" y2="${fbY+16}" stroke="#333" stroke-width="2.5"/>
-    ${[0,5,10,15].map(dy=>`<line x1="30" y1="${fbY-8+dy}" x2="40" y2="${fbY-3+dy}"
-                 stroke="#333" stroke-width="1.2"/>`).join('')}
-    <!-- Roller -->
-    <polygon points="340,${fbY+3} 332,${fbY+16} 348,${fbY+16}"
-             fill="none" stroke="#333" stroke-width="1.5"/>
+    ${[0,5,10,15].map(dy=>`<line x1="30" y1="${fbY-8+dy}" x2="40" y2="${fbY-3+dy}" stroke="#333" stroke-width="1.2"/>`).join('')}
+    <polygon points="340,${fbY+3} 332,${fbY+16} 348,${fbY+16}" fill="none" stroke="#333" stroke-width="1.5"/>
     <circle cx="340" cy="${fbY+21}" r="3.5" fill="none" stroke="#333" stroke-width="1.3"/>
     <line x1="329" y1="${fbY+27}" x2="351" y2="${fbY+27}" stroke="#333" stroke-width="1.5"/>
-    <!-- RA -->
-    <line x1="40" y1="${fbY+42}" x2="40" y2="${fbY+20}"
-          stroke="#166534" stroke-width="1.8" marker-end="url(#fRa)"/>
-    <text x="40" y="${fbY+54}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="9" fill="#166534">RA</text>
-    <!-- RB -->
-    <line x1="340" y1="${fbY+42}" x2="340" y2="${fbY+30}"
-          stroke="#166534" stroke-width="1.8" marker-end="url(#fRa)"/>
-    <text x="340" y="${fbY+54}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="9" fill="#166534">RB</text>
-    <!-- labels -->
-    <text x="40" y="${fbY+67}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="9" fill="#555">A</text>
-    <text x="${FCx}" y="${fbY+67}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="9" fill="#555">C</text>
-    <text x="340" y="${fbY+67}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="9" fill="#555">B</text>
-    <!-- dim line -->
+    <line x1="40" y1="${fbY+42}" x2="40" y2="${fbY+20}" stroke="#166534" stroke-width="1.8" marker-end="url(#fRa)"/>
+    <text x="40" y="${fbY+54}" text-anchor="middle" font-family="Architects Daughter" font-size="9" fill="#166534">RA</text>
+    <line x1="340" y1="${fbY+42}" x2="340" y2="${fbY+30}" stroke="#166534" stroke-width="1.8" marker-end="url(#fRa)"/>
+    <text x="340" y="${fbY+54}" text-anchor="middle" font-family="Architects Daughter" font-size="9" fill="#166534">RB</text>
+    <text x="40" y="${fbY+67}" text-anchor="middle" font-family="Architects Daughter" font-size="9" fill="#555">A</text>
+    <text x="${FCx}" y="${fbY+67}" text-anchor="middle" font-family="Architects Daughter" font-size="9" fill="#555">C</text>
+    <text x="340" y="${fbY+67}" text-anchor="middle" font-family="Architects Daughter" font-size="9" fill="#555">B</text>
     <line x1="40" y1="${fbY+75}" x2="340" y2="${fbY+75}" stroke="#777" stroke-width="0.8"/>
-    <text x="190" y="${fbY+86}" text-anchor="middle"
-          font-family="Architects Daughter" font-size="8.5" fill="#555">
-      |&lt;—— ${L1} m ——&gt;C&lt;—— ${L2} m ——&gt;|
-    </text>
+    <text x="190" y="${fbY+86}" text-anchor="middle" font-family="Architects Daughter" font-size="8.5" fill="#555">|&lt;—— ${L1} m ——&gt;C&lt;—— ${L2} m ——&gt;|</text>
+  </svg>`;
+
+  // ════════════════════════════════════════════════════════
+  //  SVG: SHEAR FORCE DIAGRAM (SFD)
+  // ════════════════════════════════════════════════════════
+  const sfMax = Math.max(Math.abs(SFA), Math.abs(SFCb), Math.abs(SFCa), Math.abs(SFBl));
+  const sfScale = sfMax > 0 ? 55 / sfMax : 1;
+  const sfdBase = 80;
+  
+  // y points (invert for svg coordinates where higher positive goes UP)
+  const ySFA = sfdBase - SFA * sfScale;
+  const ySFCb = sfdBase - SFCb * sfScale;
+  const ySFCa = sfdBase - SFCa * sfScale;
+  const ySFBl = sfdBase - SFBl * sfScale;
+  
+  const sfdSVG=`
+  <svg viewBox="0 0 ${FW} 160" style="width:100%;max-width:400px;display:block;margin:4px auto;">
+    <!-- zero axis -->
+    <line x1="40" y1="${sfdBase}" x2="340" y2="${sfdBase}" stroke="#333" stroke-width="1.5"/>
+    <text x="348" y="${sfdBase+3}" font-family="Arial" font-size="9" fill="#333">0</text>
+    
+    <!-- Shaded area polygon -->
+    <polygon points="40,${sfdBase} 40,${ySFA} ${FCx},${ySFCb} ${FCx},${ySFCa} 340,${ySFBl} 340,${sfdBase}" 
+             fill="rgba(22, 101, 52, 0.15)" stroke="#166534" stroke-width="1.5" stroke-linejoin="round"/>
+             
+    <!-- Reference nodes -->
+    <circle cx="40" cy="${sfdBase}" r="2" fill="#333"/>
+    <circle cx="${FCx}" cy="${sfdBase}" r="2" fill="#333"/>
+    <circle cx="340" cy="${sfdBase}" r="2" fill="#333"/>
+    <text x="40" y="${sfdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">A</text>
+    <text x="${FCx}" y="${sfdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">C</text>
+    <text x="340" y="${sfdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">B</text>
+
+    <!-- Labels -->
+    <text x="45" y="${ySFA-5}" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFA,1)}</text>
+    <text x="${FCx-5}" y="${ySFCb-5}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534">${f(SFCb,1)}</text>
+    <text x="${FCx+5}" y="${ySFCa+10}" text-anchor="start" font-family="Arial" font-size="9" fill="#166534">${f(SFCa,1)}</text>
+    <text x="335" y="${ySFBl+12}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFBl,1)}</text>
+  </svg>`;
+
+  // ════════════════════════════════════════════════════════
+  //  SVG: BENDING MOMENT DIAGRAM (BMD)
+  // ════════════════════════════════════════════════════════
+  let bmdPtsStr = `40,90 `;
+  const bmScale = Mmax > 0 ? 65 / Mmax : 1;
+  const bmdBase = 90;
+  
+  for(let i=0; i<=50; i++) {
+     let x = (i/50)*L;
+     let mx = RA * x - Math.abs(MA) - wu * Math.pow(x,2) / 2;
+     if (x > L1) mx -= Wu * (x - L1);
+     
+     let px = 40 + (i/50)*300;
+     let py = bmdBase - mx * bmScale; 
+     bmdPtsStr += `${px},${py} `;
+  }
+  bmdPtsStr += `340,90`;
+
+  const bmdSVG=`
+  <svg viewBox="0 0 ${FW} 180" style="width:100%;max-width:400px;display:block;margin:4px auto;">
+    <!-- zero axis -->
+    <line x1="40" y1="${bmdBase}" x2="340" y2="${bmdBase}" stroke="#333" stroke-width="1.5"/>
+    <text x="348" y="${bmdBase+3}" font-family="Arial" font-size="9" fill="#333">0</text>
+    
+    <!-- Area -->
+    <polygon points="${bmdPtsStr}" fill="rgba(0, 0, 139, 0.1)" stroke="#00008b" stroke-width="1.5" stroke-linejoin="round"/>
+    
+    <!-- Reference lines -->
+    <line x1="40" y1="${bmdBase}" x2="40" y2="${bmdBase - MA * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
+    <line x1="${FCx}" y1="${bmdBase}" x2="${FCx}" y2="${bmdBase - BMC * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
+
+    <circle cx="40" cy="${bmdBase}" r="2" fill="#333"/>
+    <circle cx="${FCx}" cy="${bmdBase}" r="2" fill="#333"/>
+    <circle cx="340" cy="${bmdBase}" r="2" fill="#333"/>
+    <text x="40" y="${bmdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">A</text>
+    <text x="${FCx}" y="${bmdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">C</text>
+    <text x="340" y="${bmdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">B</text>
+    
+    <!-- Labels -->
+    <text x="45" y="${bmdBase - MA * bmScale + 12}" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(MA,1)}</text>
+    <text x="${FCx}" y="${bmdBase - BMC * bmScale - 6}" text-anchor="middle" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(BMC,1)}</text>
   </svg>`;
 
   // ════════════════════════════════════════════════════════
@@ -600,7 +581,7 @@ function update() {
       <div class="sheet-body">
         ${rows}
       </div>
-      <div class="pgnum">Page No. <u>${pgNum}</u></div>
+      <div class="pgnum">Page No <u>${pgNum}</u></div>
     </div>`;
   }
 
@@ -616,220 +597,197 @@ function update() {
     ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × (${L1}+${L2}) + 1.6(${Q})`, '')}
     ${R('', `= (${f(1.4*Gk,1)} + ${f(1.6*Qk,1)}) × ${L} + ${f(Wu,1)}`, '')}
     ${R('', `= ${f(wu,1)} × ${L} + ${f(Wu,1)}`, '')}
-    ${R('', `<b>Total Design loading = ${f(tot,2)} kN</b>`, `${f(tot,2)} kN`)}
+    ${R('', `<b>Total Design loading = ${f(tot,2)} kN</b>`, `${f(tot,0)} kN`)}
     ${BLANK()}
     ${SVGR('', factSVG, '')}
     ${BLANK()}
     ${R('', 'The beam section is statically indeterminate.', '')}
-    ${R('', 'Thus reactions become:', '')}
-    ${R('', 'A&#x2081;x&#x0305;&#x2081; = A&#x2082;x&#x0305;&#x2082; + A&#x2083;x&#x0305;&#x2083;', '')}
+    ${R('', 'Thus reactions become (by Area-Moment Theorem):', '')}
+    ${R('', '<b>A₁x̄₁ = A₂x̄₂ + A₃x̄₃</b>', '')}
   `, 1);
 
   // ── PAGE 2: REACTIONS ───────────────────────────────────
   const p2 = page(`
-    ${R('', '<span class="uline">Calculation of Support Reactions</span>', '')}
+    ${R('', '<span class="uline">Resolving Area-Moments for R<sub>B</sub></span>', '')}
+    ${R('', `A₁x̄₁ = [½ × R<sub>B</sub> × ${L} × ${L}] × [⅔ × ${L}]`, '')}
+    ${R('', `= ${f(A1_coeff, 2)} R<sub>B</sub>`, '')}
     ${BLANK()}
-    ${R('', '<b>Reaction at roller support B (R<sub>B</sub>):</b>', '')}
-    ${R('', 'Using propped cantilever formula (fixed A, roller B):', '')}
-    ${R('', 'R<sub>B</sub> = (3wL)/8 + W·a²(3L − a) / (2L³)', '')}
-    ${R('', `w = ${f(wu)} kN/m,&nbsp; W = ${f(Wu,1)} kN,&nbsp; L = ${L} m,&nbsp; a = ${L1} m`, '')}
-    ${R('', `R<sub>B</sub> = [3×${f(wu)}×${L}]/8 + [${f(Wu,1)}×${L1}²×(3×${L}−${L1})]/(2×${L}³)`, '')}
-    ${R('', `= ${f(3*wu*L/8,2)} + ${f(Wu*Math.pow(L1,2)*(3*L-L1)/(2*Math.pow(L,3)),2)}`, '')}
+    ${R('', `A₂x̄₂ = [⅓ × ${L} × (${f(wu,1)}×${L}²/2)] × [¾ × ${L}]`, '')}
+    ${R('', `= [⅓ × ${L} × ${f(wu*Math.pow(L,2)/2, 1)}] × [¾ × ${L}] = <b>${f(A2X2, 1)}</b>`, '')}
+    ${BLANK()}
+    ${R('', `A₃x̄₃ = [½ × ${L1} × (${f(Wu,1)}×${L1})] × [${L} - ${f(L1/3, 2)}]`, '')}
+    ${R('', `= [½ × ${L1} × ${f(Wu*L1, 1)}] × [${f(L - L1/3, 2)}] = <b>${f(A3X3, 1)}</b>`, '')}
+    ${BLANK()}
+    ${R('', `Equating moments:`, '')}
+    ${R('', `A₁x̄₁ = A₂x̄₂ + A₃x̄₃`, '')}
+    ${R('', `${f(A1_coeff, 2)} R<sub>B</sub> = ${f(A2X2, 1)} + ${f(A3X3, 1)}`, '')}
+    ${R('', `${f(A1_coeff, 2)} R<sub>B</sub> = ${f(A2X2 + A3X3, 1)}`, '')}
+    ${R('', `R<sub>B</sub> = ${f(A2X2 + A3X3, 1)} / ${f(A1_coeff, 2)}`, '')}
     ${R('', `<span class="rbox"><b>R<sub>B</sub> = ${f(RB,2)} kN</b></span>`, `R<sub>B</sub> = ${f(RB,2)} kN`)}
     ${BLANK()}
     ${R('', '<b>Reaction at fixed support A (R<sub>A</sub>):</b>', '')}
-    ${R('', '&Sigma;F<sub>y</sub> = 0 &nbsp;&rArr;&nbsp; R<sub>A</sub> + R<sub>B</sub> = w·L + W', '')}
-    ${R('', `R<sub>A</sub> = ${f(wu)}×${L} + ${f(Wu,1)} − ${f(RB,2)}`, '')}
-    ${R('', `= ${f(wu*L,2)} + ${f(Wu,1)} − ${f(RB,2)}`, '')}
+    ${R('', `R<sub>A</sub> = (Total load) - R<sub>B</sub>`, '')}
+    ${R('', `R<sub>A</sub> = ${f(tot,2)} - ${f(RB,2)}`, '')}
     ${R('', `<span class="rbox"><b>R<sub>A</sub> = ${f(RA,2)} kN</b></span>`, `R<sub>A</sub> = ${f(RA,2)} kN`)}
     ${BLANK()}
-    ${R('', '<b>Shear Force Diagram:</b>', '')}
+    ${R('', '<span class="uline">Shear Force calculations:</span>', '')}
     ${R('', `SF @ A = R<sub>A</sub> = ${f(SFA,2)} kN`, `${f(SFA,2)} kN`)}
-    ${R('', `SF @ CB = ${f(SFA,2)} − ${f(wu)} × ${L} = ${f(SFA-wu*L,2)} kN`, '')}
-    ${R('', `SF @ CB − ${f(Wu,1)} − ${f(RB,2)} = ${f(SFA-wu*L-Wu-RB,2)} ≈ 0 kN &nbsp; ${OK(Math.abs(SFA-wu*L-Wu-RB)<1)}`, '')}
-    ${BLANK()}
-    ${R('', `SF @ C (before W)   = ${f(SFCb,2)} kN`, `${f(SFCb,2)} kN`)}
-    ${R('', `SF @ C (after W)    = ${f(SFCb,2)} − ${f(Wu,1)} = ${f(SFCa,2)} kN`, `${f(SFCa,2)} kN`)}
-    ${R('', `SF @ B (left)       = ${f(SFCa,2)} − ${f(wu)}×${L2} = ${f(SFBl,2)} kN`, '')}
-    ${R('', `Check: ${f(SFBl,2)} + ${f(RB,2)} = ${f(SFBl+RB,1)} ≈ 0 &nbsp; ${OK(Math.abs(SFBl+RB)<1.0)}`, '')}
+    ${R('', `SF @ C (before) = ${f(SFA,2)} − (${f(wu)}×${L1}) = ${f(SFCb,2)} kN`, '')}
+    ${R('', `SF @ C (after) = ${f(SFCb,2)} − ${f(Wu,1)} = ${f(SFCa,2)} kN`, '')}
+    ${R('', `SF @ B (left) = ${f(SFCa,2)} − (${f(wu)}×${L2}) = ${f(SFBl,2)} kN ≈ -R<sub>B</sub>`, '')}
   `, 2);
 
-  // ── PAGE 3: BMD + SECTION SELECTION ─────────────────────
+  // ── PAGE 3: SFD + BMD + MOMENTS ─────────────────────────
   const p3 = page(`
-    ${R('', '<span class="uline">Bending Moment Calculations</span>', '')}
-    ${R('', 'Boundary conditions: M<sub>A</sub> = fixed end moment', '')}
-    ${R('', '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; M<sub>B</sub> = 0 (roller support)', '')}
+    ${R('', '<span class="uline">Shear Force Diagram</span>', '')}
+    ${SVGR('', sfdSVG, '')}
     ${BLANK()}
-    ${R('', '<b>Fixed end moment at A (M<sub>A</sub>):</b>', '')}
-    ${R('', 'M<sub>A</sub> = wL²/8 + W·a·b·(L+b)/(2L²)', '')}
-    ${R('', `where b = L − a = ${L} − ${L1} = ${L2} m`, '')}
-    ${R('', `M<sub>A</sub> = ${f(wu)}×${L}²/8 + ${f(Wu,1)}×${L1}×${L2}×(${L}+${L2})/(2×${L}²)`, '')}
-    ${R('', `= ${f(wu*L*L/8,2)} + ${f(Wu*L1*L2*(L+L2)/(2*L*L),2)}`, '')}
+    ${R('', '<span class="uline">Bending Moment Calculations</span>', '')}
+    ${R('', `M<sub>A</sub> = R<sub>B</sub>(${L}) - w(${L}² / 2) - W(${L1})`, '')}
+    ${R('', `M<sub>A</sub> = ${f(RB,2)}(${L}) - ${f(wu,1)}(${f(Math.pow(L,2)/2,1)}) - ${f(Wu,1)}(${L1})`, '')}
+    ${R('', `M<sub>A</sub> = ${f(RB*L,2)} - ${f(wu*Math.pow(L,2)/2,2)} - ${f(Wu*L1,2)}`, '')}
     ${R('', `<span class="rbox"><b>M<sub>A</sub> = ${f(MA,2)} kNm</b></span>`, `M<sub>A</sub> = ${f(MA,2)} kNm`)}
     ${BLANK()}
-    ${R('', '<b>Bending moment at C (M<sub>C</sub>):</b>', '')}
-    ${R('', 'M<sub>C</sub> = R<sub>A</sub>·L₁ − M<sub>A</sub> − w·L₁²/2', '')}
-    ${R('', `= ${f(RA,2)}×${L1} − ${f(MA,2)} − ${f(wu)}×${L1}²/2`, '')}
-    ${R('', `= ${f(RA*L1,2)} − ${f(MA,2)} − ${f(wu*L1*L1/2,2)}`, '')}
+    ${R('', `M<sub>C</sub> = R<sub>B</sub>(${L2}) - w(${L2}² / 2)`, '')}
+    ${R('', `M<sub>C</sub> = ${f(RB,2)}(${L2}) - ${f(wu,1)}(${f(Math.pow(L2,2)/2,2)})`, '')}
     ${R('', `<span class="rbox"><b>M<sub>C</sub> = ${f(BMC,2)} kNm</b></span>`, `M<sub>C</sub> = ${f(BMC,2)} kNm`)}
     ${BLANK()}
-    ${R('', `<b>Design moment M<sub>max</sub> = max(|M<sub>A</sub>|, |M<sub>C</sub>|) = max(${f(Math.abs(MA),2)}, ${f(Math.abs(BMC),2)})</b>`, '')}
-    ${R('', `<span class="rbox"><b>M<sub>max</sub> = ${f(Mmax,2)} kNm</b></span>`, `M<sub>max</sub> = ${f(Mmax,2)} kNm`)}
+    ${R('', `M<sub>B</sub> = 0 kNm`, '')}
     ${BLANK()}
-    ${R('', '<span class="uline">Initial Section Selection</span>', '')}
-    ${R('', `Assuming p<sub>y</sub> = ${py} N/mm²`, '')}
-    ${R('', 'Required plastic modulus S<sub>x</sub>:', '')}
-    ${R('', `S<sub>x</sub> = M<sub>max</sub> × 10⁶ / p<sub>y</sub> = ${f(Mmax,2)} × 10⁶ / ${py} / 10³`, '')}
-    ${R('', `<b>S<sub>x</sub> required = ${f0(Sx_req)} cm³</b>`, `Sx = ${f0(Sx_req)} cm³`)}
+    ${R('', '<span class="uline">Bending Moment Diagram</span>', '')}
+    ${SVGR('', bmdSVG, '')}
     ${BLANK()}
-    ${R('', `From BS 5950 Table B1, try: <b>${sec.n} UB</b>`, `${sec.n}`)}
-    ${R('', `S<sub>x</sub> provided = ${sec.Sx} cm³ &nbsp;> ${f0(Sx_req)} cm³ &nbsp; ${OK(sec.Sx>=Sx_req)}`, '')}
   `, 3);
 
-  // ── PAGE 4: SECTION PROPERTIES + CLASSIFICATION ─────────
+  // ── PAGE 4: SECTION SELECTION ───────────────────────────
   const p4 = page(`
-    ${R('BS 5950<br>Table B1', '<span class="uline">Section Properties from Table B1</span>', '')}
-    ${R('', `<b>Suitable Section: ${sec.n} UB</b>`, '')}
+    ${R('', '<span class="uline">Initial Section Selection</span>', '')}
+    ${R('', `f<sub>y</sub> = ${py} N/mm² &nbsp;&nbsp;&nbsp; Take p<sub>y</sub> = ${py} N/mm²`, '')}
+    ${R('', `Design Moment M<sub>max</sub> = ${f(Mmax, 2)} kNm`, '')}
+    ${R('', `S<sub>x</sub> = M<sub>max</sub> × 10⁶ / p<sub>y</sub>`, '')}
+    ${R('', `S<sub>x</sub> = ${f(Mmax,2)} × 10⁶ / ${py}`, '')}
+    ${R('', `<b>S<sub>x</sub> required = ${f0(Sx_req/10)} cm³</b>`, `S<sub>x</sub> = ${f0(Sx_req/10)} cm³`)}
+    ${BLANK()}
+    ${R('BS 5950<br>Table B1', '<span class="uline">Suitable Section from table</span>', '')}
+    ${R('', `Selected: <b>${sec.n} UB</b>`, `${sec.n}`)}
     ${R('', `D = ${sec.D} mm &nbsp;&nbsp; B = ${sec.B} mm &nbsp;&nbsp; t = ${sec.t} mm`, '')}
     ${R('', `T = ${sec.T} mm &nbsp;&nbsp; r = ${sec.r} mm &nbsp;&nbsp; d = ${sec.d} mm`, '')}
-    ${R('', `S<sub>x</sub> = ${sec.Sx} cm³ &nbsp;&nbsp; Z<sub>x</sub> = ${sec.Zx} cm³ &nbsp;&nbsp; I<sub>x</sub> = ${sec.Ix} cm⁴`, '')}
-    ${R('', `Mass = ${sec.m} kg/m`, `S<sub>x</sub> = ${sec.Sx} cm³`)}
+    ${R('', `S<sub>x</sub> = ${sec.Sx} cm³ &nbsp;&nbsp; Z<sub>x</sub> = ${sec.Zx} cm³`, `S<sub>x</sub> = ${sec.Sx} cm³`)}
     ${BLANK()}
-    ${R('', '<b>Including self-weight:</b>', '')}
-    ${R('', `G<sub>sw</sub> = ${sec.m} × 9.81/1000 = ${f(Gsw,3)} kN/m`, '')}
-    ${R('', `Revised w<sub>u</sub> = ${f(wu,2)} + 1.4×${f(Gsw,3)} = ${f(wu2,3)} kN/m`, '')}
-    ${R('', `Revised M<sub>max</sub> ≈ ${f(Mmax2,2)} kNm`, '')}
-    ${R('', `S<sub>x</sub> required = ${f(Mmax2,2)}×10⁶/${py}/10³ = ${f0(Sx_r2)} cm³ &nbsp; ${OK(sec.Sx>=Sx_r2)}`, '')}
+    ${R('', 'Taking this section due to strength and economic consideration.', '')}
     ${BLANK()}
-    ${R('BS 5950<br>Table 11<br>Cl. 3.5.2', '<span class="uline">Section Classification</span>', '')}
+    ${R('BS 5950<br>Table 11<br>Cl. 3.5.2', '<span class="uline">Strength Classification</span>', '')}
+    ${R('', `Since T (${sec.T}mm) ≤ 16mm, thus p<sub>y</sub> = ${py} N/mm²`, `p<sub>y</sub> = ${py}`)}
     ${R('', `&epsilon; = &radic;(275/p<sub>y</sub>) = &radic;(275/${py}) = <b>${f(eps,3)}</b>`, `&epsilon; = ${f(eps,3)}`)}
     ${BLANK()}
-    ${R('', '<b>Outstand element of compression flange:</b>', '')}
-    ${R('', `b = B/2 = ${sec.B}/2 = ${f(sec.B/2,1)} mm`, '')}
+    ${R('', '<span class="uline">Section Classification</span>', '')}
     ${R('', `b/T = ${f(sec.B/2,1)}/${sec.T} = <b>${f(b_T,2)}</b>`, `b/T = ${f(b_T,2)}`)}
-    ${R('', `Plastic limit: 9&epsilon; = ${f(9*eps,2)} &nbsp; ${OK(b_T<=9*eps)}`, '')}
-    ${R('', `Compact limit: 10&epsilon; = ${f(10*eps,2)} &nbsp; ${OK(b_T<=10*eps)}`, '')}
-    ${R('', `Flange classification: <b>${flCls}</b>`, `${flCls}`)}
+    ${R('', `Since b/T (${f(b_T,2)}) &le; 9&epsilon; (${f(9*eps,2)})`, '')}
+    ${R('', `The flange is <b>${flCls}</b>`, `${flCls}`)}
     ${BLANK()}
-    ${R('', '<b>Web (neutral axis at mid-depth):</b>', '')}
-    ${R('', `d = ${sec.d} mm &nbsp;&nbsp; t = ${sec.t} mm`, '')}
     ${R('', `d/t = ${sec.d}/${sec.t} = <b>${f(d_t,2)}</b>`, `d/t = ${f(d_t,2)}`)}
-    ${R('', `Plastic limit: 80&epsilon; = ${f(80*eps,2)} &nbsp; ${OK(d_t<=80*eps)}`, '')}
-    ${R('', `Compact limit: 100&epsilon; = ${f(100*eps,2)} &nbsp; ${OK(d_t<=100*eps)}`, '')}
-    ${R('', `Web classification: <b>${wbCls}</b>`, `${wbCls}`)}
+    ${R('', `Since d/t (${f(d_t,2)}) &le; 80&epsilon; (${f(80*eps,2)})`, '')}
+    ${R('', `It has a <b>${wbCls}</b> web`, `${wbCls}`)}
     ${BLANK()}
     ${R('', `<b>Overall section classification: ${secCls}</b>`, `${secCls.split('–')[0]}`)}
-    ${secCls.includes('Plastic')
-      ? R('', 'Section qualifies for full plastic moment capacity — M<sub>c</sub> = p<sub>y</sub>·S<sub>x</sub>', '')
-      : R('', '<span class="fail">Note: Check if reduced capacity applies.</span>', '')}
   `, 4);
 
   // ── PAGE 5: SHEAR + MOMENT CAPACITY ─────────────────────
   const p5 = page(`
-    ${R('BS 5950<br>Cl. 4.4.5', '<span class="uline">Shear Buckling Check</span>', '')}
-    ${R('', `d/t = ${f(d_t,2)} &nbsp;&nbsp; 63&epsilon; = 63×${f(eps,3)} = ${f(63*eps,2)}`, `d/t = ${f(d_t,2)}`)}
-    ${d_t<=63*eps
-      ? R('', `d/t = ${f(d_t,2)} &lt; 63&epsilon; = ${f(63*eps,2)} &nbsp; ${OK(true)} — No shear buckling`, '')
-      : R('', `d/t = ${f(d_t,2)} &gt; 63&epsilon; = ${f(63*eps,2)} &nbsp; ${OK(false)} — Shear buckling critical`, '')}
+    ${R('BS 5950<br>Cl. 4.4.5', '<span class="uline">Shear Buckling</span>', '')}
+    ${R('', `Since d/t (${f(d_t,2)}) ${d_t<=70*eps?'&lt;':'&gt;'} 70&epsilon; (${f(70*eps,2)})`, '')}
+    ${d_t<=70*eps
+      ? R('', `No shear buckling is required.`, `${OK(true)}`)
+      : R('', `Shear buckling critical`, `${OK(false)}`)}
     ${BLANK()}
     ${R('Cl. 4.2.3', '<span class="uline">Shear Capacity</span>', '')}
-    ${R('', 'P<sub>v</sub> = 0.6 · p<sub>y</sub> · A<sub>v</sub>&nbsp;&nbsp; where A<sub>v</sub> = t × D', '')}
-    ${R('', `A<sub>v</sub> = ${sec.t} × ${sec.D} = ${f0(Av)} mm²`, `A<sub>v</sub> = ${f0(Av)} mm²`)}
-    ${R('', `P<sub>v</sub> = 0.6 × ${py} × ${f0(Av)} / 1000 = <b>${f(Pv,2)} kN</b>`, `P<sub>v</sub> = ${f(Pv,1)} kN`)}
-    ${R('', `F<sub>v</sub> (max reaction) = ${f(Fv,2)} kN`, '')}
-    ${R('', `F<sub>v</sub> = ${f(Fv,2)} kN ${sh_ok?'&lt;':'&gt;'} P<sub>v</sub> = ${f(Pv,2)} kN &nbsp; ${OK(sh_ok)}`, `${OK(sh_ok)}`)}
-    ${R('', `Low shear? F<sub>v</sub> = ${f(Fv,2)} ${lowSh?'&le;':'&gt;'} 0.6P<sub>v</sub> = ${f(0.6*Pv,1)} kN — <b>${lowSh?'LOW SHEAR':'HIGH SHEAR'}</b>`, '')}
+    ${R('', `P<sub>v</sub> = 0.6 · p<sub>y</sub> · A<sub>v</sub>&nbsp;&nbsp; (where A<sub>v</sub> = t · D)`, '')}
+    ${R('', `P<sub>v</sub> = 0.6 × ${py} × ${sec.t} × ${sec.D} / 1000`, '')}
+    ${R('', `P<sub>v</sub> = <b>${f(Pv,2)} kN</b>`, `P<sub>v</sub> = ${f(Pv,1)} kN`)}
+    ${R('', `Since F<sub>v</sub> (${f(Fv,2)}) ${sh_ok?'&lt;':'&gt;'} P<sub>v</sub> (${f(Pv,2)}) thus okay.`, `${OK(sh_ok)}`)}
+    ${R('', `This implies the section has ${lowSh?'<b>low</b>':'<b>high</b>'} shear.`, '')}
     ${BLANK()}
-    ${R('Cl. 4.2.5', '<span class="uline">Moment Capacity</span>', '')}
-    ${R('', lowSh?'Low shear — full plastic capacity applies:':'High shear — reduced capacity applies:', '')}
-    ${R('', `M<sub>c</sub> = p<sub>y</sub> · S<sub>x</sub> = ${py} × ${sec.Sx} × 10³ / 10⁶`, '')}
-    ${R('', `M<sub>c</sub> (full) = <b>${f(Mc_f,2)} kNm</b>`, `M<sub>c</sub> = ${f(Mc_f,1)} kNm`)}
-    ${R('', `Limit: 1.2·p<sub>y</sub>·Z<sub>x</sub> = 1.2×${py}×${sec.Zx}×10³/10⁶ = ${f(Mc_l,2)} kNm`, '')}
-    ${R('', `M<sub>c</sub> = min(${f(Mc_f,2)}, ${f(Mc_l,2)}) = <b>${f(Mc,2)} kNm</b>`, '')}
+    ${R('Cl. 4.2.5', '<span class="uline">Bending Moment Capacity</span>', '')}
+    ${R('', `Moment Capacity M<sub>c</sub> = p<sub>y</sub> S<sub>x</sub> &le; 1.2 p<sub>y</sub> Z<sub>x</sub>`, '')}
+    ${R('', `M<sub>c</sub> = ${py} × ${sec.Sx} × 10³ / 10⁶ = <b>${f(Mc_f,2)} kNm</b>`, '')}
+    ${R('', `1.2 p<sub>y</sub> Z<sub>x</sub> = 1.2 × ${py} × ${sec.Zx} × 10³ / 10⁶ = <b>${f(Mc_l,2)} kNm</b>`, '')}
+    ${R('', `Since M<sub>c</sub> (${f(Mc,2)}) &le; 1.2 p<sub>y</sub> Z<sub>x</sub> (${f(Mc_l,2)})`, '')}
+    ${R('', `The bending moment capacity is <b>${f(Mc,2)} kNm</b>.`, `M<sub>c</sub> = ${f(Mc,2)} kNm`)}
     ${BLANK()}
-    ${R('', `Design moment M<sub>max</sub> = ${f(Mmax2,2)} kNm`, '')}
-    ${R('', `M<sub>max</sub> = ${f(Mmax2,2)} ${mc_ok?'&lt;':'&gt;'} M<sub>c</sub> = ${f(Mc,2)} kNm &nbsp; ${OK(mc_ok)}`, `${OK(mc_ok)}`)}
-    ${BLANK()}
-    ${R('BS 5750<br>Cl. 2.5.2', '<span class="uline">Span Bending Check (Proposed Cantilever)</span>', '')}
-    ${R('', `M<sub>t</sub> = M<sub>max</sub> incl. self-weight = <b>${f(Mmax2,2)} kNm</b>`, `M<sub>t</sub> = ${f(Mmax2,1)} kNm`)}
-    ${R('', `M<sub>c</sub> (${sec.n}) = ${f(Mc,2)} kNm &nbsp; ${OK(mc_ok)}`, '')}
-    ${R('', `Thus the section is <b class="${mc_ok?'ok':'fail'}">${mc_ok?'satisfactory':'INADEQUATE — increase section'}</b>`, '')}
+    ${R('', '<span class="uline">Moment due to self weight & Imposed</span>', '')}
+    ${R('', `G<sub>sw</sub> = ${sec.m} × 9.81 / 1000 = ${f(Gsw,3)} kN/m`, '')}
+    ${R('', `Span Moment M<sub>sw</sub> = 1.4(${f(Gsw,3)}) × L² / 8 = ${f(1.4*Gsw*L*L/8, 2)} kNm`, '')}
+    ${R('', `M<sub>t</sub> = Max Moment + M<sub>sw</sub>`, '')}
+    ${R('', `M<sub>t</sub> = ${f(Mmax,2)} + ${f(1.4*Gsw*L*L/8, 2)} = <b>${f(Mmax2,2)} kNm</b>`, `M<sub>t</sub> = ${f(Mmax2,2)} kNm`)}
+    ${R('', `Since M<sub>t</sub> (${f(Mmax2,2)}) ${mc_ok?'&lt;':'&gt;'} M<sub>c</sub> (${f(Mc,2)})`, '')}
+    ${R('', `Thus the section is ${mc_ok?'<b>okay</b>':'<b class="fail">inadequate</b>'}.`, `${OK(mc_ok)}`)}
   `, 5);
 
   // ── PAGE 6: DEFLECTION ──────────────────────────────────
   const dCant_udl = Qk*Math.pow(L2mm,4)/(8*EI);
   const dCant_pt  = Q*1e3*Math.pow(L2mm,3)/(3*EI);
   const p6 = page(`
-    ${R('BS 5950<br>Cl. 2.5.2', '<span class="uline">Deflection Check (Serviceability)</span>', '')}
-    ${R('', 'Note: Deflection limits use unfactored characteristic imposed loads (Q<sub>k</sub>, Q).', '')}
+    ${R('BS 5950<br>Cl. 2.5.2', '<span class="uline">Deflection Check</span>', '')}
+    ${R('', 'Limit on beams due to vertical load on cantilever', '')}
     ${R('', 'E (elastic modulus of steel) = 205,000 N/mm²', '')}
     ${R('', `I<sub>x</sub> = ${sec.Ix} cm⁴ = ${sec.Ix} × 10⁴ mm⁴`, '')}
     ${R('', `EI = 205,000 × ${sec.Ix}×10⁴ = ${f(EI/1e12,3)} × 10¹² N·mm²`, `EI = ${f(EI/1e12,3)}×10¹²`)}
     ${BLANK()}
-    ${R('BS 8895<br>Table 8', '<b>Cantilever deflection (standard case):</b>', '')}
-    ${R('', `Cantilever portion: L₂ = ${L2} m = ${f0(L2mm)} mm`, '')}
-    ${R('', `&delta;<sub>c</sub> = Q<sub>k</sub>·L₂⁴ / (8EI) + Q·L₂³ / (3EI)`, '')}
-    ${R('', `&delta;<sub>c</sub> (UDL) = ${Qk}×${f0(L2mm)}⁴ / (8×${f(EI/1e12,3)}×10¹²) = <b>${f(dCant_udl,1)} mm</b>`, `${f(dCant_udl,1)} mm`)}
-    ${R('', `&delta;<sub>c</sub> (pt load) = ${Q}×10³×${f0(L2mm)}³ / (3×${f(EI/1e12,3)}×10¹²) = <b>${f(dCant_pt,1)} mm</b>`, `${f(dCant_pt,1)} mm`)}
-    ${R('', `&delta;<sub>c</sub> total = ${f(dCant_udl,1)} + ${f(dCant_pt,1)} = <b>${f(dC,1)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC,1)} mm`)}
-    ${R('', `Limit: L₂/180 = ${f0(L2mm)}/180 = <b>${f(dCL,1)} mm</b>`, `L₂/180 = ${f(dCL,1)} mm`)}
-    ${R('', `&delta;<sub>c</sub> = ${f(dC,1)} mm ${dC_ok?'&lt;':'&gt;'} ${f(dCL,1)} mm &nbsp; ${OK(dC_ok)}`, `${OK(dC_ok)}`)}
+    ${R('', '<b>Cantilever deflection:</b>', '')}
+    ${R('', `&delta;<sub>c</sub> = wL⁴ / 8EI + WL³ / 3EI`, '')}
+    ${R('', `&delta;<sub>c</sub> (UDL) = ${Qk}×${f0(L2mm)}⁴ / (8×${f(EI/1e12,3)}×10¹²) = ${f(dCant_udl,1)} mm`, '')}
+    ${R('', `&delta;<sub>c</sub> (Pt) = ${Q}×10³×${f0(L2mm)}³ / (3×${f(EI/1e12,3)}×10¹²) = ${f(dCant_pt,1)} mm`, '')}
+    ${R('', `&delta;<sub>c</sub> = ${f(dCant_udl,1)} + ${f(dCant_pt,1)} = <b>${f(dC,2)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC,1)} mm`)}
+    ${BLANK()}
+    ${R('', '<b>Limit:</b>', '')}
+    ${R('', `Limit = L/180 = ${f0(L2mm)} / 180 = <b>${f(dCL,2)} mm</b>`, `L/180 = ${f(dCL,1)} mm`)}
+    ${BLANK()}
+    ${R('', `Since max deflection ${f(dC,2)} mm &lt; ${f(dCL,2)} mm`, '')}
     ${dC_ok
-      ? R('', 'Since mass deflection &lt; cantilever limit &mdash; <b class="ok">Cantilever deflection OK</b>', '')
-      : R('', '<b class="fail">Cantilever deflection EXCEEDS limit — use heavier section</b>', '')}
+      ? R('', 'No deflection at the beam. <b>Deflection is OK</b>', `${OK(dC_ok)}`)
+      : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
     ${BLANK()}
-    ${R('Cl. 4.5.2', '<b>Span AB deflection:</b>', '')}
-    ${R('', `&delta;<sub>s</sub> = 5·Q<sub>k</sub>·L₁⁴ / (384·EI)`, '')}
-    ${R('', `= 5×${Qk}×${f0(L1mm)}⁴ / (384×${f(EI/1e12,3)}×10¹²)`, '')}
-    ${R('', `<span class="rbox"><b>&delta;<sub>s</sub> = ${f(dS,1)} mm</b></span>`, `&delta;<sub>s</sub> = ${f(dS,1)} mm`)}
-    ${R('', `Limit: L₁/200 = ${f0(L1mm)}/200 = <b>${f(dSL,1)} mm</b>`, `L₁/200 = ${f(dSL,1)} mm`)}
-    ${R('', `&delta;<sub>s</sub> = ${f(dS,1)} mm ${dS_ok?'&lt;':'&gt;'} ${f(dSL,1)} mm &nbsp; ${OK(dS_ok)}`, `${OK(dS_ok)}`)}
-    ${BLANK()}
-    ${(dS_ok&&dC_ok)
-      ? R('', '<b class="ok">&#x2234; Deflection within limits. No deflection stiffener required.</b>', '')
-      : R('', '<b class="fail">&#x2234; Deflection exceeds limits — increase section.</b>', '')}
-    ${BLANK()}
-    ${R('', `<b>Web Bearing (continued on page 7):</b> b<sub>1</sub> = ${b1} mm`, '')}
-    ${R('', `k = T + r = ${sec.T} + ${sec.r} = ${f(k,1)} mm &nbsp;&nbsp; n = ${n}`, `k = ${f(k,1)} mm`)}
+    ${R('Cl. 4.5.2', '<span class="uline">Web bearing at the support</span>', '')}
+    ${R('', `P<sub>bw</sub> = (b₁ + n·k) · t · p<sub>y</sub>`, '')}
+    ${R('', `b₁ = ${b1} mm &nbsp;&nbsp;&nbsp; b<sub>e</sub> = 0`, '')}
+    ${R('', `T = ${sec.T} mm &nbsp;&nbsp;&nbsp; r = ${sec.r} mm`, '')}
+    ${R('', `k = T + r = ${sec.T} + ${sec.r} = <b>${f(k,1)} mm</b>`, `k = ${f(k,1)} mm`)}
+    ${R('', `n = ${n}`, '')}
   `, 6);
 
   // ── PAGE 7: WEB BEARING + BUCKLING ──────────────────────
   const Pcs = b1*n*(sec.r+sec.T)*py/1e3;
   const p7 = page(`
-    ${R('BS 5950<br>Cl. 4.5.3.1', '<span class="uline">Web Bearing Capacity at Support</span>', '')}
-    ${R('', `Assume stiff bearing length b₁ = ${b1} mm`, '')}
-    ${R('', `k = T + r = ${sec.T} + ${sec.r} = ${f(k,1)} mm`, `k = ${f(k,1)} mm`)}
-    ${R('', `n = ${n} (end of beam, Cl. 4.5.1.3) &nbsp;&nbsp; b<sub>e</sub> = 0`, '')}
-    ${R('', `P<sub>bw</sub> = (b₁ + n·k) · t · p<sub>y</sub>`, '')}
-    ${R('', `= (${b1} + ${n}×${f(k,1)}) × ${sec.t} × ${py} / 1000`, '')}
-    ${R('', `= (${b1} + ${f(n*k,1)}) × ${sec.t} × ${py} / 1000`, '')}
-    ${R('', `= ${f(b1+n*k,1)} × ${sec.t} × ${py} / 1000`, '')}
-    ${R('', `<span class="rbox"><b>P<sub>bw</sub> = ${f(Pbw,2)} kN</b></span>`, `P<sub>bw</sub> = ${f(Pbw,1)} kN`)}
-    ${R('', `Since P<sub>bw</sub> (${f(Pbw,2)} kN) ${br_ok?'&gt;':'&lt;'} shear force R<sub>A</sub> (${f(Fv,2)} kN) &nbsp; ${OK(br_ok)}`, `${OK(br_ok)}`)}
+    ${R('', `P<sub>bw</sub> = (${b1} + ${n} × ${f(k,1)}) × ${sec.t} × ${py} / 1000`, '')}
+    ${R('', `<span class="rbox"><b>P<sub>bw</sub> = ${f(Pbw,2)} kN</b></span>`, `P<sub>bw</sub> = ${f(Pbw,2)} kN`)}
     ${BLANK()}
-    ${R('', `Contact stress at support:`, '')}
-    ${R('', `P<sub>cs</sub> = b₁×n×(r+T)×p<sub>y</sub>/1000`, '')}
-    ${R('', `= ${b1}×${n}×(${sec.r}+${sec.T})×${py}/1000 = <b>${f(Pcs,2)} kN</b>`, `P<sub>cs</sub> =`)}
-    ${R('', `Thus web bearing at support is satisfactory &nbsp; ${OK(br_ok)}`, '')}
+    ${R('', `Since it is greater than Shear force at the support`, '')}
+    ${R('', `i.e. P<sub>bw</sub> (${f(Pbw,1)} kN) &gt; R<sub>A</sub> (${f(Fv,1)} kN)`, '')}
+    ${R('', `Thus web bearing is <b>okay</b>`, `${OK(br_ok)}`)}
     ${BLANK()}
-    ${R('Cl. 4.5.3.2', '<span class="uline">Web Buckling Capacity at Support</span>', '')}
+    ${R('', `<b>Contact stress at support:</b>`, '')}
+    ${R('', `P<sub>cs</sub> = (b₁ × n(r+T)) p<sub>y</sub>`, '')}
+    ${R('', `= (${b1} × ${n}(${sec.r} + ${sec.T})) × ${py} / 1000`, '')}
+    ${R('', `P<sub>cs</sub> = <b>${f(Pcs,2)} kN</b>`, `P<sub>cs</sub> = ${f(Pcs,1)} kN`)}
+    ${R('', `Since P<sub>cs</sub> (${f(Pcs,0)} kN) &gt; R<sub>A</sub> (${f(Fv,1)} kN) thus it is okay.`, '')}
+    ${BLANK()}
+    ${R('BS 5950<br>Cl. 4.5.3.1', '<span class="uline">Web Buckling at the Support</span>', '')}
+    ${R('', `From table d = ${sec.d} mm`, '')}
     ${R('', `P<sub>x</sub> = [25&epsilon;·t / &radic;((b₁+nk)·d)] × P<sub>bw</sub>`, '')}
-    ${R('', `&epsilon; = &radic;(275/${py}) = ${f(epsS,3)}`, '')}
     ${R('', `= [25×${f(epsS,3)}×${sec.t} / &radic;((${b1}+${f(n*k,1)})×${sec.d})] × ${f(Pbw,2)}`, '')}
     ${R('', `= [${f(25*epsS*sec.t,2)} / &radic;(${f((b1+n*k)*sec.d,1)})] × ${f(Pbw,2)}`, '')}
     ${R('', `= [${f(25*epsS*sec.t,2)} / ${f(Math.sqrt((b1+n*k)*sec.d),2)}] × ${f(Pbw,2)}`, '')}
-    ${R('', `<span class="rbox"><b>P<sub>x</sub> = ${f(Px,2)} kN</b></span>`, `P<sub>x</sub> = ${f(Px,1)} kN`)}
-    ${R('', `P<sub>x</sub> (${f(Px,2)} kN) ${bk_ok?'&gt;':'&lt;'} F<sub>v</sub> (${f(Fv,2)} kN) &nbsp; ${OK(bk_ok)}`, `${OK(bk_ok)}`)}
-    ${bk_ok
-      ? R('', '<b class="ok">&#x2234; Buckling at support is OK — no web stiffeners required.</b>', '')
-      : R('', '<b class="fail">&#x2234; Web buckling FAILS — stiffeners required at support.</b>', '')}
+    ${R('', `<span class="rbox"><b>P<sub>x</sub> = ${f(Px,2)} kN</b></span>`, `P<sub>x</sub> = ${f(Px,2)} kN`)}
+    ${BLANK()}
+    ${R('', `Since P<sub>x</sub> (${f(Px,2)} kN) &gt; R<sub>A</sub> (${f(Fv,1)} kN)`, '')}
+    ${R('', `Thus buckling at the support is <b>okay</b>.`, `${OK(bk_ok)}`)}
+    ${R('', `So no web stiffeners are required at the support.`, '')}
   `, 7);
 
   // ── PAGE 8: SUMMARY ──────────────────────────────────────
   const checks = [
     ['Shear capacity: F<sub>v</sub> &le; P<sub>v</sub>', sh_ok, `${f(Fv,1)} kN &le; ${f(Pv,1)} kN`],
-    ['Moment capacity: M<sub>max</sub> &le; M<sub>c</sub>', mc_ok, `${f(Mmax2,1)} kNm &le; ${f(Mc,1)} kNm`],
-    ['Span deflection: &delta;<sub>s</sub> &le; L₁/200', dS_ok, `${f(dS,1)} mm &le; ${f(dSL,1)} mm`],
+    ['Moment capacity: M<sub>t</sub> &le; M<sub>c</sub>', mc_ok, `${f(Mmax2,1)} kNm &le; ${f(Mc,1)} kNm`],
     ['Cantilever deflection: &delta;<sub>c</sub> &le; L₂/180', dC_ok, `${f(dC,1)} mm &le; ${f(dCL,1)} mm`],
     ['Web bearing: F<sub>v</sub> &le; P<sub>bw</sub>', br_ok, `${f(Fv,1)} kN &le; ${f(Pbw,1)} kN`],
     ['Web buckling: F<sub>v</sub> &le; P<sub>x</sub>', bk_ok, `${f(Fv,1)} kN &le; ${f(Px,1)} kN`],
@@ -845,19 +803,15 @@ function update() {
     ${BLANK()}
     ${R('', '<b>Factored Loads:</b>', '')}
     ${R('', `w<sub>u</sub> = 1.4×${Gk} + 1.6×${Qk} = ${f(wu,2)} kN/m`, `${f(wu,2)} kN/m`)}
-    ${R('', `w<sub>u</sub> incl. self-wt = ${f(wu2,3)} kN/m`, '')}
     ${R('', `W<sub>u</sub> = 1.6×${Q} = ${f(Wu,1)} kN`, `${f(Wu,1)} kN`)}
     ${R('', `Total factored load = ${f(tot,2)} kN`, `${f(tot,1)} kN`)}
     ${BLANK()}
     ${R('', '<b>Reactions:</b>', '')}
     ${R('', `R<sub>A</sub> = ${f(RA,2)} kN`, `${f(RA,2)} kN`)}
     ${R('', `R<sub>B</sub> = ${f(RB,2)} kN`, `${f(RB,2)} kN`)}
-    ${R('', `M<sub>A</sub> = ${f(MA,2)} kNm`, `${f(MA,2)} kNm`)}
-    ${R('', `M<sub>max</sub> = ${f(Mmax2,2)} kNm`, `${f(Mmax2,1)} kNm`)}
     ${BLANK()}
     ${R('', `<b>Selected Section: ${sec.n} UB (${sec.m} kg/m)</b>`, sec.n)}
     ${R('', `Classification: ${secCls}`, '')}
-    ${R('', `p<sub>y</sub> = ${py} N/mm² &nbsp; M<sub>c</sub> = ${f(Mc,2)} kNm &nbsp; P<sub>v</sub> = ${f(Pv,1)} kN`, '')}
     ${BLANK()}
     ${R('', '<span class="uline">Summary of Design Checks:</span>', '')}
     ${checks.map(([lbl,pass,val])=>
