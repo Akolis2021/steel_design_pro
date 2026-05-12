@@ -1,257 +1,895 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Structural Steel Design - Word-for-Word Walkthrough</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Inter:wght@400;600;700&display=swap');
-        
-        body { font-family: 'Inter', sans-serif; background-color: #e5e7eb; }
-        
-        .notebook-page {
-            background: white;
-            background-image: linear-gradient(#e5e7eb 1px, transparent 1px);
-            background-size: 100% 1.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            border-left: 2px solid #ff0000;
-            padding: 3rem 2rem 3rem 4rem;
-            min-height: 11.69in; /* A4 Ratio */
-            width: 8.27in;
-            margin: 2rem auto;
-            position: relative;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CVE 502 – Steel Beam Design to BS 5950</title>
+  <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap" rel="stylesheet">
+  <style>
+    /* ── Global ─────────────────────────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .handwritten {
-            font-family: 'Architects Daughter', cursive;
-            color: #00008b;
-            line-height: 1.5rem;
-        }
+    body {
+      background: #b8bec8;
+      font-family: 'Architects Daughter', cursive;
+      padding-bottom: 88px;
+    }
 
-        .diagram-container {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 20px 0;
-            background: #fff;
-        }
+    /* ── A4 Page ─────────────────────────────────────────── */
+    .page {
+      background: #fffef9;
+      background-image: repeating-linear-gradient(
+        transparent 0px, transparent 23px,
+        #dde6ef    23px, #dde6ef    24px
+      );
+      width: 210mm;
+      min-height: 297mm;
+      margin: 16px auto;
+      box-shadow: 0 4px 24px rgba(0,0,0,.25);
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+    }
 
-        @media (max-width: 8.5in) {
-            .notebook-page { width: 95%; padding: 2rem 1rem 2rem 2.5rem; }
-        }
+    /* red margin strip */
+    .page::before {
+      content: '';
+      position: absolute;
+      left: 21mm;
+      top: 0; bottom: 0;
+      border-left: 2px solid #cc0000;
+      pointer-events: none;
+      z-index: 1;
+    }
 
-        input { font-family: sans-serif !important; font-weight: bold; }
-    </style>
+    /* ── 3-column table header ──────────────────────────── */
+    .tbl-head {
+      display: grid;
+      grid-template-columns: 21mm 1fr 32mm;
+      border: 2px solid #222;
+      margin: 5mm 5mm 0;
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .tbl-head div {
+      padding: 4px 6px;
+      text-align: center;
+    }
+    .tbl-head div:not(:last-child) {
+      border-right: 1.5px solid #222;
+    }
+
+    /* ── 3-column calculation body ──────────────────────── */
+    /*  KEY FIX: sheet-body IS the grid.
+        Every row = exactly 3 direct children: .rc .cc .oc
+        No nested tables or grids anywhere.              */
+    .sheet-body {
+      display: grid;
+      grid-template-columns: 21mm 1fr 32mm;
+      border: 2px solid #222;
+      border-top: none;
+      margin: 0 5mm 4mm;
+      flex: 1;
+      align-content: start;
+    }
+
+    /* Reference cell */
+    .rc {
+      border-right: 1.5px solid #222;
+      border-bottom: 1px solid #dde6ef;
+      padding: 1px 4px;
+      font-size: 8.5px;
+      color: #666;
+      line-height: 24px;
+      min-height: 24px;
+    }
+
+    /* Calculation cell */
+    .cc {
+      border-right: 1.5px solid #222;
+      border-bottom: 1px solid #dde6ef;
+      padding: 1px 8px;
+      font-size: 12px;
+      color: #00008b;
+      line-height: 24px;
+      min-height: 24px;
+    }
+
+    /* Output cell */
+    .oc {
+      border-bottom: 1px solid #dde6ef;
+      padding: 1px 5px;
+      font-size: 11px;
+      color: #00008b;
+      line-height: 24px;
+      min-height: 24px;
+      text-align: right;
+    }
+
+    /* Taller rows (for diagrams) */
+    .rc.tall, .cc.tall, .oc.tall { min-height: auto; line-height: normal; padding: 6px 8px; }
+
+    /* Page number */
+    .pgnum {
+      border-top: 1.5px solid #222;
+      margin: 0 5mm;
+      text-align: center;
+      padding: 2px 0;
+      font-size: 11px;
+      color: #00008b;
+    }
+
+    /* Inline result box */
+    .rbox {
+      display: inline-block;
+      border: 1.5px solid #00008b;
+      padding: 0 6px;
+      margin: 0 2px;
+    }
+
+    .ok   { color: #166534; font-weight: bold; }
+    .fail { color: #991b1b; font-weight: bold; }
+    .uline { text-decoration: underline; font-weight: bold; }
+
+    /* ── Fixed input toolbar ────────────────────────────── */
+    #bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #1e293b;
+      border-top: 3px solid #3b82f6;
+      padding: 7px 14px;
+      z-index: 99;
+    }
+    #bar .grid {
+      max-width: 960px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: repeat(8,1fr) 78px;
+      gap: 8px;
+      align-items: end;
+    }
+    #bar label {
+      display: block;
+      font-family: Arial, sans-serif;
+      font-size: 9px;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-bottom: 2px;
+    }
+    #bar input, #bar select {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 3px;
+      color: #fbbf24;
+      font-family: monospace;
+      font-size: 13px;
+      padding: 3px 5px;
+    }
+    #bar .hint {
+      font-family: Arial, sans-serif;
+      font-size: 8px;
+      color: #475569;
+      margin-top: 1px;
+    }
+    #prtBtn {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 9px 6px;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media print {
+      #bar { display: none !important; }
+      body { background: white; padding-bottom: 0; }
+      .page { margin: 0; box-shadow: none; width: 100%; page-break-after: always; }
+    }
+  </style>
 </head>
-<body class="pb-20">
+<body>
 
-    <!-- INPUT FIXED BAR -->
-    <div class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 z-50 border-t-4 border-blue-500">
-        <div class="max-w-5xl mx-auto grid grid-cols-3 md:grid-cols-6 gap-4 items-end">
-            <div>
-                <label class="block text-[10px] uppercase text-slate-400">Span L (m)</label>
-                <input type="number" id="L" value="14.4" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
-            </div>
-            <div>
-                <label class="block text-[10px] uppercase text-slate-400">Pos a (m)</label>
-                <input type="number" id="a" value="8.0" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
-            </div>
-            <div>
-                <label class="block text-[10px] uppercase text-slate-400">Gk (kN/m)</label>
-                <input type="number" id="Gk" value="4.0" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
-            </div>
-            <div>
-                <label class="block text-[10px] uppercase text-slate-400">Qk (kN/m)</label>
-                <input type="number" id="Qk" value="7.0" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
-            </div>
-            <div>
-                <label class="block text-[10px] uppercase text-slate-400">Point Qk (kN)</label>
-                <input type="number" id="Qkpt" value="70.0" class="w-full bg-slate-800 border-none rounded p-1 text-sm" oninput="update()">
-            </div>
-            <div class="text-right">
-                <button onclick="window.print()" class="bg-blue-600 px-4 py-2 rounded text-xs font-bold uppercase">Print PDF</button>
-            </div>
-        </div>
+<div id="out"></div>
+
+<!-- ═══ INPUT TOOLBAR ═══ -->
+<div id="bar">
+  <div class="grid">
+    <div>
+      <label>L₁ span (m)</label>
+      <input id="iL1" type="number" step="0.1" value="8">
+      <div class="hint">Main span A→C</div>
     </div>
+    <div>
+      <label>L₂ cant. (m)</label>
+      <input id="iL2" type="number" step="0.1" value="6.4">
+      <div class="hint">Cantilever C→B</div>
+    </div>
+    <div>
+      <label>Gk (kN/m)</label>
+      <input id="iGk" type="number" step="0.5" value="4">
+      <div class="hint">Dead UDL</div>
+    </div>
+    <div>
+      <label>Qk (kN/m)</label>
+      <input id="iQk" type="number" step="0.5" value="7">
+      <div class="hint">Imposed UDL</div>
+    </div>
+    <div>
+      <label>Q (kN)</label>
+      <input id="iQ" type="number" step="1" value="70">
+      <div class="hint">Point load at C</div>
+    </div>
+    <div>
+      <label>Grade</label>
+      <select id="iGrade">
+        <option value="460">S460 (py 460)</option>
+        <option value="355">S355 (py 355)</option>
+        <option value="275">S275 (py 275)</option>
+      </select>
+      <div class="hint">Steel grade</div>
+    </div>
+    <div>
+      <label>py (N/mm²)</label>
+      <input id="iPy" type="number" step="5" value="460">
+      <div class="hint">Design strength</div>
+    </div>
+    <div>
+      <label>b₁ (mm)</label>
+      <input id="ib1" type="number" step="5" value="100">
+      <div class="hint">Stiff bearing</div>
+    </div>
+    <div>
+      <button id="prtBtn" onclick="window.print()">⎙ Print<br>PDF</button>
+    </div>
+  </div>
+</div>
 
-    <div id="content"></div>
+<script>
+// ═══════════════════════════════════════════════════════
+//  BS 5950 UB TABLE  (D,B,t,T,r,d mm | Sx,Zx cm³ | Ix cm⁴)
+// ═══════════════════════════════════════════════════════
+const UB = [
+  {n:"254×102×22",m:22,D:254.0,B:101.6,t:5.8,T:6.8,r:7.6,d:225.1,Sx:262,Zx:226,Ix:2870},
+  {n:"305×102×25",m:25,D:304.8,B:101.9,t:6.1,T:6.8,r:7.6,d:275.9,Sx:338,Zx:307,Ix:4380},
+  {n:"305×127×37",m:37,D:304.4,B:123.4,t:7.2,T:10.7,r:8.9,d:264.6,Sx:539,Zx:471,Ix:7160},
+  {n:"305×127×48",m:48,D:310.4,B:125.3,t:9.0,T:14.0,r:8.9,d:264.6,Sx:706,Zx:616,Ix:9580},
+  {n:"305×165×40",m:40,D:303.8,B:165.1,t:6.1,T:10.2,r:8.9,d:265.7,Sx:624,Zx:560,Ix:8500},
+  {n:"305×165×54",m:54,D:310.9,B:166.9,t:7.7,T:13.7,r:8.9,d:265.7,Sx:845,Zx:753,Ix:11700},
+  {n:"356×171×45",m:45,D:352.0,B:171.1,t:6.9,T:9.7,r:10.2,d:312.3,Sx:775,Zx:687,Ix:12100},
+  {n:"356×171×51",m:51,D:355.6,B:171.5,t:7.3,T:11.5,r:10.2,d:312.3,Sx:895,Zx:796,Ix:14200},
+  {n:"356×171×57",m:57,D:358.6,B:172.2,t:8.0,T:13.0,r:10.2,d:312.3,Sx:1010,Zx:896,Ix:16000},
+  {n:"356×171×67",m:67,D:364.0,B:173.2,t:9.1,T:15.7,r:10.2,d:312.3,Sx:1210,Zx:1070,Ix:19500},
+  {n:"406×178×54",m:54,D:402.6,B:177.6,t:7.6,T:10.9,r:10.2,d:360.5,Sx:1050,Zx:925,Ix:18600},
+  {n:"406×178×60",m:60,D:406.4,B:177.8,t:7.8,T:12.8,r:10.2,d:360.5,Sx:1200,Zx:1060,Ix:21500},
+  {n:"406×178×67",m:67,D:409.4,B:178.8,t:8.8,T:14.3,r:10.2,d:360.5,Sx:1350,Zx:1190,Ix:24300},
+  {n:"406×178×74",m:74,D:412.8,B:179.7,t:9.7,T:16.0,r:10.2,d:360.5,Sx:1500,Zx:1320,Ix:27300},
+  {n:"457×152×52",m:52,D:449.8,B:152.4,t:7.6,T:10.9,r:10.2,d:407.0,Sx:1090,Zx:949,Ix:21300},
+  {n:"457×152×60",m:60,D:454.7,B:152.9,t:8.0,T:13.3,r:10.2,d:407.0,Sx:1290,Zx:1120,Ix:25500},
+  {n:"457×152×67",m:67,D:457.2,B:151.9,t:9.1,T:15.0,r:10.2,d:407.0,Sx:1450,Zx:1250,Ix:28600},
+  {n:"457×152×74",m:74,D:461.3,B:152.7,t:9.9,T:17.0,r:10.2,d:407.0,Sx:1630,Zx:1410,Ix:32400},
+  {n:"457×152×82",m:82,D:465.1,B:153.5,t:10.7,T:18.9,r:10.2,d:407.0,Sx:1800,Zx:1560,Ix:36200},
+  {n:"457×191×67",m:67,D:453.6,B:189.9,t:8.5,T:12.7,r:10.2,d:407.9,Sx:1470,Zx:1300,Ix:29400},
+  {n:"457×191×74",m:74,D:457.2,B:190.5,t:9.1,T:14.5,r:10.2,d:407.9,Sx:1660,Zx:1460,Ix:33300},
+  {n:"457×191×82",m:82,D:460.2,B:191.3,t:9.9,T:16.0,r:10.2,d:407.9,Sx:1870,Zx:1610,Ix:37100},
+  {n:"457×191×89",m:89,D:463.6,B:192.0,t:10.6,T:17.7,r:10.2,d:407.9,Sx:2100,Zx:1770,Ix:41000},
+  {n:"457×191×98",m:98,D:467.4,B:192.8,t:11.4,T:19.6,r:10.2,d:407.9,Sx:2340,Zx:1960,Ix:45700},
+  {n:"533×210×82",m:82,D:528.3,B:208.7,t:9.6,T:13.2,r:12.7,d:476.5,Sx:2060,Zx:1800,Ix:47500},
+  {n:"533×210×92",m:92,D:533.1,B:209.3,t:10.2,T:15.6,r:12.7,d:476.5,Sx:2370,Zx:2080,Ix:55400},
+  {n:"533×210×101",m:101,D:536.7,B:210.1,t:10.9,T:17.4,r:12.7,d:476.5,Sx:2620,Zx:2300,Ix:61700},
+  {n:"533×210×109",m:109,D:539.5,B:210.8,t:11.6,T:18.8,r:12.7,d:476.5,Sx:2830,Zx:2470,Ix:66700},
+  {n:"533×210×122",m:122,D:544.6,B:211.9,t:12.8,T:21.3,r:12.7,d:476.5,Sx:3200,Zx:2790,Ix:76000},
+  {n:"610×229×101",m:101,D:602.6,B:227.6,t:10.6,T:14.8,r:12.7,d:547.3,Sx:2870,Zx:2510,Ix:75700},
+  {n:"610×229×113",m:113,D:607.3,B:228.2,t:11.2,T:17.3,r:12.7,d:547.3,Sx:3280,Zx:2880,Ix:87500},
+  {n:"610×229×125",m:125,D:612.2,B:229.0,t:11.9,T:19.6,r:12.7,d:547.3,Sx:3680,Zx:3220,Ix:98600},
+  {n:"610×229×140",m:140,D:617.0,B:230.1,t:13.1,T:22.1,r:12.7,d:547.3,Sx:4140,Zx:3630,Ix:111000},
+];
 
-    <script>
-        const UB = [
-            {n:"610x305x238", D:633.0, B:311.5, t:18.6, T:31.4, r:16.5, d:537.2, Sx:7460, Ix:208000},
-            {n:"533x210x122", D:544.6, B:211.9, t:12.8, T:21.3, r:12.7, d:476.5, Sx:3200, Ix:76200},
-            {n:"457x191x82", D:460.2, B:191.3, t:9.9, T:16.0, r:10.2, d:407.9, Sx:1830, Ix:37100},
-            {n:"406x178x67", D:409.4, B:178.8, t:8.8, T:14.3, r:10.2, d:360.5, Sx:1350, Ix:24300},
-            {n:"356x171x51", D:355.6, B:171.5, t:7.3, T:11.5, r:10.2, d:312.3, Sx:895, Ix:14200}
-        ];
+// ── helpers ──────────────────────────────────────────────
+const f  = (v, d=2) => (+v).toFixed(d);
+const f0 = (v)      => (+v).toFixed(0);
+const OK = (p) => p ? '<span class="ok">&#10003; OK</span>'
+                    : '<span class="fail">&#10007; FAIL</span>';
 
-        function update() {
-            const L = parseFloat(document.getElementById('L').value) || 0;
-            const a = parseFloat(document.getElementById('a').value) || 0;
-            const Gk = parseFloat(document.getElementById('Gk').value) || 0;
-            const Qk = parseFloat(document.getElementById('Qk').value) || 0;
-            const Qkpt = parseFloat(document.getElementById('Qkpt').value) || 0;
-            const b = L - a;
+// One calculation row → 3 flat divs (ref | calc | output)
+function R(ref, calc, out='') {
+  return `<div class="rc">${ref}</div><div class="cc">${calc}</div><div class="oc">${out}</div>`;
+}
 
-            const w = (1.4 * Gk) + (1.6 * Qk);
-            const W = (1.6 * Qkpt);
-            const Rb = (3 * w * L / 8) + (W * Math.pow(a, 2) * (3 * L - a)) / (2 * Math.pow(L, 3));
-            const Ra = (w * L) + W - Rb;
-            const Ma = (w * Math.pow(L, 2) / 8) + (W * a * b * (L + b)) / (2 * Math.pow(L, 2));
-            const Mc = (Ra * a) - Ma - (w * Math.pow(a, 2) / 2);
-            const Mmax = Math.max(Math.abs(Ma), Math.abs(Mc));
+// Blank spacer row
+function BLANK() {
+  return `<div class="rc"></div><div class="cc"></div><div class="oc"></div>`;
+}
 
-            const Sx_req = (Mmax * 1e6) / (460 * 1000);
-            const sec = UB.find(s => s.Sx >= Sx_req) || UB[0];
-            const k = sec.T + sec.r;
-            const Pbw = (100 + 2 * k) * sec.t * 460 / 1000;
-            const Px = (25 * Math.sqrt(275/460) * sec.t) / Math.sqrt((100 + 2 * k) * sec.d) * Pbw;
+// Row with a diagram/SVG that needs extra height (no line-height constraint)
+function SVGR(ref, svgHTML, out='') {
+  return `<div class="rc tall" style="align-self:center;">${ref}</div>
+          <div class="cc tall">${svgHTML}</div>
+          <div class="oc tall" style="align-self:center;">${out}</div>`;
+}
 
-            const target = document.getElementById('content');
-            target.innerHTML = `
-                <!-- PAGE 1: INTRO AND DIAGRAMS -->
-                <div class="notebook-page handwritten">
-                    <h1 class="text-center underline font-bold text-2xl mb-8">Structural Steel Design Calculations</h1>
-                    
-                    <p class="underline font-bold">Project: Propped Cantilever Design to BS 5950</p>
-                    <p class="mt-4">1.0 Loading Data and Diagram</p>
-                    <p>Uniformly Distributed Load (UDL):</p>
-                    <p>Dead Load ($G_k$) = ${Gk} kN/m</p>
-                    <p>Imposed Load ($Q_k$) = ${Qk} kN/m</p>
-                    <p>Point Load at ${a}m ($Q_{k,p}$) = ${Qkpt} kN</p>
-                    
-                    <p class="mt-6 font-bold">Ultimate Design Load ($w$):</p>
-                    <p>$w = 1.4 G_k + 1.6 Q_k$</p>
-                    <p>$w = 1.4(${Gk}) + 1.6(${Qk}) = \\mathbf{${w.toFixed(2)}} \\text{ kN/m}$</p>
-                    
-                    <p class="mt-4 font-bold">Factored Point Load ($W$):</p>
-                    <p>$W = 1.6 (${Qkpt}) = \\mathbf{${W.toFixed(2)}} \\text{ kN}$</p>
+// ═══════════════════════════════════════════════════════
+//  MAIN CALCULATION ENGINE
+// ═══════════════════════════════════════════════════════
+function update() {
+  const L1   = +document.getElementById('iL1').value  || 8;
+  const L2   = +document.getElementById('iL2').value  || 6.4;
+  const Gk   = +document.getElementById('iGk').value  || 4;
+  const Qk   = +document.getElementById('iQk').value  || 7;
+  const Q    = +document.getElementById('iQ').value   || 70;
+  const py   = +document.getElementById('iPy').value  || 460;
+  const b1   = +document.getElementById('ib1').value  || 100;
 
-                    <div class="diagram-container">
-                        <svg viewBox="0 0 400 120" class="w-full">
-                            <line x1="50" y1="80" x2="350" y2="80" stroke="black" stroke-width="2"/>
-                            <!-- UDL -->
-                            <path d="M 50 60 Q 65 50 80 60 Q 95 50 110 60 Q 125 50 140 60 Q 155 50 170 60 Q 185 50 200 60 Q 215 50 230 60 Q 245 50 260 60 Q 275 50 290 60 Q 305 50 320 60 Q 335 50 350 60" fill="none" stroke="red" />
-                            <!-- Fixed Support -->
-                            <line x1="50" y1="60" x2="50" y2="100" stroke="black" stroke-width="3"/>
-                            <line x1="40" y1="65" x2="50" y2="60" stroke="black"/><line x1="40" y1="75" x2="50" y2="70" stroke="black"/>
-                            <!-- Roller Support -->
-                            <circle cx="350" cy="85" r="5" stroke="black" fill="none"/>
-                            <!-- Point Load -->
-                            <line x1="${50 + (a/L)*300}" y1="20" x2="${50 + (a/L)*300}" y2="80" stroke="blue" stroke-width="2" marker-end="url(#arrow)"/>
-                            <text x="50" y="110" font-size="10">A (Fixed)</text>
-                            <text x="330" y="110" font-size="10">B (Roller)</text>
-                            <text x="${50 + (a/L)*300 - 20}" y="15" font-size="10" fill="blue">W = ${W.toFixed(1)}kN</text>
-                            <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="blue" /></marker></defs>
-                        </svg>
-                        <p class="text-center text-xs italic">Figure 1.1: Loading Arrangement</p>
-                    </div>
-                </div>
+  const L   = L1 + L2;           // total beam length A to B
+  const wu  = 1.4*Gk + 1.6*Qk;  // factored UDL
+  const Wu  = 1.6*Q;             // factored point load
+  const tot = wu*L + Wu;         // total factored load
 
-                <!-- PAGE 2: REACTIONS -->
-                <div class="notebook-page handwritten">
-                    <p class="mt-4 font-bold">2.0 Calculation of Support Reactions</p>
-                    <p>Using the principles of structural mechanics for indeterminate beams:</p>
-                    
-                    <p class="mt-4 italic">Reaction at Support B ($R_B$):</p>
-                    <p>$$R_B = \\frac{3wL}{8} + \\frac{Wa^2(3L-a)}{2L^3}$$</p>
-                    <p>Substituting values:</p>
-                    <p>$$R_B = \\frac{3(${w.toFixed(2)})(${L})}{8} + \\frac{(${W.toFixed(2)})(${a}^2)(3\\times${L}-${a})}{2\\times${L}^3}$$</p>
-                    <p>$$R_B = \\mathbf{${Rb.toFixed(2)}} \\text{ kN}$$</p>
+  // ── Reactions (propped cantilever: fixed A, roller B) ──
+  // Point load W at C (distance L1 from A, L2 from B)
+  const RB = (3*wu*L/8) + Wu*Math.pow(L1,2)*(3*L - L1)/(2*Math.pow(L,3));
+  const RA = wu*L + Wu - RB;
+  const MA = wu*L*L/8 + Wu*L1*L2*(L+L2)/(2*L*L);
 
-                    <p class="mt-6 italic">Reaction at Support A ($R_A$):</p>
-                    <p>$\\sum F_y = 0 \\implies R_A + R_B = (w \\times L) + W$</p>
-                    <p>$R_A = (${w.toFixed(2)} \\times ${L}) + ${W.toFixed(2)} - ${Rb.toFixed(2)}$</p>
-                    <p>$R_A = \\mathbf{${Ra.toFixed(2)}} \\text{ kN}$</p>
+  // ── Shear forces ──
+  const SFA  = RA;
+  const SFCb = RA - wu*L1;           // just before Wu at C
+  const SFCa = SFCb - Wu;            // just after Wu at C
+  const SFBl = SFCa - wu*L2;         // just left of B
 
-                    <p class="mt-6 italic">Fixed End Moment at A ($M_A$):</p>
-                    <p>$$M_A = \\frac{wL^2}{8} + \\frac{Wab(L+b)}{2L^2}$$</p>
-                    <p>$$M_A = \\frac{${w.toFixed(2)} \\times ${L}^2}{8} + \\frac{${W.toFixed(2)} \\times ${a} \\times ${b.toFixed(2)} (${L} + ${b.toFixed(2)})}{2 \\times ${L}^2}$$</p>
-                    <p>$M_A = \\mathbf{${Ma.toFixed(2)}} \\text{ kNm}$</p>
-                </div>
+  // ── Bending moments ──
+  const BMC  = RA*L1 - MA - wu*L1*L1/2;
+  const Mmax = Math.max(Math.abs(MA), Math.abs(BMC));
 
-                <!-- PAGE 3: MAX BENDING MOMENT -->
-                <div class="notebook-page handwritten">
-                    <p class="mt-4 font-bold">3.0 Maximum Bending Moment ($M_{max}$)</p>
-                    <p>The maximum moment occurs either at the fixed support or under the point load.</p>
-                    <p>Moment at Support A = ${Ma.toFixed(2)} kNm</p>
-                    <p>Moment under Point Load C ($M_C$):</p>
-                    <p>$M_C = (R_A \\times a) - M_A - \\frac{wa^2}{2}$</p>
-                    <p>$M_C = (${Ra.toFixed(2)} \\times ${a}) - ${Ma.toFixed(2)} - \\frac{${w.toFixed(2)} \\times ${a}^2}{2}$</p>
-                    <p>$M_C = \\mathbf{${Mc.toFixed(2)}} \\text{ kNm}$</p>
-                    
-                    <p class="mt-6 font-bold text-red-600 underline">Design Moment ($M_d$) = ${Mmax.toFixed(2)} kNm</p>
+  // ── Section selection ──
+  const sorted  = [...UB].sort((a,b)=>a.Sx-b.Sx);
+  const Sx_req  = (Mmax*1e6)/(py*1e3);
+  let   sec     = sorted.find(s=>s.Sx >= Sx_req) || sorted.at(-1);
 
-                    <p class="mt-10 font-bold">4.0 Section Selection</p>
-                    <p>Assuming Steel Grade S460 ($p_y = 460 \\text{ N/mm}^2$):</p>
-                    <p>Required Plastic Modulus ($S_x$):</p>
-                    <p>$S_x = \\frac{M_{max} \\times 10^6}{p_y} = \\frac{${Mmax.toFixed(2)} \\times 10^6}{460}$</p>
-                    <p>$S_x = \\mathbf{${Math.round(Sx_req)}} \\text{ cm}^3$</p>
+  // Include self-weight, re-check
+  const Gsw   = sec.m * 9.81/1000;
+  const wu2   = wu + 1.4*Gsw;
+  const scale = wu2/wu;
+  const MA2   = MA * scale;
+  const BMC2  = BMC* scale;
+  const Mmax2 = Math.max(Math.abs(MA2), Math.abs(BMC2));
+  const Sx_r2 = (Mmax2*1e6)/(py*1e3);
+  if (sec.Sx < Sx_r2) { sec = sorted.find(s=>s.Sx >= Sx_r2) || sorted.at(-1); }
 
-                    <div class="border-2 border-black p-4 mt-6">
-                        <p class="font-bold">Try: ${sec.n} UB</p>
-                        <p class="text-sm">From BS 5950 Tables:</p>
-                        <ul class="text-sm">
-                            <li>$S_x = ${sec.Sx} \\text{ cm}^3 > ${Math.round(Sx_req)}$ (OK)</li>
-                            <li>$D = ${sec.D} \\text{ mm}, B = ${sec.B} \\text{ mm}$</li>
-                            <li>$T = ${sec.T} \\text{ mm}, t = ${sec.t} \\text{ mm}$</li>
-                            <li>$d = ${sec.d} \\text{ mm}, r = ${sec.r} \\text{ mm}$</li>
-                        </ul>
-                    </div>
-                </div>
+  // ── Classification ──
+  const eps   = Math.sqrt(275/py);
+  const b_T   = (sec.B/2)/sec.T;
+  const d_t   = sec.d/sec.t;
+  const flCls = b_T<=9*eps  ? 'Plastic'
+              : b_T<=10*eps ? 'Compact'
+              : b_T<=15*eps ? 'Semi-compact' : 'Slender';
+  const wbCls = d_t<=80*eps  ? 'Plastic'
+              : d_t<=100*eps ? 'Compact' : 'Semi-compact';
+  const secCls= (flCls==='Plastic'&&wbCls==='Plastic') ? 'Class 1 – Plastic'
+              : (flCls==='Slender'||wbCls==='Slender')  ? 'Class 4 – Slender'
+              : (flCls==='Compact'||wbCls==='Compact')  ? 'Class 2 – Compact'
+              :                                            'Class 3 – Semi-compact';
 
-                <!-- PAGE 4: CAPACITY CHECKS -->
-                <div class="notebook-page handwritten">
-                    <p class="mt-4 font-bold">5.0 Moment and Shear Capacity Checks</p>
-                    
-                    <p class="mt-2 font-bold italic">5.1 Shear Capacity ($P_v$):</p>
-                    <p>$P_v = 0.6 p_y A_v$ where $A_v = t \\times D$</p>
-                    <p>$P_v = 0.6 \\times 460 \\times ${sec.t} \\times ${sec.D} / 1000$</p>
-                    <p>$P_v = \\mathbf{${(0.6*460*sec.t*sec.D/1000).toFixed(2)}} \\text{ kN}$</p>
-                    <p>Max Shear ($F_v$) = ${Ra.toFixed(2)} kN < P_v$ (OK)</p>
+  // ── Shear ──
+  const Av    = sec.t * sec.D;
+  const Pv    = 0.6*py*Av/1e3;
+  const Fv    = Math.max(Math.abs(RA), Math.abs(RB));
+  const lowSh = Fv <= 0.6*Pv;
+  const sh_ok = Fv <= Pv;
 
-                    <p class="mt-8 font-bold italic">5.2 Moment Capacity ($M_c$):</p>
-                    <p>$M_c = p_y S_x = 460 \\times ${sec.Sx} / 1000$</p>
-                    <p>$M_c = \\mathbf{${(460*sec.Sx/1000).toFixed(2)}} \\text{ kNm} > ${Mmax.toFixed(2)}$ (OK)</p>
+  // ── Moment capacity ──
+  const Mc_f  = py*sec.Sx*1e3/1e6;
+  const Mc_l  = 1.2*py*sec.Zx*1e3/1e6;
+  const Mc    = Math.min(Mc_f, Mc_l);
+  const mc_ok = Mmax2 <= Mc;
 
-                    <p class="mt-12 font-bold">6.0 Deflection Check (Serviceability)</p>
-                    <p>Check unfactored total UDL deflection:</p>
-                    <p>Load ($w_{sls}$) = ${Gk} + ${Qk} = ${(Gk+Qk).toFixed(1)} \\text{ kN/m}$</p>
-                    <p>Limit = $L/180 = ${Math.round(L*1000/180)} \\text{ mm}$</p>
-                    <p>Actual $\\delta = \\frac{w L^4}{185 E I}$ (For propped cantilever approx)</p>
-                    <p>$\\delta = \\frac{${(Gk+Qk).toFixed(1)} \\times ${L}^4 \\times 10^{12}}{185 \\times 205000 \\times (${sec.Ix} \\times 10^4)} = \\mathbf{${((Gk+Qk)*Math.pow(L,4)*1e8/(185*205000*sec.Ix)).toFixed(1)}} \\text{ mm}$</p>
-                    <p class="text-green-700 font-bold underline">Deflection is within limits.</p>
-                </div>
+  // ── Deflection (unfactored imposed) ──
+  const EI    = 205e3 * sec.Ix * 1e4;          // N·mm²
+  const L1mm  = L1*1e3, L2mm=L2*1e3;
+  const dS    = 5*Qk*Math.pow(L1mm,4)/(384*EI);
+  const dSL   = L1mm/200;
+  const dC    = Qk*Math.pow(L2mm,4)/(8*EI) + Q*1e3*Math.pow(L2mm,3)/(3*EI);
+  const dCL   = L2mm/180;
+  const dS_ok = dS<=dSL, dC_ok=dC<=dCL;
 
-                <!-- PAGE 5: WEB CHECKS -->
-                <div class="notebook-page handwritten">
-                    <p class="mt-4 font-bold">7.0 Web Bearing and Buckling (Support A)</p>
-                    
-                    <p class="mt-4 italic">7.1 Web Bearing Capacity ($P_{bw}$):</p>
-                    <p>Assume stiff bearing $b_1 = 100 \\text{ mm}$</p>
-                    <p>$k = T + r = ${sec.T} + ${sec.r} = ${k.toFixed(1)} \\text{ mm}$</p>
-                    <p>$P_{bw} = (b_1 + 2k) t p_y$</p>
-                    <p>$P_{bw} = (100 + 2 \\times ${k.toFixed(1)}) \\times ${sec.t} \\times 460 / 1000$</p>
-                    <p>$P_{bw} = \\mathbf{${Pbw.toFixed(2)}} \\text{ kN} > ${Ra.toFixed(2)}$ (OK)</p>
+  // ── Web bearing / buckling ──
+  const k      = sec.T + sec.r;
+  const n      = 2;
+  const Pbw    = (b1 + n*k)*sec.t*py/1e3;
+  const epsS   = Math.sqrt(275/py);
+  const Px     = 25*epsS*sec.t/Math.sqrt((b1+n*k)*sec.d)*Pbw;
+  const br_ok  = Fv<=Pbw;
+  const bk_ok  = Fv<=Px;
+  const allOk  = sh_ok&&mc_ok&&dS_ok&&dC_ok&&br_ok&&bk_ok;
 
-                    <p class="mt-10 italic">7.2 Web Buckling Capacity ($P_x$):</p>
-                    <p>Using $\\epsilon = \\sqrt{275/460} = 0.77$</p>
-                    <p>$$P_x = \\frac{25 \\epsilon t}{\\sqrt{(b_1+2k)d}} P_{bw}$$</p>
-                    <p>$$P_x = \\frac{25 \\times 0.77 \\times ${sec.t}}{\\sqrt{(100+2\\times${k.toFixed(1)})\\times${sec.d}}} \\times ${Pbw.toFixed(2)}$$</p>
-                    <p>$P_x = \\mathbf{${Px.toFixed(2)}} \\text{ kN} > ${Ra.toFixed(2)}$ (OK)</p>
+  // ════════════════════════════════════════════════════════
+  //  SVG: AUTO-LABELLED BEAM DIAGRAM
+  // ════════════════════════════════════════════════════════
+  const SW=480, SH=150, beamY=78;
+  const Ax=28, Bx=SW-28;
+  const Cx = Ax + Math.round((Bx-Ax)*(L1/L));  // junction C
 
-                    <p class="mt-16 text-center border-4 border-double border-green-800 p-4 text-green-900 font-bold text-xl uppercase">
-                        Section ${sec.n} UB is fully satisfactory for the given loading conditions.
-                    </p>
-                </div>
-            `;
-            if (window.MathJax) MathJax.typesetPromise();
-        }
+  // UDL spring arrows
+  let sp='';
+  for(let i=0;i<=13;i++){
+    const x = Ax + i*(Bx-Ax)/13;
+    sp+=`<line x1="${x}" y1="${beamY-30}" x2="${x}" y2="${beamY-4}"
+              stroke="#00008b" stroke-width="1.3" marker-end="url(#ua)"/>`;
+  }
 
-        window.onload = update;
-    </script>
+  const diagramSVG=`
+  <svg viewBox="0 0 ${SW} ${SH}" style="width:100%;max-width:480px;display:block;margin:6px auto;">
+    <defs>
+      <marker id="ua" markerWidth="5" markerHeight="5" refX="2.5" refY="5" orient="auto">
+        <path d="M0,0 L2.5,5 L5,0" fill="none" stroke="#00008b" stroke-width="1.2"/>
+      </marker>
+      <marker id="Wa" markerWidth="7" markerHeight="7" refX="3.5" refY="7" orient="auto">
+        <path d="M0,0 L3.5,7 L7,0 Z" fill="#cc0000"/>
+      </marker>
+      <marker id="Ra" markerWidth="6" markerHeight="6" refX="3" refY="0" orient="auto">
+        <path d="M0,6 L3,0 L6,6 Z" fill="#166534"/>
+      </marker>
+    </defs>
+
+    <!-- UDL top line -->
+    <line x1="${Ax}" y1="${beamY-32}" x2="${Bx}" y2="${beamY-32}"
+          stroke="#00008b" stroke-width="1.2"/>
+    <!-- springs -->
+    ${sp}
+    <!-- UDL label -->
+    <text x="${(Ax+Bx)/2}" y="${beamY-35}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="10.5" fill="#00008b">
+      Gk = ${Gk} kN/m,  Qk = ${Qk} kN/m
+    </text>
+
+    <!-- Beam bar -->
+    <rect x="${Ax}" y="${beamY-3}" width="${Bx-Ax}" height="7"
+          fill="#00008b" rx="1.5"/>
+
+    <!-- Fixed wall at A -->
+    <line x1="${Ax}" y1="${beamY-15}" x2="${Ax}" y2="${beamY+20}"
+          stroke="#333" stroke-width="3"/>
+    ${[0,7,14,21,28].map(dy=>
+      `<line x1="${Ax-10}" y1="${beamY-12+dy}" x2="${Ax}" y2="${beamY-6+dy}"
+             stroke="#333" stroke-width="1.5"/>`
+    ).join('')}
+
+    <!-- Roller at B -->
+    <polygon points="${Bx},${beamY+4} ${Bx-9},${beamY+20} ${Bx+9},${beamY+20}"
+             fill="none" stroke="#333" stroke-width="1.8"/>
+    <circle cx="${Bx}" cy="${beamY+25}" r="4.5"
+            fill="none" stroke="#333" stroke-width="1.5"/>
+    <line x1="${Bx-14}" y1="${beamY+32}" x2="${Bx+14}" y2="${beamY+32}"
+          stroke="#333" stroke-width="2"/>
+
+    <!-- Point load W at C -->
+    <line x1="${Cx}" y1="${beamY-64}" x2="${Cx}" y2="${beamY-4}"
+          stroke="#cc0000" stroke-width="2.2" marker-end="url(#Wa)"/>
+    <text x="${Cx}" y="${beamY-68}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="11" fill="#cc0000">
+      ${Q} kN
+    </text>
+
+    <!-- RA arrow (upward) -->
+    <line x1="${Ax}" y1="${beamY+54}" x2="${Ax}" y2="${beamY+24}"
+          stroke="#166534" stroke-width="2" marker-end="url(#Ra)"/>
+    <text x="${Ax}" y="${beamY+68}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="10" fill="#166534">RA</text>
+
+    <!-- RB arrow (upward) -->
+    <line x1="${Bx}" y1="${beamY+54}" x2="${Bx}" y2="${beamY+36}"
+          stroke="#166534" stroke-width="2" marker-end="url(#Ra)"/>
+    <text x="${Bx}" y="${beamY+68}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="10" fill="#166534">RB</text>
+
+    <!-- A, C, B labels -->
+    <text x="${Ax}" y="${beamY+82}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="10" fill="#333">A</text>
+    <text x="${Cx}" y="${beamY+82}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="10" fill="#333">C</text>
+    <text x="${Bx}" y="${beamY+82}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="10" fill="#333">B</text>
+
+    <!-- dimension: L1 -->
+    <line x1="${Ax}" y1="${beamY+92}" x2="${Cx}" y2="${beamY+92}"
+          stroke="#555" stroke-width="1"/>
+    <line x1="${Ax}" y1="${beamY+87}" x2="${Ax}" y2="${beamY+97}" stroke="#555" stroke-width="1"/>
+    <line x1="${Cx}" y1="${beamY+87}" x2="${Cx}" y2="${beamY+97}" stroke="#555" stroke-width="1"/>
+    <text x="${(Ax+Cx)/2}" y="${beamY+105}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="10" fill="#333">L = ${L1} m</text>
+
+    <!-- dimension: L2 -->
+    <line x1="${Cx}" y1="${beamY+92}" x2="${Bx}" y2="${beamY+92}"
+          stroke="#555" stroke-width="1"/>
+    <line x1="${Cx}" y1="${beamY+87}" x2="${Cx}" y2="${beamY+97}" stroke="#555" stroke-width="1"/>
+    <line x1="${Bx}" y1="${beamY+87}" x2="${Bx}" y2="${beamY+97}" stroke="#555" stroke-width="1"/>
+    <text x="${(Cx+Bx)/2}" y="${beamY+105}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="10" fill="#333">0.8L = ${L2} m</text>
+  </svg>`;
+
+  // ════════════════════════════════════════════════════════
+  //  SVG: FACTORED LOAD DIAGRAM
+  // ════════════════════════════════════════════════════════
+  const FW=400,FH=110,fbY=55;
+  const FCx=40+Math.round(300*(L1/L));
+  let fsp='';
+  for(let i=0;i<=11;i++){
+    const x=40+i*(300/11);
+    fsp+=`<line x1="${x}" y1="${fbY-25}" x2="${x}" y2="${fbY-4}"
+               stroke="#00008b" stroke-width="1.1" marker-end="url(#fua)"/>`;
+  }
+  const factSVG=`
+  <svg viewBox="0 0 ${FW} ${FH}" style="width:100%;max-width:400px;display:block;margin:4px auto;">
+    <defs>
+      <marker id="fua" markerWidth="4" markerHeight="4" refX="2" refY="4" orient="auto">
+        <path d="M0,0 L2,4 L4,0" fill="none" stroke="#00008b" stroke-width="1"/>
+      </marker>
+      <marker id="fWa" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto">
+        <path d="M0,0 L3,6 L6,0 Z" fill="#cc0000"/>
+      </marker>
+      <marker id="fRa" markerWidth="5" markerHeight="5" refX="2.5" refY="0" orient="auto">
+        <path d="M0,5 L2.5,0 L5,5 Z" fill="#166534"/>
+      </marker>
+    </defs>
+    <text x="220" y="11" text-anchor="middle"
+          font-family="Architects Daughter" font-size="9.5" fill="#00008b">
+      wu = ${f(wu,1)} kN/m
+    </text>
+    <line x1="40" y1="${fbY-27}" x2="340" y2="${fbY-27}"
+          stroke="#00008b" stroke-width="1.1"/>
+    ${fsp}
+    <rect x="40" y="${fbY-2}" width="300" height="5" fill="#00008b" rx="1"/>
+    <!-- Wu at C -->
+    <line x1="${FCx}" y1="${fbY-50}" x2="${FCx}" y2="${fbY-4}"
+          stroke="#cc0000" stroke-width="2" marker-end="url(#fWa)"/>
+    <text x="${FCx}" y="${fbY-53}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="9" fill="#cc0000">${f(Wu,1)} kN</text>
+    <!-- Fixed wall -->
+    <line x1="40" y1="${fbY-10}" x2="40" y2="${fbY+16}" stroke="#333" stroke-width="2.5"/>
+    ${[0,5,10,15].map(dy=>`<line x1="30" y1="${fbY-8+dy}" x2="40" y2="${fbY-3+dy}"
+                 stroke="#333" stroke-width="1.2"/>`).join('')}
+    <!-- Roller -->
+    <polygon points="340,${fbY+3} 332,${fbY+16} 348,${fbY+16}"
+             fill="none" stroke="#333" stroke-width="1.5"/>
+    <circle cx="340" cy="${fbY+21}" r="3.5" fill="none" stroke="#333" stroke-width="1.3"/>
+    <line x1="329" y1="${fbY+27}" x2="351" y2="${fbY+27}" stroke="#333" stroke-width="1.5"/>
+    <!-- RA -->
+    <line x1="40" y1="${fbY+42}" x2="40" y2="${fbY+20}"
+          stroke="#166534" stroke-width="1.8" marker-end="url(#fRa)"/>
+    <text x="40" y="${fbY+54}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="9" fill="#166534">RA</text>
+    <!-- RB -->
+    <line x1="340" y1="${fbY+42}" x2="340" y2="${fbY+30}"
+          stroke="#166534" stroke-width="1.8" marker-end="url(#fRa)"/>
+    <text x="340" y="${fbY+54}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="9" fill="#166534">RB</text>
+    <!-- labels -->
+    <text x="40" y="${fbY+67}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="9" fill="#555">A</text>
+    <text x="${FCx}" y="${fbY+67}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="9" fill="#555">C</text>
+    <text x="340" y="${fbY+67}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="9" fill="#555">B</text>
+    <!-- dim line -->
+    <line x1="40" y1="${fbY+75}" x2="340" y2="${fbY+75}" stroke="#777" stroke-width="0.8"/>
+    <text x="190" y="${fbY+86}" text-anchor="middle"
+          font-family="Architects Daughter" font-size="8.5" fill="#555">
+      |&lt;—— ${L1} m ——&gt;C&lt;—— ${L2} m ——&gt;|
+    </text>
+  </svg>`;
+
+  // ════════════════════════════════════════════════════════
+  //  BUILD PAGES
+  // ════════════════════════════════════════════════════════
+  function page(rows, pgNum) {
+    return `
+    <div class="page">
+      <div class="tbl-head">
+        <div>Reference</div>
+        <div>Calculation</div>
+        <div>Output</div>
+      </div>
+      <div class="sheet-body">
+        ${rows}
+      </div>
+      <div class="pgnum">Page No. <u>${pgNum}</u></div>
+    </div>`;
+  }
+
+  // ── PAGE 1 ──────────────────────────────────────────────
+  const p1 = page(`
+    ${R('', '<span class="uline">Parameters given:</span>', '')}
+    ${R('', `L = ${L1} m&nbsp;&nbsp;&nbsp; Q = ${Q} kN&nbsp;&nbsp;&nbsp; Gk = ${Gk} kN/m`, '')}
+    ${R('', `Qk = ${Qk} kN/m&nbsp;&nbsp;&nbsp; py = ${py} N/mm²`, '')}
+    ${BLANK()}
+    ${SVGR('', diagramSVG, '')}
+    ${BLANK()}
+    ${R('', '<span class="uline">Total load on the beam:</span>', '')}
+    ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × (${L1}+${L2}) + 1.6(${Q})`, '')}
+    ${R('', `= (${f(1.4*Gk,1)} + ${f(1.6*Qk,1)}) × ${L} + ${f(Wu,1)}`, '')}
+    ${R('', `= ${f(wu,1)} × ${L} + ${f(Wu,1)}`, '')}
+    ${R('', `<b>Total Design loading = ${f(tot,2)} kN</b>`, `${f(tot,2)} kN`)}
+    ${BLANK()}
+    ${SVGR('', factSVG, '')}
+    ${BLANK()}
+    ${R('', 'The beam section is statically indeterminate.', '')}
+    ${R('', 'Thus reactions become:', '')}
+    ${R('', 'A&#x2081;x&#x0305;&#x2081; = A&#x2082;x&#x0305;&#x2082; + A&#x2083;x&#x0305;&#x2083;', '')}
+  `, 1);
+
+  // ── PAGE 2: REACTIONS ───────────────────────────────────
+  const p2 = page(`
+    ${R('', '<span class="uline">Calculation of Support Reactions</span>', '')}
+    ${BLANK()}
+    ${R('', '<b>Reaction at roller support B (R<sub>B</sub>):</b>', '')}
+    ${R('', 'Using propped cantilever formula (fixed A, roller B):', '')}
+    ${R('', 'R<sub>B</sub> = (3wL)/8 + W·a²(3L − a) / (2L³)', '')}
+    ${R('', `w = ${f(wu)} kN/m,&nbsp; W = ${f(Wu,1)} kN,&nbsp; L = ${L} m,&nbsp; a = ${L1} m`, '')}
+    ${R('', `R<sub>B</sub> = [3×${f(wu)}×${L}]/8 + [${f(Wu,1)}×${L1}²×(3×${L}−${L1})]/(2×${L}³)`, '')}
+    ${R('', `= ${f(3*wu*L/8,2)} + ${f(Wu*Math.pow(L1,2)*(3*L-L1)/(2*Math.pow(L,3)),2)}`, '')}
+    ${R('', `<span class="rbox"><b>R<sub>B</sub> = ${f(RB,2)} kN</b></span>`, `R<sub>B</sub> = ${f(RB,2)} kN`)}
+    ${BLANK()}
+    ${R('', '<b>Reaction at fixed support A (R<sub>A</sub>):</b>', '')}
+    ${R('', '&Sigma;F<sub>y</sub> = 0 &nbsp;&rArr;&nbsp; R<sub>A</sub> + R<sub>B</sub> = w·L + W', '')}
+    ${R('', `R<sub>A</sub> = ${f(wu)}×${L} + ${f(Wu,1)} − ${f(RB,2)}`, '')}
+    ${R('', `= ${f(wu*L,2)} + ${f(Wu,1)} − ${f(RB,2)}`, '')}
+    ${R('', `<span class="rbox"><b>R<sub>A</sub> = ${f(RA,2)} kN</b></span>`, `R<sub>A</sub> = ${f(RA,2)} kN`)}
+    ${BLANK()}
+    ${R('', '<b>Shear Force Diagram:</b>', '')}
+    ${R('', `SF @ A = R<sub>A</sub> = ${f(SFA,2)} kN`, `${f(SFA,2)} kN`)}
+    ${R('', `SF @ CB = ${f(SFA,2)} − ${f(wu)} × ${L} = ${f(SFA-wu*L,2)} kN`, '')}
+    ${R('', `SF @ CB − ${f(Wu,1)} − ${f(RB,2)} = ${f(SFA-wu*L-Wu-RB,2)} ≈ 0 kN &nbsp; ${OK(Math.abs(SFA-wu*L-Wu-RB)<1)}`, '')}
+    ${BLANK()}
+    ${R('', `SF @ C (before W)   = ${f(SFCb,2)} kN`, `${f(SFCb,2)} kN`)}
+    ${R('', `SF @ C (after W)    = ${f(SFCb,2)} − ${f(Wu,1)} = ${f(SFCa,2)} kN`, `${f(SFCa,2)} kN`)}
+    ${R('', `SF @ B (left)       = ${f(SFCa,2)} − ${f(wu)}×${L2} = ${f(SFBl,2)} kN`, '')}
+    ${R('', `Check: ${f(SFBl,2)} + ${f(RB,2)} = ${f(SFBl+RB,1)} ≈ 0 &nbsp; ${OK(Math.abs(SFBl+RB)<1.0)}`, '')}
+  `, 2);
+
+  // ── PAGE 3: BMD + SECTION SELECTION ─────────────────────
+  const p3 = page(`
+    ${R('', '<span class="uline">Bending Moment Calculations</span>', '')}
+    ${R('', 'Boundary conditions: M<sub>A</sub> = fixed end moment', '')}
+    ${R('', '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; M<sub>B</sub> = 0 (roller support)', '')}
+    ${BLANK()}
+    ${R('', '<b>Fixed end moment at A (M<sub>A</sub>):</b>', '')}
+    ${R('', 'M<sub>A</sub> = wL²/8 + W·a·b·(L+b)/(2L²)', '')}
+    ${R('', `where b = L − a = ${L} − ${L1} = ${L2} m`, '')}
+    ${R('', `M<sub>A</sub> = ${f(wu)}×${L}²/8 + ${f(Wu,1)}×${L1}×${L2}×(${L}+${L2})/(2×${L}²)`, '')}
+    ${R('', `= ${f(wu*L*L/8,2)} + ${f(Wu*L1*L2*(L+L2)/(2*L*L),2)}`, '')}
+    ${R('', `<span class="rbox"><b>M<sub>A</sub> = ${f(MA,2)} kNm</b></span>`, `M<sub>A</sub> = ${f(MA,2)} kNm`)}
+    ${BLANK()}
+    ${R('', '<b>Bending moment at C (M<sub>C</sub>):</b>', '')}
+    ${R('', 'M<sub>C</sub> = R<sub>A</sub>·L₁ − M<sub>A</sub> − w·L₁²/2', '')}
+    ${R('', `= ${f(RA,2)}×${L1} − ${f(MA,2)} − ${f(wu)}×${L1}²/2`, '')}
+    ${R('', `= ${f(RA*L1,2)} − ${f(MA,2)} − ${f(wu*L1*L1/2,2)}`, '')}
+    ${R('', `<span class="rbox"><b>M<sub>C</sub> = ${f(BMC,2)} kNm</b></span>`, `M<sub>C</sub> = ${f(BMC,2)} kNm`)}
+    ${BLANK()}
+    ${R('', `<b>Design moment M<sub>max</sub> = max(|M<sub>A</sub>|, |M<sub>C</sub>|) = max(${f(Math.abs(MA),2)}, ${f(Math.abs(BMC),2)})</b>`, '')}
+    ${R('', `<span class="rbox"><b>M<sub>max</sub> = ${f(Mmax,2)} kNm</b></span>`, `M<sub>max</sub> = ${f(Mmax,2)} kNm`)}
+    ${BLANK()}
+    ${R('', '<span class="uline">Initial Section Selection</span>', '')}
+    ${R('', `Assuming p<sub>y</sub> = ${py} N/mm²`, '')}
+    ${R('', 'Required plastic modulus S<sub>x</sub>:', '')}
+    ${R('', `S<sub>x</sub> = M<sub>max</sub> × 10⁶ / p<sub>y</sub> = ${f(Mmax,2)} × 10⁶ / ${py} / 10³`, '')}
+    ${R('', `<b>S<sub>x</sub> required = ${f0(Sx_req)} cm³</b>`, `Sx = ${f0(Sx_req)} cm³`)}
+    ${BLANK()}
+    ${R('', `From BS 5950 Table B1, try: <b>${sec.n} UB</b>`, `${sec.n}`)}
+    ${R('', `S<sub>x</sub> provided = ${sec.Sx} cm³ &nbsp;> ${f0(Sx_req)} cm³ &nbsp; ${OK(sec.Sx>=Sx_req)}`, '')}
+  `, 3);
+
+  // ── PAGE 4: SECTION PROPERTIES + CLASSIFICATION ─────────
+  const p4 = page(`
+    ${R('BS 5950<br>Table B1', '<span class="uline">Section Properties from Table B1</span>', '')}
+    ${R('', `<b>Suitable Section: ${sec.n} UB</b>`, '')}
+    ${R('', `D = ${sec.D} mm &nbsp;&nbsp; B = ${sec.B} mm &nbsp;&nbsp; t = ${sec.t} mm`, '')}
+    ${R('', `T = ${sec.T} mm &nbsp;&nbsp; r = ${sec.r} mm &nbsp;&nbsp; d = ${sec.d} mm`, '')}
+    ${R('', `S<sub>x</sub> = ${sec.Sx} cm³ &nbsp;&nbsp; Z<sub>x</sub> = ${sec.Zx} cm³ &nbsp;&nbsp; I<sub>x</sub> = ${sec.Ix} cm⁴`, '')}
+    ${R('', `Mass = ${sec.m} kg/m`, `S<sub>x</sub> = ${sec.Sx} cm³`)}
+    ${BLANK()}
+    ${R('', '<b>Including self-weight:</b>', '')}
+    ${R('', `G<sub>sw</sub> = ${sec.m} × 9.81/1000 = ${f(Gsw,3)} kN/m`, '')}
+    ${R('', `Revised w<sub>u</sub> = ${f(wu,2)} + 1.4×${f(Gsw,3)} = ${f(wu2,3)} kN/m`, '')}
+    ${R('', `Revised M<sub>max</sub> ≈ ${f(Mmax2,2)} kNm`, '')}
+    ${R('', `S<sub>x</sub> required = ${f(Mmax2,2)}×10⁶/${py}/10³ = ${f0(Sx_r2)} cm³ &nbsp; ${OK(sec.Sx>=Sx_r2)}`, '')}
+    ${BLANK()}
+    ${R('BS 5950<br>Table 11<br>Cl. 3.5.2', '<span class="uline">Section Classification</span>', '')}
+    ${R('', `&epsilon; = &radic;(275/p<sub>y</sub>) = &radic;(275/${py}) = <b>${f(eps,3)}</b>`, `&epsilon; = ${f(eps,3)}`)}
+    ${BLANK()}
+    ${R('', '<b>Outstand element of compression flange:</b>', '')}
+    ${R('', `b = B/2 = ${sec.B}/2 = ${f(sec.B/2,1)} mm`, '')}
+    ${R('', `b/T = ${f(sec.B/2,1)}/${sec.T} = <b>${f(b_T,2)}</b>`, `b/T = ${f(b_T,2)}`)}
+    ${R('', `Plastic limit: 9&epsilon; = ${f(9*eps,2)} &nbsp; ${OK(b_T<=9*eps)}`, '')}
+    ${R('', `Compact limit: 10&epsilon; = ${f(10*eps,2)} &nbsp; ${OK(b_T<=10*eps)}`, '')}
+    ${R('', `Flange classification: <b>${flCls}</b>`, `${flCls}`)}
+    ${BLANK()}
+    ${R('', '<b>Web (neutral axis at mid-depth):</b>', '')}
+    ${R('', `d = ${sec.d} mm &nbsp;&nbsp; t = ${sec.t} mm`, '')}
+    ${R('', `d/t = ${sec.d}/${sec.t} = <b>${f(d_t,2)}</b>`, `d/t = ${f(d_t,2)}`)}
+    ${R('', `Plastic limit: 80&epsilon; = ${f(80*eps,2)} &nbsp; ${OK(d_t<=80*eps)}`, '')}
+    ${R('', `Compact limit: 100&epsilon; = ${f(100*eps,2)} &nbsp; ${OK(d_t<=100*eps)}`, '')}
+    ${R('', `Web classification: <b>${wbCls}</b>`, `${wbCls}`)}
+    ${BLANK()}
+    ${R('', `<b>Overall section classification: ${secCls}</b>`, `${secCls.split('–')[0]}`)}
+    ${secCls.includes('Plastic')
+      ? R('', 'Section qualifies for full plastic moment capacity — M<sub>c</sub> = p<sub>y</sub>·S<sub>x</sub>', '')
+      : R('', '<span class="fail">Note: Check if reduced capacity applies.</span>', '')}
+  `, 4);
+
+  // ── PAGE 5: SHEAR + MOMENT CAPACITY ─────────────────────
+  const p5 = page(`
+    ${R('BS 5950<br>Cl. 4.4.5', '<span class="uline">Shear Buckling Check</span>', '')}
+    ${R('', `d/t = ${f(d_t,2)} &nbsp;&nbsp; 63&epsilon; = 63×${f(eps,3)} = ${f(63*eps,2)}`, `d/t = ${f(d_t,2)}`)}
+    ${d_t<=63*eps
+      ? R('', `d/t = ${f(d_t,2)} &lt; 63&epsilon; = ${f(63*eps,2)} &nbsp; ${OK(true)} — No shear buckling`, '')
+      : R('', `d/t = ${f(d_t,2)} &gt; 63&epsilon; = ${f(63*eps,2)} &nbsp; ${OK(false)} — Shear buckling critical`, '')}
+    ${BLANK()}
+    ${R('Cl. 4.2.3', '<span class="uline">Shear Capacity</span>', '')}
+    ${R('', 'P<sub>v</sub> = 0.6 · p<sub>y</sub> · A<sub>v</sub>&nbsp;&nbsp; where A<sub>v</sub> = t × D', '')}
+    ${R('', `A<sub>v</sub> = ${sec.t} × ${sec.D} = ${f0(Av)} mm²`, `A<sub>v</sub> = ${f0(Av)} mm²`)}
+    ${R('', `P<sub>v</sub> = 0.6 × ${py} × ${f0(Av)} / 1000 = <b>${f(Pv,2)} kN</b>`, `P<sub>v</sub> = ${f(Pv,1)} kN`)}
+    ${R('', `F<sub>v</sub> (max reaction) = ${f(Fv,2)} kN`, '')}
+    ${R('', `F<sub>v</sub> = ${f(Fv,2)} kN ${sh_ok?'&lt;':'&gt;'} P<sub>v</sub> = ${f(Pv,2)} kN &nbsp; ${OK(sh_ok)}`, `${OK(sh_ok)}`)}
+    ${R('', `Low shear? F<sub>v</sub> = ${f(Fv,2)} ${lowSh?'&le;':'&gt;'} 0.6P<sub>v</sub> = ${f(0.6*Pv,1)} kN — <b>${lowSh?'LOW SHEAR':'HIGH SHEAR'}</b>`, '')}
+    ${BLANK()}
+    ${R('Cl. 4.2.5', '<span class="uline">Moment Capacity</span>', '')}
+    ${R('', lowSh?'Low shear — full plastic capacity applies:':'High shear — reduced capacity applies:', '')}
+    ${R('', `M<sub>c</sub> = p<sub>y</sub> · S<sub>x</sub> = ${py} × ${sec.Sx} × 10³ / 10⁶`, '')}
+    ${R('', `M<sub>c</sub> (full) = <b>${f(Mc_f,2)} kNm</b>`, `M<sub>c</sub> = ${f(Mc_f,1)} kNm`)}
+    ${R('', `Limit: 1.2·p<sub>y</sub>·Z<sub>x</sub> = 1.2×${py}×${sec.Zx}×10³/10⁶ = ${f(Mc_l,2)} kNm`, '')}
+    ${R('', `M<sub>c</sub> = min(${f(Mc_f,2)}, ${f(Mc_l,2)}) = <b>${f(Mc,2)} kNm</b>`, '')}
+    ${BLANK()}
+    ${R('', `Design moment M<sub>max</sub> = ${f(Mmax2,2)} kNm`, '')}
+    ${R('', `M<sub>max</sub> = ${f(Mmax2,2)} ${mc_ok?'&lt;':'&gt;'} M<sub>c</sub> = ${f(Mc,2)} kNm &nbsp; ${OK(mc_ok)}`, `${OK(mc_ok)}`)}
+    ${BLANK()}
+    ${R('BS 5750<br>Cl. 2.5.2', '<span class="uline">Span Bending Check (Proposed Cantilever)</span>', '')}
+    ${R('', `M<sub>t</sub> = M<sub>max</sub> incl. self-weight = <b>${f(Mmax2,2)} kNm</b>`, `M<sub>t</sub> = ${f(Mmax2,1)} kNm`)}
+    ${R('', `M<sub>c</sub> (${sec.n}) = ${f(Mc,2)} kNm &nbsp; ${OK(mc_ok)}`, '')}
+    ${R('', `Thus the section is <b class="${mc_ok?'ok':'fail'}">${mc_ok?'satisfactory':'INADEQUATE — increase section'}</b>`, '')}
+  `, 5);
+
+  // ── PAGE 6: DEFLECTION ──────────────────────────────────
+  const dCant_udl = Qk*Math.pow(L2mm,4)/(8*EI);
+  const dCant_pt  = Q*1e3*Math.pow(L2mm,3)/(3*EI);
+  const p6 = page(`
+    ${R('BS 5950<br>Cl. 2.5.2', '<span class="uline">Deflection Check (Serviceability)</span>', '')}
+    ${R('', 'Note: Deflection limits use unfactored characteristic imposed loads (Q<sub>k</sub>, Q).', '')}
+    ${R('', 'E (elastic modulus of steel) = 205,000 N/mm²', '')}
+    ${R('', `I<sub>x</sub> = ${sec.Ix} cm⁴ = ${sec.Ix} × 10⁴ mm⁴`, '')}
+    ${R('', `EI = 205,000 × ${sec.Ix}×10⁴ = ${f(EI/1e12,3)} × 10¹² N·mm²`, `EI = ${f(EI/1e12,3)}×10¹²`)}
+    ${BLANK()}
+    ${R('BS 8895<br>Table 8', '<b>Cantilever deflection (standard case):</b>', '')}
+    ${R('', `Cantilever portion: L₂ = ${L2} m = ${f0(L2mm)} mm`, '')}
+    ${R('', `&delta;<sub>c</sub> = Q<sub>k</sub>·L₂⁴ / (8EI) + Q·L₂³ / (3EI)`, '')}
+    ${R('', `&delta;<sub>c</sub> (UDL) = ${Qk}×${f0(L2mm)}⁴ / (8×${f(EI/1e12,3)}×10¹²) = <b>${f(dCant_udl,1)} mm</b>`, `${f(dCant_udl,1)} mm`)}
+    ${R('', `&delta;<sub>c</sub> (pt load) = ${Q}×10³×${f0(L2mm)}³ / (3×${f(EI/1e12,3)}×10¹²) = <b>${f(dCant_pt,1)} mm</b>`, `${f(dCant_pt,1)} mm`)}
+    ${R('', `&delta;<sub>c</sub> total = ${f(dCant_udl,1)} + ${f(dCant_pt,1)} = <b>${f(dC,1)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC,1)} mm`)}
+    ${R('', `Limit: L₂/180 = ${f0(L2mm)}/180 = <b>${f(dCL,1)} mm</b>`, `L₂/180 = ${f(dCL,1)} mm`)}
+    ${R('', `&delta;<sub>c</sub> = ${f(dC,1)} mm ${dC_ok?'&lt;':'&gt;'} ${f(dCL,1)} mm &nbsp; ${OK(dC_ok)}`, `${OK(dC_ok)}`)}
+    ${dC_ok
+      ? R('', 'Since mass deflection &lt; cantilever limit &mdash; <b class="ok">Cantilever deflection OK</b>', '')
+      : R('', '<b class="fail">Cantilever deflection EXCEEDS limit — use heavier section</b>', '')}
+    ${BLANK()}
+    ${R('Cl. 4.5.2', '<b>Span AB deflection:</b>', '')}
+    ${R('', `&delta;<sub>s</sub> = 5·Q<sub>k</sub>·L₁⁴ / (384·EI)`, '')}
+    ${R('', `= 5×${Qk}×${f0(L1mm)}⁴ / (384×${f(EI/1e12,3)}×10¹²)`, '')}
+    ${R('', `<span class="rbox"><b>&delta;<sub>s</sub> = ${f(dS,1)} mm</b></span>`, `&delta;<sub>s</sub> = ${f(dS,1)} mm`)}
+    ${R('', `Limit: L₁/200 = ${f0(L1mm)}/200 = <b>${f(dSL,1)} mm</b>`, `L₁/200 = ${f(dSL,1)} mm`)}
+    ${R('', `&delta;<sub>s</sub> = ${f(dS,1)} mm ${dS_ok?'&lt;':'&gt;'} ${f(dSL,1)} mm &nbsp; ${OK(dS_ok)}`, `${OK(dS_ok)}`)}
+    ${BLANK()}
+    ${(dS_ok&&dC_ok)
+      ? R('', '<b class="ok">&#x2234; Deflection within limits. No deflection stiffener required.</b>', '')
+      : R('', '<b class="fail">&#x2234; Deflection exceeds limits — increase section.</b>', '')}
+    ${BLANK()}
+    ${R('', `<b>Web Bearing (continued on page 7):</b> b<sub>1</sub> = ${b1} mm`, '')}
+    ${R('', `k = T + r = ${sec.T} + ${sec.r} = ${f(k,1)} mm &nbsp;&nbsp; n = ${n}`, `k = ${f(k,1)} mm`)}
+  `, 6);
+
+  // ── PAGE 7: WEB BEARING + BUCKLING ──────────────────────
+  const Pcs = b1*n*(sec.r+sec.T)*py/1e3;
+  const p7 = page(`
+    ${R('BS 5950<br>Cl. 4.5.3.1', '<span class="uline">Web Bearing Capacity at Support</span>', '')}
+    ${R('', `Assume stiff bearing length b₁ = ${b1} mm`, '')}
+    ${R('', `k = T + r = ${sec.T} + ${sec.r} = ${f(k,1)} mm`, `k = ${f(k,1)} mm`)}
+    ${R('', `n = ${n} (end of beam, Cl. 4.5.1.3) &nbsp;&nbsp; b<sub>e</sub> = 0`, '')}
+    ${R('', `P<sub>bw</sub> = (b₁ + n·k) · t · p<sub>y</sub>`, '')}
+    ${R('', `= (${b1} + ${n}×${f(k,1)}) × ${sec.t} × ${py} / 1000`, '')}
+    ${R('', `= (${b1} + ${f(n*k,1)}) × ${sec.t} × ${py} / 1000`, '')}
+    ${R('', `= ${f(b1+n*k,1)} × ${sec.t} × ${py} / 1000`, '')}
+    ${R('', `<span class="rbox"><b>P<sub>bw</sub> = ${f(Pbw,2)} kN</b></span>`, `P<sub>bw</sub> = ${f(Pbw,1)} kN`)}
+    ${R('', `Since P<sub>bw</sub> (${f(Pbw,2)} kN) ${br_ok?'&gt;':'&lt;'} shear force R<sub>A</sub> (${f(Fv,2)} kN) &nbsp; ${OK(br_ok)}`, `${OK(br_ok)}`)}
+    ${BLANK()}
+    ${R('', `Contact stress at support:`, '')}
+    ${R('', `P<sub>cs</sub> = b₁×n×(r+T)×p<sub>y</sub>/1000`, '')}
+    ${R('', `= ${b1}×${n}×(${sec.r}+${sec.T})×${py}/1000 = <b>${f(Pcs,2)} kN</b>`, `P<sub>cs</sub> =`)}
+    ${R('', `Thus web bearing at support is satisfactory &nbsp; ${OK(br_ok)}`, '')}
+    ${BLANK()}
+    ${R('Cl. 4.5.3.2', '<span class="uline">Web Buckling Capacity at Support</span>', '')}
+    ${R('', `P<sub>x</sub> = [25&epsilon;·t / &radic;((b₁+nk)·d)] × P<sub>bw</sub>`, '')}
+    ${R('', `&epsilon; = &radic;(275/${py}) = ${f(epsS,3)}`, '')}
+    ${R('', `= [25×${f(epsS,3)}×${sec.t} / &radic;((${b1}+${f(n*k,1)})×${sec.d})] × ${f(Pbw,2)}`, '')}
+    ${R('', `= [${f(25*epsS*sec.t,2)} / &radic;(${f((b1+n*k)*sec.d,1)})] × ${f(Pbw,2)}`, '')}
+    ${R('', `= [${f(25*epsS*sec.t,2)} / ${f(Math.sqrt((b1+n*k)*sec.d),2)}] × ${f(Pbw,2)}`, '')}
+    ${R('', `<span class="rbox"><b>P<sub>x</sub> = ${f(Px,2)} kN</b></span>`, `P<sub>x</sub> = ${f(Px,1)} kN`)}
+    ${R('', `P<sub>x</sub> (${f(Px,2)} kN) ${bk_ok?'&gt;':'&lt;'} F<sub>v</sub> (${f(Fv,2)} kN) &nbsp; ${OK(bk_ok)}`, `${OK(bk_ok)}`)}
+    ${bk_ok
+      ? R('', '<b class="ok">&#x2234; Buckling at support is OK — no web stiffeners required.</b>', '')
+      : R('', '<b class="fail">&#x2234; Web buckling FAILS — stiffeners required at support.</b>', '')}
+  `, 7);
+
+  // ── PAGE 8: SUMMARY ──────────────────────────────────────
+  const checks = [
+    ['Shear capacity: F<sub>v</sub> &le; P<sub>v</sub>', sh_ok, `${f(Fv,1)} kN &le; ${f(Pv,1)} kN`],
+    ['Moment capacity: M<sub>max</sub> &le; M<sub>c</sub>', mc_ok, `${f(Mmax2,1)} kNm &le; ${f(Mc,1)} kNm`],
+    ['Span deflection: &delta;<sub>s</sub> &le; L₁/200', dS_ok, `${f(dS,1)} mm &le; ${f(dSL,1)} mm`],
+    ['Cantilever deflection: &delta;<sub>c</sub> &le; L₂/180', dC_ok, `${f(dC,1)} mm &le; ${f(dCL,1)} mm`],
+    ['Web bearing: F<sub>v</sub> &le; P<sub>bw</sub>', br_ok, `${f(Fv,1)} kN &le; ${f(Pbw,1)} kN`],
+    ['Web buckling: F<sub>v</sub> &le; P<sub>x</sub>', bk_ok, `${f(Fv,1)} kN &le; ${f(Px,1)} kN`],
+  ];
+
+  const p8 = page(`
+    ${R('', '<span class="uline">Design Summary — All Checks</span>', '')}
+    ${BLANK()}
+    ${R('', '<b>Input Parameters:</b>', '')}
+    ${R('', `L₁ = ${L1} m &nbsp; L₂ = ${L2} m &nbsp; L = ${L} m`, '')}
+    ${R('', `G<sub>k</sub> = ${Gk} kN/m &nbsp; Q<sub>k</sub> = ${Qk} kN/m &nbsp; Q = ${Q} kN`, '')}
+    ${R('', `p<sub>y</sub> = ${py} N/mm² &nbsp; b₁ = ${b1} mm`, '')}
+    ${BLANK()}
+    ${R('', '<b>Factored Loads:</b>', '')}
+    ${R('', `w<sub>u</sub> = 1.4×${Gk} + 1.6×${Qk} = ${f(wu,2)} kN/m`, `${f(wu,2)} kN/m`)}
+    ${R('', `w<sub>u</sub> incl. self-wt = ${f(wu2,3)} kN/m`, '')}
+    ${R('', `W<sub>u</sub> = 1.6×${Q} = ${f(Wu,1)} kN`, `${f(Wu,1)} kN`)}
+    ${R('', `Total factored load = ${f(tot,2)} kN`, `${f(tot,1)} kN`)}
+    ${BLANK()}
+    ${R('', '<b>Reactions:</b>', '')}
+    ${R('', `R<sub>A</sub> = ${f(RA,2)} kN`, `${f(RA,2)} kN`)}
+    ${R('', `R<sub>B</sub> = ${f(RB,2)} kN`, `${f(RB,2)} kN`)}
+    ${R('', `M<sub>A</sub> = ${f(MA,2)} kNm`, `${f(MA,2)} kNm`)}
+    ${R('', `M<sub>max</sub> = ${f(Mmax2,2)} kNm`, `${f(Mmax2,1)} kNm`)}
+    ${BLANK()}
+    ${R('', `<b>Selected Section: ${sec.n} UB (${sec.m} kg/m)</b>`, sec.n)}
+    ${R('', `Classification: ${secCls}`, '')}
+    ${R('', `p<sub>y</sub> = ${py} N/mm² &nbsp; M<sub>c</sub> = ${f(Mc,2)} kNm &nbsp; P<sub>v</sub> = ${f(Pv,1)} kN`, '')}
+    ${BLANK()}
+    ${R('', '<span class="uline">Summary of Design Checks:</span>', '')}
+    ${checks.map(([lbl,pass,val])=>
+      R('', `${lbl}: &nbsp; ${val}`, OK(pass))
+    ).join('')}
+    ${BLANK()}
+    ${BLANK()}
+    ${R('', `
+      <div style="border:3px double ${allOk?'#166534':'#991b1b'};
+                  padding:10px 16px; text-align:center;
+                  color:${allOk?'#166534':'#991b1b'}; font-size:14px; font-weight:bold;">
+        ${allOk
+          ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY<br>for the given loading conditions.`
+          : `&#10007; Section ${sec.n} UB is INADEQUATE<br>&mdash; increase section size.`}
+      </div>`, '')}
+  `, 8);
+
+  document.getElementById('out').innerHTML = p1+p2+p3+p4+p5+p6+p7+p8;
+}
+
+// ── Wire all inputs to update() ──────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('#bar input, #bar select').forEach(el => {
+    el.addEventListener('input', update);
+    el.addEventListener('change', update);
+  });
+  // Grade dropdown syncs py field
+  document.getElementById('iGrade').addEventListener('change', function(){
+    document.getElementById('iPy').value = this.value;
+  });
+  update();
+});
+</script>
 </body>
 </html>
-
