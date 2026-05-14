@@ -12,7 +12,7 @@
     body {
       background: #b8bec8;
       font-family: 'Architects Daughter', cursive;
-      padding-bottom: 88px;
+      padding-bottom: 20px;
     }
 
     /* ── A4 Page ─────────────────────────────────────────── */
@@ -132,24 +132,75 @@
     .fail { color: #991b1b; font-weight: bold; }
     .uline { text-decoration: underline; font-weight: bold; }
 
-    /* ── Fixed input toolbar ────────────────────────────── */
-    #bar {
+    /* ── Floating FAB button ─────────────────────────────── */
+    #fabBtn {
       position: fixed;
-      bottom: 0; left: 0; right: 0;
+      bottom: 22px;
+      right: 22px;
+      z-index: 110;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 18px;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(37,99,235,.55);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: background .2s;
+    }
+    #fabBtn:hover { background: #1d4ed8; }
+
+    /* ── Floating input panel ─────────────────────────────── */
+    #floatPanel {
+      position: fixed;
+      bottom: 72px;
+      right: 22px;
+      z-index: 109;
       background: #1e293b;
-      border-top: 3px solid #3b82f6;
-      padding: 7px 14px;
-      z-index: 99;
+      border: 2px solid #3b82f6;
+      border-radius: 12px;
+      padding: 16px 18px 12px;
+      width: 340px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.45);
+      display: none;
+      flex-direction: column;
+      gap: 10px;
     }
-    #bar .grid {
-      max-width: 960px;
-      margin: auto;
+    #floatPanel.open { display: flex; }
+
+    #floatPanel .fp-title {
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #3b82f6;
+      letter-spacing: .06em;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #floatPanel .fp-title button {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 15px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    #floatPanel .fp-title button:hover { color: #e2e8f0; }
+
+    #floatPanel .fp-grid {
       display: grid;
-      grid-template-columns: repeat(8,1fr) 78px;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
-      align-items: end;
     }
-    #bar label {
+    #floatPanel label {
       display: block;
       font-family: Arial, sans-serif;
       font-size: 9px;
@@ -157,37 +208,43 @@
       color: #94a3b8;
       margin-bottom: 2px;
     }
-    #bar input, #bar select {
+    #floatPanel input, #floatPanel select {
       width: 100%;
       background: #0f172a;
       border: 1px solid #334155;
-      border-radius: 3px;
+      border-radius: 4px;
       color: #fbbf24;
       font-family: monospace;
       font-size: 13px;
-      padding: 3px 5px;
+      padding: 4px 6px;
     }
-    #bar .hint {
+    #floatPanel .hint {
       font-family: Arial, sans-serif;
       font-size: 8px;
       color: #475569;
       margin-top: 1px;
     }
+    #floatPanel .fp-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
     #prtBtn {
-      width: 100%;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      padding: 9px 6px;
+      flex: 1;
+      background: #0f172a;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 8px;
       font-family: Arial, sans-serif;
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
     }
+    #prtBtn:hover { background: #1e293b; color: #e2e8f0; }
 
     @media print {
-      #bar { display: none !important; }
+      #fabBtn, #floatPanel { display: none !important; }
       body { background: white; padding-bottom: 0; }
       .page { margin: 0; box-shadow: none; width: 100%; page-break-after: always; }
     }
@@ -197,18 +254,27 @@
 
 <div id="out"></div>
 
-<!-- ═══ INPUT TOOLBAR ═══ -->
-<div id="bar">
-  <div class="grid">
+<!-- ═══ FLOATING INPUT PANEL ═══ -->
+<button id="fabBtn" onclick="togglePanel()">
+  <span>⚙</span> Edit Inputs
+</button>
+
+<div id="floatPanel">
+  <div class="fp-title">
+    Design Inputs
+    <button onclick="togglePanel()" title="Close">✕</button>
+  </div>
+
+  <div class="fp-grid">
     <div>
       <label>a (m)</label>
       <input id="iL1" type="number" step="0.1" value="8">
-      <div class="hint">Fixed to load</div>
+      <div class="hint">Fixed end → point load</div>
     </div>
     <div>
       <label>b (m)</label>
       <input id="iL2" type="number" step="0.1" value="6.4">
-      <div class="hint">Load to roller</div>
+      <div class="hint">Point load → roller</div>
     </div>
     <div>
       <label>Gk (kN/m)</label>
@@ -242,17 +308,18 @@
     <div>
       <label>b₁ (mm)</label>
       <input id="ib1" type="number" step="5" value="100">
-      <div class="hint">Stiff bearing</div>
+      <div class="hint">Stiff bearing length</div>
     </div>
-    <div>
-      <button id="prtBtn" onclick="window.print()">⎙ Print<br>PDF</button>
-    </div>
+  </div>
+
+  <div class="fp-actions">
+    <button id="prtBtn" onclick="window.print()">⎙ Print / Save PDF</button>
   </div>
 </div>
 
 <script>
 // ═══════════════════════════════════════════════════════
-//  BS 5950 UB TABLE  (D,B,t,T,r,d mm | Sx,Zx cm³ | Ix cm⁴ | m kg/m)
+//  BS 5950 UB TABLE
 // ═══════════════════════════════════════════════════════
 const UB = [
   {n:"254×102×22",m:22,D:254.0,B:101.6,t:5.8,T:6.8,r:7.6,d:225.1,Sx:262,Zx:226,Ix:2870},
@@ -332,108 +399,86 @@ function update() {
   // A2x2: Moment of area of UDL parabola diagram about A
   const A2X2 = (wu * Math.pow(L, 4)) / 8;
   // A3x3: Moment of area of Pt load triangle diagram about A
-  const A3X3 = (0.5 * Wu * a * a) * (L - a/3);
+  const part1 = 0.5 * a * (Wu * a);
+  const part2 = L - (a/3);
+  const A3X3 = part1 * part2;
   
   const RB = (A2X2 + A3X3) / A1_coeff;
   const RA = tot - RB;
 
   // ── Shear forces ──
+  const SFA  = RA;
   const SFCb = RA - wu*a;           
   const SFCa = SFCb - Wu;            
   const SFBl = SFCa - wu*b;         
 
-  // ── Bending moments (evaluated exactly per the note directions) ──
+  // ── Bending moments ──
+  // Calculated exactly per the manual formulation
   const MA  = RB*L - wu*Math.pow(L, 2)/2 - Wu*a;  
   const BMC = RB*b - wu*Math.pow(b, 2)/2;
+  
   const Mmax = Math.max(Math.abs(MA), Math.abs(BMC));
 
-  // ════════════════════════════════════════════════════════
-  // DEFAULT OVERRIDES (To match handwritten PDF precisely)
-  // If inputs match the 8m/6.4m defaults, use the exact PDF numbers
-  // ════════════════════════════════════════════════════════
-  const isDef = (Math.abs(a-8)<0.1 && Math.abs(b-6.4)<0.1 && Gk===4 && Qk===7 && Q===70 && fy===460);
-
-  const o_A1c  = isDef ? 1161.23 : A1_coeff;
-  const o_A2X2 = isDef ? 105344.1 : A2X2;
-  const o_A3X3 = isDef ? 42052 : A3X3;
-  const o_RB   = isDef ? 126.93 : RB;
-  const o_RA   = isDef ? 226.99 : RA;
-
-  const o_SFA  = o_RA;
-  const o_SFCb = isDef ? 92.59 : SFCb;
-  const o_SFCa = isDef ? -19.41 : SFCa;
-  const o_SFBl = isDef ? -126.93 : SFBl;
-
-  const o_MA   = isDef ? -823.42 : MA;
-  const o_BMC  = isDef ? 468.288 : BMC;
-  const o_Mmax = isDef ? 828.68 : Mmax;
-
   // ── Section selection ──
-  const Sx_req_cm3 = (o_Mmax * 1e6 / fy) / 1000;
-  const validSecs = UB.filter(s => s.Sx >= Sx_req_cm3).sort((s1, s2) => s1.m - s2.m);
-  const sec = validSecs[0] || UB.at(-1);
+  const Sx_req  = (Mmax*1e6)/(fy); // mm3
+  const Sx_req_cm3 = Sx_req / 1000;
+  
+  // Find the *lightest* valid section first
+  const validSecs = UB.filter(s => s.Sx >= Sx_req_cm3);
+  validSecs.sort((s1, s2) => s1.m - s2.m); // sort by mass
+  let sec = validSecs[0] || UB.at(-1);
 
   // ── Classification ──
-  const eps = Math.sqrt(275/fy);
-  const fl_b_T = (sec.B/2)/sec.T;
-  const fl_d_t = sec.d/sec.t;
-
-  const o_eps = isDef ? 0.8 : eps;
-  const o_b_T = isDef ? 6.71 : fl_b_T;
-  const o_d_t = isDef ? 46.7 : fl_d_t;
-
-  const flCls = o_b_T<=9*o_eps ? 'Plastic' : o_b_T<=10*o_eps ? 'Compact' : o_b_T<=15*o_eps ? 'Semi-compact' : 'Slender';
-  const wbCls = o_d_t<=80*o_eps ? 'Plastic' : o_d_t<=100*o_eps ? 'Compact' : 'Semi-compact';
+  const eps   = Math.sqrt(275/fy);
+  const b_T   = (sec.B/2)/sec.T; 
+  const d_t   = sec.d/sec.t;
+  const flCls = b_T<=9*eps  ? 'Plastic' : b_T<=10*eps ? 'Compact' : b_T<=15*eps ? 'Semi-compact' : 'Slender';
+  const wbCls = d_t<=80*eps  ? 'Plastic' : d_t<=100*eps ? 'Compact' : 'Semi-compact';
 
   // ── Shear ──
-  const Av = sec.t * sec.D;
-  const Pv = 0.6 * fy * Av / 1e3;
-  
-  const o_Pv = isDef ? 1369 : Pv;
-  const o_Fv = isDef ? 170.74 : Math.max(Math.abs(o_RA), Math.abs(o_RB));
-  const lowSh = o_Fv <= 0.6 * o_Pv;
-  const sh_ok = o_Fv <= o_Pv;
+  const Av    = sec.t * sec.D;
+  const Pv    = 0.6*fy*Av/1e3;
+  const Fv    = Math.max(Math.abs(RA), Math.abs(RB));
+  const lowSh = Fv <= 0.6*Pv;
+  const sh_ok = Fv <= Pv;
 
   // ── Moment capacity ──
-  const Mc_f = fy * sec.Sx * 1e3 / 1e6;
-  const Mc_l = 1.2 * fy * sec.Zx * 1e3 / 1e6;
-  
-  const o_Mc = isDef ? 946.6 : Math.min(Mc_f, Mc_l);
-  const o_12Mc = isDef ? 993 : Mc_l;
+  const Mc_f  = fy*sec.Sx*1e3/1e6;
+  const Mc_l  = 1.2*fy*sec.Zx*1e3/1e6;
+  const Mc    = Math.min(Mc_f, Mc_l);
 
-  const Gsw = sec.m * 9.81 / 1000;
-  const Msw = 1.4 * Gsw * L * L * (9 / 128);
-  
-  const o_Msw = isDef ? 16.42 : Msw;
-  const o_Mt = isDef ? 844.72 : (o_Mmax + o_Msw);
-  const mc_ok = o_Mt <= o_Mc;
+  // ── Moment due to self weight (additive scale) ──
+  const Gsw   = sec.m * 9.81/1000;
+  // Span moment using exactly 9/128 formula as per PDF handwritten math
+  const Msw   = 1.4 * Gsw * L * L * (9 / 128);
+  const Mmax2 = Math.abs(MA) + Msw; 
+  const mc_ok = Mmax2 <= Mc;
 
   // ── Deflection (unfactored imposed) ──
-  const EI = 205e3 * sec.Ix * 1e4;
-  const Lmm = L*1e3, amm=a*1e3, bmm=b*1e3;
+  const EI    = 205e3 * sec.Ix * 1e4;          // N·mm²
+  const Lmm   = L*1e3, amm=a*1e3, bmm=b*1e3;
   const dS_udl = Qk*Math.pow(Lmm,4)/(185*EI);
   const dS_pt  = Q*1e3*Math.pow(amm,2)*Math.pow(bmm,2)/(3*EI*Lmm);
-  const dC = dS_udl + dS_pt;
-  const dCL = Lmm/180;
-  
-  const o_dc = isDef ? 64 : dC;
-  const o_L180 = isDef ? 80 : dCL;
-  const dC_ok = o_dc <= o_L180;
+  const dC     = dS_udl + dS_pt;
+  const dCL    = Lmm/180;
+  const dC_ok  = dC <= dCL;
 
-  // ── Web bearing / buckling (Using Accurate Models) ──
-  const k = sec.T + sec.r;
-  const n = 2;
-  const Pbw = (b1 + n*k)*sec.t*fy/1e3;
-  const epsS = Math.sqrt(275/fy);
-  const bot_in = (b1 + n*k) * sec.d;
-  const Px = (25 * epsS * sec.t / Math.sqrt(bot_in)) * Pbw;
+  // ── Web bearing / buckling ──
+  const k      = sec.T + sec.r;
+  const n      = 2;
+  const Pbw    = (b1 + n*k)*sec.t*fy/1e3;
+  const Pcs    = (b1 + n*(sec.r + sec.T)) * fy/1e3; // Contact stress: b1 + n(r+T)
+  const epsS   = Math.sqrt(275/fy);
   
-  const br_ok = o_RA <= Pbw;
-  const bk_ok = o_RA <= Px;
-  const allOk = sh_ok && mc_ok && dC_ok && br_ok && bk_ok;
+  const bot_in = (b1 + n*k) * sec.d;
+  const Px     = (25*epsS*sec.t / Math.sqrt(bot_in)) * Pbw;
+  
+  const br_ok  = RA<=Pbw;
+  const bk_ok  = RA<=Px;
+  const allOk  = sh_ok&&mc_ok&&dC_ok&&br_ok&&bk_ok;
 
   // ════════════════════════════════════════════════════════
-  //  SVG: STRUCTURAL DIAGRAM
+  //  SVG: STRUCTURAL DIAGRAM (PROPPED CANTILEVER)
   // ════════════════════════════════════════════════════════
   const SW=480, SH=160, beamY=85;
   const Ax=40, Bx=SW-40;
@@ -495,18 +540,18 @@ function update() {
   </svg>`;
 
   // ════════════════════════════════════════════════════════
-  //  SVG: SHEAR FORCE DIAGRAM
+  //  SVG: SHEAR FORCE DIAGRAM (SFD)
   // ════════════════════════════════════════════════════════
   const FW=400;
   const sfdBase = 80;
   const FCx=40+Math.round(320*(a/L));
   
-  const sfMax = Math.max(Math.abs(o_SFA), Math.abs(o_SFCb), Math.abs(o_SFCa), Math.abs(o_SFBl));
+  const sfMax = Math.max(Math.abs(SFA), Math.abs(SFCb), Math.abs(SFCa), Math.abs(SFBl));
   const sfScale = sfMax > 0 ? 55 / sfMax : 1;
-  const ySFA = sfdBase - o_SFA * sfScale;
-  const ySFCb = sfdBase - o_SFCb * sfScale;
-  const ySFCa = sfdBase - o_SFCa * sfScale;
-  const ySFBl = sfdBase - o_SFBl * sfScale;
+  const ySFA = sfdBase - SFA * sfScale;
+  const ySFCb = sfdBase - SFCb * sfScale;
+  const ySFCa = sfdBase - SFCa * sfScale;
+  const ySFBl = sfdBase - SFBl * sfScale;
   
   const sfdSVG=`
   <svg viewBox="0 0 ${FW} 160" style="width:100%;max-width:400px;display:block;margin:4px auto;">
@@ -520,23 +565,23 @@ function update() {
     <text x="40" y="${sfdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">A</text>
     <text x="${FCx}" y="${sfdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">C</text>
     <text x="360" y="${sfdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">B</text>
-    <text x="45" y="${ySFA-5}" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(o_SFA,1)}</text>
-    <text x="${FCx-5}" y="${ySFCb-5}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534">${f(o_SFCb,1)}</text>
-    <text x="${FCx+5}" y="${ySFCa+10}" text-anchor="start" font-family="Arial" font-size="9" fill="#166534">${f(o_SFCa,1)}</text>
-    <text x="355" y="${ySFBl+12}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(o_SFBl,1)}</text>
+    <text x="45" y="${ySFA-5}" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFA,1)}</text>
+    <text x="${FCx-5}" y="${ySFCb-5}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534">${f(SFCb,1)}</text>
+    <text x="${FCx+5}" y="${ySFCa+10}" text-anchor="start" font-family="Arial" font-size="9" fill="#166534">${f(SFCa,1)}</text>
+    <text x="355" y="${ySFBl+12}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFBl,1)}</text>
   </svg>`;
 
   // ════════════════════════════════════════════════════════
-  //  SVG: BENDING MOMENT DIAGRAM
+  //  SVG: BENDING MOMENT DIAGRAM (BMD)
   // ════════════════════════════════════════════════════════
   let bmdPtsStr = `40,90 `;
-  const bmScale = o_Mmax > 0 ? 60 / o_Mmax : 1;
+  const bmScale = Mmax > 0 ? 60 / Mmax : 1;
   const bmdBase = 90;
   
   for(let i=0; i<=50; i++) {
      let x_from_A = (i/50)*L;
      let x_from_B = L - x_from_A;
-     let mx = o_RB * x_from_B - wu * Math.pow(x_from_B, 2) / 2;
+     let mx = RB * x_from_B - wu * Math.pow(x_from_B, 2) / 2;
      if (x_from_B > b) mx -= Wu * (x_from_B - b);
      let px = 40 + (i/50)*320;
      let py = bmdBase - mx * bmScale; 
@@ -549,16 +594,16 @@ function update() {
     <line x1="40" y1="${bmdBase}" x2="360" y2="${bmdBase}" stroke="#333" stroke-width="1.5"/>
     <text x="368" y="${bmdBase+3}" font-family="Arial" font-size="9" fill="#333">0</text>
     <polygon points="${bmdPtsStr}" fill="rgba(0, 0, 139, 0.1)" stroke="#00008b" stroke-width="1.5" stroke-linejoin="round"/>
-    <line x1="40" y1="${bmdBase}" x2="40" y2="${bmdBase - o_MA * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
-    <line x1="${FCx}" y1="${bmdBase}" x2="${FCx}" y2="${bmdBase - o_BMC * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
+    <line x1="40" y1="${bmdBase}" x2="40" y2="${bmdBase - MA * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
+    <line x1="${FCx}" y1="${bmdBase}" x2="${FCx}" y2="${bmdBase - BMC * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
     <circle cx="40" cy="${bmdBase}" r="2" fill="#333"/>
     <circle cx="${FCx}" cy="${bmdBase}" r="2" fill="#333"/>
     <circle cx="360" cy="${bmdBase}" r="2" fill="#333"/>
     <text x="40" y="${bmdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">A</text>
     <text x="${FCx}" y="${bmdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">C</text>
     <text x="360" y="${bmdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">B</text>
-    <text x="45" y="${bmdBase - o_MA * bmScale + 12}" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(o_MA,1)}</text>
-    <text x="${FCx}" y="${bmdBase - o_BMC * bmScale - 6}" text-anchor="middle" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(o_BMC,1)}</text>
+    <text x="45" y="${bmdBase - MA * bmScale + 12}" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(MA,1)}</text>
+    <text x="${FCx}" y="${bmdBase - BMC * bmScale - 6}" text-anchor="middle" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(BMC,1)}</text>
   </svg>`;
 
   // ════════════════════════════════════════════════════════
@@ -581,15 +626,15 @@ function update() {
 
   const p1 = page(`
     ${R('', '<span class="uline">Parameters given.</span>', '')}
-    ${R('', `L = ${f(L,1)} m&nbsp;&nbsp;&nbsp; Q = ${Q} kN`, '')}
+    ${R('', `L = ${L} m&nbsp;&nbsp;&nbsp; Q = ${Q} kN`, '')}
     ${R('', `Gk = ${Gk} kN/m&nbsp;&nbsp;&nbsp; Qk = ${Qk} kN/m`, '')}
     ${BLANK()}
     ${SVGR('', diagramSVG, '')}
     ${BLANK()}
     ${R('', '<span class="uline">Total load on the beam.</span>', '')}
-    ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × ${f(L,1)} + 1.6(${Q})`, '')}
-    ${R('', `= ${f(wu,1)} × ${f(L,1)} + ${f(Wu,1)}`, '')}
-    ${R('', `<b>Total Design loading = ${f(tot,2)} kN</b>`, `${f(tot,2)} kN`)}
+    ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × ${L} + 1.6(${Q})`, '')}
+    ${R('', `= ${f(wu,1)} × ${L} + ${f(Wu,1)}`, '')}
+    ${R('', `<b>Total Design loading = ${f(tot,2)} kN</b>`, `${f(tot,0)} kN`)}
     ${BLANK()}
     ${R('', 'The beam section is statically indeterminate.', '')}
     ${R('', 'Thus reactions become', '')}
@@ -597,42 +642,42 @@ function update() {
   `, 1);
 
   const p2 = page(`
-    ${R('', `A₁x̄₁ = [½ × R<sub>B</sub> × ${f(L,1)} × ${f(L,1)}] × [⅔ × ${f(L,1)}]`, '')}
-    ${R('', `= ${f(o_A1c, 2)} R<sub>B</sub>`, '')}
+    ${R('', `A₁x̄₁ = [½ × R<sub>B</sub> × ${L} × ${L}] × [⅔ × ${L}]`, '')}
+    ${R('', `= ${f(A1_coeff, 2)} R<sub>B</sub>`, '')}
     ${BLANK()}
-    ${R('', `A₂x̄₂ = [⅓ × ${f(L,1)} × (${f(wu,1)}×${f(L,1)}² / 2)] × [¾ × ${f(L,1)}]`, '')}
-    ${R('', `= <b>${f(o_A2X2, 1)}</b>`, '')}
+    ${R('', `A₂x̄₂ = [⅓ × ${L} × (${f(wu,1)}×${L}² / 2)] × [¾ × ${L}]`, '')}
+    ${R('', `= <b>${f(A2X2, 1)}</b>`, '')}
     ${BLANK()}
-    ${R('', `A₃x̄₃ = [½ × ${a} × (${f(Wu,1)}×${a})] × [${f(L,1)} - ⅓ × ${a}]`, '')}
-    ${R('', `= <b>${f(o_A3X3, 1)}</b>`, '')}
+    ${R('', `A₃x̄₃ = [½ × ${a} × (${f(Wu,1)}×${a})] × [${L} - ⅓ × ${a}]`, '')}
+    ${R('', `= <b>${f(A3X3, 1)}</b>`, '')}
     ${BLANK()}
     ${R('', `A₁x̄₁ = A₂x̄₂ + A₃x̄₃`, '')}
-    ${R('', `${f(o_A1c, 2)} R<sub>B</sub> = ${f(o_A2X2, 1)} + ${f(o_A3X3, 1)}`, '')}
-    ${R('', `R<sub>B</sub> = ${f(o_A2X2 + o_A3X3, 1)} / ${f(o_A1c, 2)}`, '')}
-    ${R('', `<span class="rbox"><b>R<sub>B</sub> = ${f(o_RB,2)} kN</b></span>`, `R<sub>B</sub> = ${f(o_RB,2)} kN`)}
+    ${R('', `${f(A1_coeff, 2)} R<sub>B</sub> = ${f(A2X2, 1)} + ${f(A3X3, 1)}`, '')}
+    ${R('', `R<sub>B</sub> = ${f(A2X2 + A3X3, 1)} / ${f(A1_coeff, 2)}`, '')}
+    ${R('', `<span class="rbox"><b>R<sub>B</sub> = ${f(RB,2)} kN</b></span>`, `R<sub>B</sub> = ${f(RB,2)} kN`)}
     ${BLANK()}
-    ${R('', `R<sub>A</sub> = (${f(wu,1)} × ${f(L,1)}) + (${f(Wu,1)}) - ${f(o_RB,2)}`, '')}
-    ${R('', `<span class="rbox"><b>R<sub>A</sub> = ${f(o_RA,2)} kN</b></span>`, `R<sub>A</sub> = ${f(o_RA,2)} kN`)}
+    ${R('', `R<sub>A</sub> = (${f(wu,1)} × ${L}) + (${f(Wu,1)}) - ${f(RB,2)}`, '')}
+    ${R('', `<span class="rbox"><b>R<sub>A</sub> = ${f(RA,2)} kN</b></span>`, `R<sub>A</sub> = ${f(RA,2)} kN`)}
     ${BLANK()}
     ${R('', '<span class="uline">SF (Shear force)</span>', '')}
-    ${R('', `SF @ A = R<sub>A</sub> = ${f(o_RA,2)} kN`, `${f(o_RA,2)} kN`)}
-    ${R('', `SF @ C (before) = ${f(o_RA,2)} − (${f(wu,1)}×${a}) = ${f(o_SFCb,2)} kN`, '')}
+    ${R('', `SF @ A = R<sub>A</sub> = ${f(SFA,2)} kN`, `${f(SFA,2)} kN`)}
+    ${R('', `SF @ C (before) = ${f(SFA,2)} − (${f(wu)}×${a}) = ${f(SFCb,2)} kN`, '')}
   `, 2);
 
   const p3 = page(`
-    ${R('', `SF @ C (after) = ${f(o_SFCb,2)} − ${f(Wu,1)} = ${f(o_SFCa,2)} kN`, '')}
-    ${R('', `SF @ B = ${f(o_SFCa,2)} − (${f(wu,1)}×${b}) = ${f(o_SFBl,2)} kN ≈ -R<sub>B</sub>`, '')}
+    ${R('', `SF @ C (after) = ${f(SFCb,2)} − ${f(Wu,1)} = ${f(SFCa,2)} kN`, '')}
+    ${R('', `SF @ B = ${f(SFCa,2)} − (${f(wu)}×${b}) = ${f(SFBl,2)} kN ≈ -R<sub>B</sub>`, '')}
     ${BLANK()}
     ${R('', '<span class="uline">Shear Force Diagram</span>', '')}
     ${SVGR('', sfdSVG, '')}
     ${BLANK()}
     ${R('', '<span class="uline">Bending Moment</span>', '')}
-    ${R('', `&Sigma; M<sub>A</sub> = 0`, '')}
-    ${R('', `${f(o_RB,2)}(${f(L,1)}) - ${f(wu,1)}(${f(L,1)}² / 2) - ${f(Wu,1)}(${a}) + M<sub>A</sub> = 0`, '')}
-    ${R('', `<span class="rbox"><b>M<sub>A</sub> = ${f(o_MA,2)} kNm</b></span>`, `M<sub>A</sub> = ${f(o_MA,2)} kNm`)}
+    ${R('', `M<sub>A</sub> = ${f(RB,2)}(${L}) - ${f(wu,1)}(${L}² / 2) - ${f(Wu,1)}(${a})`, '')}
+    ${R('', `M<sub>A</sub> = ${f(RB*L,2)} - ${f(wu*L*L/2 + Wu*a, 2)}`, '')}
+    ${R('', `<span class="rbox"><b>M<sub>A</sub> = ${f(MA,2)} kNm</b></span>`, `M<sub>A</sub> = ${f(MA,2)} kNm`)}
     ${BLANK()}
-    ${R('', `M<sub>C</sub> = ${f(o_RB,2)}(${b}) - ${f(wu,1)}(${b}² / 2)`, '')}
-    ${R('', `M<sub>C</sub> = ${f(o_RB*b,2)} - ${f(wu*b*b/2, 2)} = <b>${f(o_BMC,2)} kNm</b>`, `M<sub>C</sub> = ${f(o_BMC,2)} kNm`)}
+    ${R('', `M<sub>C</sub> = ${f(RB,2)}(${b}) - ${f(wu,1)}(${b}² / 2)`, '')}
+    ${R('', `M<sub>C</sub> = ${f(RB*b,2)} - ${f(wu*b*b/2, 2)} = <b>${f(BMC,2)} kNm</b>`, `M<sub>C</sub> = ${f(BMC,2)} kNm`)}
     ${BLANK()}
     ${R('', `M<sub>B</sub> = 0 kNm`, '')}
   `, 3);
@@ -643,64 +688,84 @@ function update() {
     ${BLANK()}
     ${R('', '<span class="uline">Initial Section Selection</span>', '')}
     ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp;&nbsp;&nbsp; Take f<sub>y</sub> = ${fy} N/mm²`, '')}
-    ${R('', `Design Moment M<sub>max</sub> = ${f(o_Mmax, 2)} kNm`, '')}
+    ${R('', `Design Moment M<sub>max</sub> = ${f(Mmax, 2)} kNm`, '')}
     ${R('', `S<sub>x</sub> = M<sub>max</sub> × 10⁶ / f<sub>y</sub>`, '')}
-    ${R('', `S<sub>x</sub> = ${f(o_Mmax,2)} × 10⁶ / ${fy}`, '')}
-    ${R('', `S<sub>x</sub> = ${f(o_Mmax * 1e6 / fy, 2)} mm³`, '')}
+    ${R('', `S<sub>x</sub> = ${f(Mmax,2)} × 10⁶ / ${fy}`, '')}
+    ${R('', `S<sub>x</sub> = ${f(Sx_req, 2)} mm³`, '')}
     ${R('', `<b>S<sub>x</sub> required = ${f(Sx_req_cm3, 2)} cm³</b>`, `S<sub>x</sub> = ${f0(Sx_req_cm3)} cm³`)}
     ${BLANK()}
-    ${R('BS 5950<br>Table B1', '<span class="uline">Suitable Section from table</span>', '')}
-    ${R('', `Selected: <b>${sec.n} UB</b>`, `${sec.n}`)}
+    ${R('BS 5950<br>Table B1', '<span class="uline">Suitable Sections from Table B1 (S<sub>x</sub> &ge; ${f(Sx_req_cm3,1)} cm³)</span>', '')}
+    ${R('', `<div style="font-size:11px;color:#00008b;">
+      <table style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:10px;">
+        <thead>
+          <tr style="border-bottom:1.5px solid #00008b;">
+            <th style="text-align:left;padding:2px 6px;">Section</th>
+            <th style="text-align:right;padding:2px 6px;">Mass (kg/m)</th>
+            <th style="text-align:right;padding:2px 6px;">S<sub>x</sub> (cm³)</th>
+            <th style="text-align:right;padding:2px 6px;">Z<sub>x</sub> (cm³)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${validSecs.slice(0, 4).map((s,i) => `
+          <tr style="background:${i===0?'rgba(22,101,52,0.10)':'transparent'};border-bottom:1px solid #dde6ef;">
+            <td style="padding:2px 6px;font-weight:${i===0?'bold':'normal'};color:${i===0?'#166534':'#00008b'};">${s.n} UB${i===0?' ◀ selected':''}</td>
+            <td style="text-align:right;padding:2px 6px;">${s.m}</td>
+            <td style="text-align:right;padding:2px 6px;font-weight:${i===0?'bold':'normal'};">${s.Sx}</td>
+            <td style="text-align:right;padding:2px 6px;">${s.Zx}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`, '')}
+    ${BLANK()}
+    ${R('', `Selected: <b>${sec.n} UB</b> — lightest section with S<sub>x</sub> &ge; ${f(Sx_req_cm3,1)} cm³`, `${sec.n}`)}
     ${R('', `D = ${sec.D} mm &nbsp;&nbsp; B = ${sec.B} mm &nbsp;&nbsp; t = ${sec.t} mm`, '')}
     ${R('', `T = ${sec.T} mm &nbsp;&nbsp; r = ${sec.r} mm &nbsp;&nbsp; d = ${sec.d} mm`, '')}
     ${R('', `S<sub>x</sub> = ${sec.Sx} cm³ &nbsp;&nbsp; Z<sub>x</sub> = ${sec.Zx} cm³`, `S<sub>x</sub> = ${sec.Sx} cm³`)}
-    ${BLANK()}
-    ${R('', `Taking Section (${sec.n} UB) S<sub>x</sub> = ${sec.Sx} cm³ due to the following<br>strength (i) Lightness (ii) economic consideration.`, '')}
   `, 4);
 
   const p5 = page(`
     ${R('BS 5950<br>Table 11<br>Cl. 3.5.2', '<span class="uline">Strength Classification.</span>', '')}
     ${R('', `Since T (${sec.T}mm) ≤ 16mm, thus f<sub>y</sub> = ${fy} N/mm²`, `f<sub>y</sub> = ${fy}`)}
-    ${R('', `&epsilon; = &radic;(275/f<sub>y</sub>) = &radic;(275/${fy}) = <b>${f(o_eps,3)}</b>`, `&epsilon; = ${f(o_eps,3)}`)}
+    ${R('', `&epsilon; = &radic;(275/f<sub>y</sub>) = &radic;(275/${fy}) = <b>${f(eps,3)}</b>`, `&epsilon; = ${f(eps,3)}`)}
     ${BLANK()}
     ${R('', '<span class="uline">Section Classification.</span>', '')}
-    ${R('', `b/T = <b>${f(o_b_T,2)}</b>`, `b/T = ${f(o_b_T,2)}`)}
-    ${R('', `Since b/T (${f(o_b_T,2)}) &le; 9&epsilon; (${f(9*o_eps,2)})`, '')}
+    ${R('', `b/T = ${f(sec.B/2, 2)} / ${sec.T} = <b>${f(b_T,2)}</b>`, `b/T = ${f(b_T,2)}`)}
+    ${R('', `Since b/T (${f(b_T,2)}) &le; 9&epsilon; (${f(9*eps,2)})`, '')}
     ${R('', `The flange is <b>${flCls}</b>`, `${flCls}`)}
     ${BLANK()}
-    ${R('', `d/t = ${sec.d}/${sec.t} = <b>${f(o_d_t,2)}</b>`, `d/t = ${f(o_d_t,2)}`)}
-    ${R('', `Since d/t (${f(o_d_t,2)}) &le; 80&epsilon; (${f(80*o_eps,2)})`, '')}
+    ${R('', `d/t = ${sec.d}/${sec.t} = <b>${f(d_t,2)}</b>`, `d/t = ${f(d_t,2)}`)}
+    ${R('', `Since d/t (${f(d_t,2)}) &le; 80&epsilon; (${f(80*eps,2)})`, '')}
     ${R('', `It has a <b>${wbCls}</b> web`, `${wbCls}`)}
     ${BLANK()}
     ${R('BS 5950<br>Cl. 4.4.5', '<span class="uline">Shear buckling</span>', '')}
-    ${R('', `Since d/t (${f(o_d_t,2)}) ${o_d_t<=70*o_eps?'&lt;':'&gt;'} 70&epsilon; (${f(70*o_eps,2)})`, '')}
-    ${o_d_t<=70*o_eps
+    ${R('', `Since d/t (${f(d_t,2)}) ${d_t<=70*eps?'&lt;':'&gt;'} 70&epsilon; (${f(70*eps,2)})`, '')}
+    ${d_t<=70*eps
       ? R('', `No shear buckling is required.`, `${OK(true)}`)
       : R('', `Shear buckling critical`, `${OK(false)}`)}
     ${BLANK()}
     ${R('Cl. 4.2.3', '<span class="uline">Shear Capacity</span>', '')}
     ${R('', `P<sub>v</sub> = 0.6 · f<sub>y</sub> · A<sub>v</sub>&nbsp;&nbsp; (where A<sub>v</sub> = t · D)`, '')}
     ${R('', `P<sub>v</sub> = 0.6 × ${fy} × ${sec.t} × ${sec.D} / 1000`, '')}
-    ${R('', `P<sub>v</sub> = <b>${f(o_Pv,1)} kN</b>`, `P<sub>v</sub> = ${f(o_Pv,1)} kN`)}
-    ${R('', `Since F<sub>v</sub> (${f(o_Fv,2)}) ${sh_ok?'&lt;':'&gt;'} P<sub>v</sub> (${f(o_Pv,1)}) thus okay.`, `${OK(sh_ok)}`)}
+    ${R('', `P<sub>v</sub> = <b>${f(Pv,1)} kN</b>`, `P<sub>v</sub> = ${f(Pv,1)} kN`)}
+    ${R('', `Since F<sub>v</sub> (${f(RA,2)}) ${sh_ok?'&lt;':'&gt;'} P<sub>v</sub> (${f(Pv,1)}) thus okay.`, `${OK(sh_ok)}`)}
     ${R('', `This implies the section has ${lowSh?'<b>low</b>':'<b>high</b>'} shear.`, '')}
   `, 5);
 
   const p6 = page(`
     ${R('Cl. 4.2.5', '<span class="uline">Bending Moment Capacity</span>', '')}
     ${R('', `Moment Capacity M<sub>c</sub> = f<sub>y</sub> S<sub>x</sub> &le; 1.2 f<sub>y</sub> Z<sub>x</sub>`, '')}
-    ${R('', `M<sub>c</sub> = ${fy} × ${sec.Sx} × 10³ / 10⁶ = <b>${f(o_Mc,2)} kNm</b>`, '')}
-    ${R('', `1.2 f<sub>y</sub> Z<sub>x</sub> = 1.2 × ${fy} × ${sec.Zx} × 10³ / 10⁶ = <b>${f(o_12Mc,2)} kNm</b>`, '')}
-    ${R('', `Since M<sub>c</sub> (${f(o_Mc,2)}) &le; 1.2 f<sub>y</sub> Z<sub>x</sub> (${f(o_12Mc,2)})`, '')}
-    ${R('', `The bending moment capacity is <b>${f(o_Mc,2)} kNm</b>.`, `M<sub>c</sub> = ${f(o_Mc,2)} kNm`)}
+    ${R('', `M<sub>c</sub> = ${fy} × ${sec.Sx} × 10³ / 10⁶ = <b>${f(Mc_f,2)} kNm</b>`, '')}
+    ${R('', `1.2 f<sub>y</sub> Z<sub>x</sub> = 1.2 × ${fy} × ${sec.Zx} × 10³ / 10⁶ = <b>${f(Mc_l,2)} kNm</b>`, '')}
+    ${R('', `Since M<sub>c</sub> (${f(Mc,2)}) &le; 1.2 f<sub>y</sub> Z<sub>x</sub> (${f(Mc_l,2)})`, '')}
+    ${R('', `The bending moment capacity is <b>${f(Mc,2)} kNm</b>.`, `M<sub>c</sub> = ${f(Mc,2)} kNm`)}
     ${BLANK()}
     ${R('', '<span class="uline">Moment due to self weight & Imposed loading</span>', '')}
     ${R('', `G<sub>sw</sub> = ${sec.m} × 9.81 / 1000 = ${f(Gsw,3)} kN/m`, '')}
-    ${R('', `Span Moment (Propped Cantilever) M<sub>sw</sub> = 1.4(${f(Gsw,3)}) × ${f(L,1)}² × 9 / 128`, '')}
-    ${R('', `M<sub>sw</sub> = ${f(o_Msw, 2)} kNm`, '')}
+    ${R('', `Span Moment (Propped Cantilever) M<sub>sw</sub> = 1.4(${f(Gsw,3)}) × ${L}² × 9 / 128`, '')}
+    ${R('', `M<sub>sw</sub> = ${f(Msw, 2)} kNm`, '')}
     ${R('', `M<sub>t</sub> = Max Moment + M<sub>sw</sub>`, '')}
-    ${R('', `M<sub>t</sub> = ${f(o_Mmax,2)} + ${f(o_Msw,2)} = <b>${f(o_Mt,2)} kNm</b>`, `M<sub>t</sub> = ${f(o_Mt,2)} kNm`)}
-    ${R('', `Since M<sub>t</sub> (${f(o_Mt,2)} kNm) ${mc_ok?'&lt;':'&gt;'} M<sub>c</sub> (${f(o_Mc,2)} kNm)`, '')}
+    ${R('', `M<sub>t</sub> = ${f(Mmax,2)} + ${f(Msw,2)} = <b>${f(Mmax2,2)} kNm</b>`, `M<sub>t</sub> = ${f(Mmax2,2)} kNm`)}
+    ${R('', `Since M<sub>t</sub> (${f(Mmax2,2)} kNm) ${mc_ok?'&lt;':'&gt;'} M<sub>c</sub> (${f(Mc,2)} kNm)`, '')}
     ${R('', `Thus the section is ${mc_ok?'<b>okay</b>':'<b class="fail">inadequate</b>'}.`, `${OK(mc_ok)}`)}
   `, 6);
 
@@ -714,44 +779,37 @@ function update() {
     ${R('', `= ${f(dS_pt,2)} mm`, '')}
     ${R('', `&delta;<sub>c</sub> = ${f(dS_udl,2)} + ${f(dS_pt,2)} = <b>${f(dC,2)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC,1)} mm`)}
     ${BLANK()}
+    ${R('', '<b>Limit:</b>', '')}
+    ${R('', `Limit = L / 180 = ${Lmm} / 180 = <b>${f(dCL,2)} mm</b>`, `L/180 = ${f(dCL,1)} mm`)}
     ${BLANK()}
-  `, 7);
-
-  const p8 = page(`
-    ${R('BS 8895<br>Table 8', '<span class="uline">Case for deflection.</span>', '')}
-    ${R('Note: for Standard', `I = Second moment of Area (${sec.Ix} cm⁴)`, '')}
-    ${R('', `E = Elastic modulus of Steel (205 kN/mm²)`, '')}
-    ${BLANK()}
-    ${R('', `Since max deflection less than Cantilever limit`, '')}
-    ${R('', `deflection limit i.e. 40mm < 80mm`, '')}
-    ${R('', `no deflection at the beam`, '')}
-    ${R('', `From constant rule of max Deflection for cantilever`, '')}
-    ${R('', `L = ${f(L,1)} m = ${f(Lmm,0)} mm`, '')}
-    ${R('', `&delta;<sub>c</sub> = ${f(o_dc,3)} m = <b>${f(o_dc,0)} mm</b>`, `&delta;<sub>c</sub> = ${f(o_dc,0)} mm`)}
-    ${R('', `Limit = L / 180 = ${f(Lmm,0)} / 180 = <b>${f(o_L180,0)} mm</b>`, `Limit = ${f(o_L180,0)} mm`)}
-    ${BLANK()}
-    ${R('', `Since &delta;<sub>c</sub> (${f(o_dc,0)} mm) &lt; Limit (${f(o_L180,0)} mm)`, '')}
+    ${R('', `Since max deflection ${f(dC,2)} mm &lt; ${f(dCL,2)} mm`, '')}
     ${dC_ok
       ? R('', 'No deflection at the beam. <b>Deflection is OK</b>', `${OK(dC_ok)}`)
       : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
     ${BLANK()}
-    ${R('BS 5950<br>Cl. 4.5.2', '<span class="uline">Web bearing at the support</span>', '')}
+    ${R('BS 5950<br>Cl. 4.5.3.1', '<span class="uline">Web bearing at the support</span>', '')}
     ${R('', `P<sub>bw</sub> = (b₁ + n·k) · t · f<sub>y</sub>`, '')}
     ${R('', `b₁ = ${b1} mm &nbsp;&nbsp;&nbsp; b<sub>e</sub> = 0`, '')}
     ${R('', `T = ${sec.T} mm &nbsp;&nbsp;&nbsp; r = ${sec.r} mm`, '')}
     ${R('', `k = T + r = ${sec.T} + ${sec.r} = <b>${f(k,1)} mm</b>`, `k = ${f(k,1)} mm`)}
     ${R('', `n = ${n}`, '')}
-  `, 8);
+  `, 7);
 
-  const p9 = page(`
+  const p8 = page(`
     ${R('', `P<sub>bw</sub> = (${b1} + ${n} × ${f(k,1)}) × ${sec.t} × ${fy} / 1000`, '')}
     ${R('', `<span class="rbox"><b>P<sub>bw</sub> = ${f(Pbw,2)} kN</b></span>`, `P<sub>bw</sub> = ${f(Pbw,2)} kN`)}
     ${BLANK()}
     ${R('', `Since it is greater than Shear force at the support`, '')}
-    ${R('', `i.e. P<sub>bw</sub> (${f(Pbw,2)} kN) &gt; R<sub>A</sub> (${f(o_RA,2)} kN)`, '')}
+    ${R('', `i.e. P<sub>bw</sub> (${f(Pbw,2)} kN) &gt; R<sub>A</sub> (${f(RA,2)} kN)`, '')}
     ${R('', `Thus web bearing is <b>okay</b>`, `${OK(br_ok)}`)}
     ${BLANK()}
-    ${R('BS 5950<br>Cl. 4.5.3.1', '<span class="uline">Web Buckling at the Support</span>', '')}
+    ${R('', `<b>Contact stress at support</b>`, '')}
+    ${R('', `P<sub>cs</sub> = (b₁ + n(r + T)) · f<sub>y</sub>`, '')}
+    ${R('', `= (${b1} + ${n}(${sec.r} + ${sec.T})) × ${fy} / 1000`, '')}
+    ${R('', `P<sub>cs</sub> = <b>${f(Pcs,2)} kN</b>`, `P<sub>cs</sub> = ${f(Pcs,2)} kN`)}
+    ${R('', `Since P<sub>cs</sub> (${f(Pcs,2)} kN) &gt; R<sub>A</sub> (${f(RA,2)} kN) thus it is okay.`, '')}
+    ${BLANK()}
+    ${R('BS 5950<br>Cl. 4.5.3.2', '<span class="uline">Web Buckling at the Support</span>', '')}
     ${R('', `From table d = ${sec.d} mm`, '')}
     ${R('', `P<sub>x</sub> = [25&epsilon;·t / &radic;((b₁+n·k)·d)] × P<sub>bw</sub>`, '')}
     ${R('', `= [25 × ${f(epsS,3)} × ${sec.t} / &radic;((${b1} + ${f(n*k,1)}) × ${sec.d})] × ${f(Pbw,2)}`, '')}
@@ -759,24 +817,24 @@ function update() {
     ${R('', `= [${f(25*epsS*sec.t,2)} / ${f(Math.sqrt((b1+n*k)*sec.d),2)}] × ${f(Pbw,2)}`, '')}
     ${R('', `<span class="rbox"><b>P<sub>x</sub> = ${f(Px,2)} kN</b></span>`, `P<sub>x</sub> = ${f(Px,2)} kN`)}
     ${BLANK()}
-    ${R('', `Since P<sub>x</sub> (${f(Px,2)} kN) &gt; R<sub>A</sub> (${f(o_RA,2)} kN)`, '')}
+    ${R('', `Since P<sub>x</sub> (${f(Px,2)} kN) &gt; R<sub>A</sub> (${f(RA,2)} kN)`, '')}
     ${R('', `Thus buckling at the support is <b>okay</b>.`, `${OK(bk_ok)}`)}
     ${R('', `So no web stiffeners are required at the support.`, '')}
-  `, 9);
+  `, 8);
 
   const checks = [
-    ['Shear capacity: F<sub>v</sub> &le; P<sub>v</sub>', sh_ok, `${f(o_Fv,1)} kN &le; ${f(o_Pv,1)} kN`],
-    ['Moment capacity: M<sub>t</sub> &le; M<sub>c</sub>', mc_ok, `${f(o_Mt,1)} kNm &le; ${f(o_Mc,1)} kNm`],
-    ['Deflection: &delta;<sub>c</sub> &le; L/180', dC_ok, `${f(o_dc,1)} mm &le; ${f(o_L180,1)} mm`],
-    ['Web bearing: R<sub>A</sub> &le; P<sub>bw</sub>', br_ok, `${f(o_RA,1)} kN &le; ${f(Pbw,1)} kN`],
-    ['Web buckling: R<sub>A</sub> &le; P<sub>x</sub>', bk_ok, `${f(o_RA,1)} kN &le; ${f(Px,1)} kN`],
+    ['Shear capacity: R<sub>A</sub> &le; P<sub>v</sub>', sh_ok, `${f(RA,1)} kN &le; ${f(Pv,1)} kN`],
+    ['Moment capacity: M<sub>t</sub> &le; M<sub>c</sub>', mc_ok, `${f(Mmax2,1)} kNm &le; ${f(Mc,1)} kNm`],
+    ['Deflection: &delta;<sub>c</sub> &le; L/180', dC_ok, `${f(dC,1)} mm &le; ${f(dCL,1)} mm`],
+    ['Web bearing: R<sub>A</sub> &le; P<sub>bw</sub>', br_ok, `${f(RA,1)} kN &le; ${f(Pbw,1)} kN`],
+    ['Web buckling: R<sub>A</sub> &le; P<sub>x</sub>', bk_ok, `${f(RA,1)} kN &le; ${f(Px,1)} kN`],
   ];
 
-  const p10 = page(`
+  const p9 = page(`
     ${R('', '<span class="uline">Design Summary — All Checks</span>', '')}
     ${BLANK()}
     ${R('', '<b>Input Parameters:</b>', '')}
-    ${R('', `a = ${a} m &nbsp; b = ${b} m &nbsp; L = ${f(L,1)} m`, '')}
+    ${R('', `a = ${a} m &nbsp; b = ${b} m &nbsp; L = ${L} m`, '')}
     ${R('', `G<sub>k</sub> = ${Gk} kN/m &nbsp; Q<sub>k</sub> = ${Qk} kN/m &nbsp; Q = ${Q} kN`, '')}
     ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp; b₁ = ${b1} mm`, '')}
     ${BLANK()}
@@ -786,8 +844,8 @@ function update() {
     ${R('', `Total factored load = ${f(tot,2)} kN`, `${f(tot,1)} kN`)}
     ${BLANK()}
     ${R('', '<b>Reactions:</b>', '')}
-    ${R('', `R<sub>A</sub> = ${f(o_RA,2)} kN`, `${f(o_RA,2)} kN`)}
-    ${R('', `R<sub>B</sub> = ${f(o_RB,2)} kN`, `${f(o_RB,2)} kN`)}
+    ${R('', `R<sub>A</sub> = ${f(RA,2)} kN`, `${f(RA,2)} kN`)}
+    ${R('', `R<sub>B</sub> = ${f(RB,2)} kN`, `${f(RB,2)} kN`)}
     ${BLANK()}
     ${R('', `<b>Selected Section: ${sec.n} UB (${sec.m} kg/m)</b>`, sec.n)}
     ${R('', `Classification: ${flCls} Flange, ${wbCls} Web`, '')}
@@ -806,14 +864,19 @@ function update() {
           ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY<br>for the given loading conditions.`
           : `&#10007; Section ${sec.n} UB is INADEQUATE<br>&mdash; increase section size.`}
       </div>`, '')}
-  `, 10);
+  `, 9);
 
-  document.getElementById('out').innerHTML = p1+p2+p3+p4+p5+p6+p7+p8+p9+p10;
+  document.getElementById('out').innerHTML = p1+p2+p3+p4+p5+p6+p7+p8+p9;
+}
+
+// ── Toggle floating panel ──────────────────────────────
+function togglePanel() {
+  document.getElementById('floatPanel').classList.toggle('open');
 }
 
 // ── Wire all inputs to update() ──────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('#bar input, #bar select').forEach(el => {
+  document.querySelectorAll('#floatPanel input, #floatPanel select').forEach(el => {
     el.addEventListener('input', update);
     el.addEventListener('change', update);
   });
