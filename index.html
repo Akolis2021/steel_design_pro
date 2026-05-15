@@ -13,7 +13,7 @@
       background: #b8bec8;
       font-family: 'Architects Daughter', cursive;
       padding-bottom: 40px;
-      padding-top: 80px; /* Space for the fixed navbar */
+      padding-top: 80px; 
     }
 
     /* ── Navigation Bar ─────────────────────────────────── */
@@ -31,9 +31,7 @@
       transition: transform 0.3s ease;
       border-bottom: 2px solid #3b82f6;
     }
-    #navbar.hidden {
-      transform: translateY(-100%);
-    }
+    #navbar.hidden { transform: translateY(-100%); }
     .nav-brand {
       color: #fff;
       font-family: Arial, sans-serif;
@@ -46,241 +44,104 @@
     }
     .nav-brand span { color: #3b82f6; }
     .nav-btn {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(37,99,235,.4);
-      transition: background 0.2s, transform 0.1s;
+      background: #2563eb; color: #fff; border: none; border-radius: 6px;
+      padding: 8px 16px; font-family: Arial, sans-serif; font-size: 13px; font-weight: 700;
+      cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,.4); transition: background 0.2s;
     }
     .nav-btn:hover { background: #1d4ed8; }
-    .nav-btn:active { transform: scale(0.96); }
 
     /* ── Dynamic Page ────────────────────────────────────── */
     .page {
       background: #fffef9;
-      background-image: repeating-linear-gradient(
-        transparent 0px, transparent 23px,
-        #dde6ef    23px, #dde6ef    24px
-      );
-      width: 210mm;
-      max-width: 95vw; /* For mobile responsiveness */
-      height: auto; /* Dynamic height based on content */
-      padding-bottom: 12px; 
-      margin: 16px auto;
-      box-shadow: 0 4px 24px rgba(0,0,0,.25);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      background-image: repeating-linear-gradient(transparent 0px, transparent 23px, #dde6ef 23px, #dde6ef 24px);
+      width: 210mm; max-width: 95vw; height: auto; padding-bottom: 12px; margin: 16px auto;
+      box-shadow: 0 4px 24px rgba(0,0,0,.25); position: relative; overflow: hidden; display: flex; flex-direction: column;
     }
-
-    /* red margin strip */
     .page::before {
-      content: '';
-      position: absolute;
-      left: 21mm;
-      top: 0; bottom: 0;
-      border-left: 2px solid #cc0000;
-      pointer-events: none;
-      z-index: 1;
+      content: ''; position: absolute; left: 21mm; top: 0; bottom: 0;
+      border-left: 2px solid #cc0000; pointer-events: none; z-index: 1;
     }
 
-    /* ── 3-column table header ──────────────────────────── */
+    /* ── Table Grids ────────────────────────────────────── */
     .tbl-head {
-      display: grid;
-      grid-template-columns: 24mm 1fr 32mm;
-      border: 2px solid #222;
-      margin: 5mm 5mm 0;
-      font-family: Arial, sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
+      display: grid; grid-template-columns: 24mm 1fr 32mm; border: 2px solid #222;
+      margin: 5mm 5mm 0; font-family: Arial, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase;
     }
-    .tbl-head div {
-      padding: 4px 6px;
-      text-align: center;
-    }
-    .tbl-head div:not(:last-child) {
-      border-right: 1.5px solid #222;
-    }
+    .tbl-head div { padding: 4px 6px; text-align: center; }
+    .tbl-head div:not(:last-child) { border-right: 1.5px solid #222; }
 
-    /* ── 3-column calculation body ──────────────────────── */
     .sheet-body {
-      display: grid;
-      grid-template-columns: 24mm 1fr 32mm;
-      border: 2px solid #222;
-      border-top: none;
-      margin: 0 5mm 4mm;
-      flex: 1;
-      align-content: start;
+      display: grid; grid-template-columns: 24mm 1fr 32mm; border: 2px solid #222; border-top: none;
+      margin: 0 5mm 4mm; flex: 1; align-content: start;
     }
-
-    /* Reference cell */
-    .rc {
-      border-right: 1.5px solid #222;
-      border-bottom: 1px solid #dde6ef;
-      padding: 1px 4px;
-      font-size: 8.5px;
-      color: #666;
-      line-height: 24px;
-      min-height: 24px;
-    }
-
-    /* Calculation cell */
-    .cc {
-      border-right: 1.5px solid #222;
-      border-bottom: 1px solid #dde6ef;
-      padding: 1px 8px;
-      font-size: 13px;
-      color: #00008b;
-      line-height: 24px;
-      min-height: 24px;
-    }
-
-    /* Output cell */
-    .oc {
-      border-bottom: 1px solid #dde6ef;
-      padding: 1px 5px;
-      font-size: 11.5px;
-      color: #00008b;
-      line-height: 24px;
-      min-height: 24px;
-      text-align: right;
-    }
-
-    /* Taller rows (for diagrams) */
+    .rc { border-right: 1.5px solid #222; border-bottom: 1px solid #dde6ef; padding: 1px 4px; font-size: 8.5px; color: #666; line-height: 24px; min-height: 24px; }
+    .cc { border-right: 1.5px solid #222; border-bottom: 1px solid #dde6ef; padding: 1px 8px; font-size: 13px; color: #00008b; line-height: 24px; min-height: 24px; }
+    .oc { border-bottom: 1px solid #dde6ef; padding: 1px 5px; font-size: 11.5px; color: #00008b; line-height: 24px; min-height: 24px; text-align: right; }
     .rc.tall, .cc.tall, .oc.tall { min-height: auto; line-height: normal; padding: 6px 8px; }
+    .pgnum { border-top: 1.5px solid #222; margin: 12px 5mm 0; text-align: center; padding: 2px 0; font-size: 11px; color: #00008b; }
 
-    /* Page number */
-    .pgnum {
-      border-top: 1.5px solid #222;
-      margin: 12px 5mm 0;
-      text-align: center;
-      padding: 2px 0;
-      font-size: 11px;
-      color: #00008b;
-    }
-
-    /* Inline result box */
-    .rbox {
-      display: inline-block;
-      border: 1.5px solid #00008b;
-      padding: 0 6px;
-      margin: 0 2px;
-    }
-
-    .ok   { color: #166534; font-weight: bold; }
+    .rbox { display: inline-block; border: 1.5px solid #00008b; padding: 0 6px; margin: 0 2px; }
+    .ok { color: #166534; font-weight: bold; }
     .fail { color: #991b1b; font-weight: bold; }
     .uline { text-decoration: underline; font-weight: bold; }
     
-    .eq-tag { color: #888; font-weight: bold; font-family: Arial, sans-serif; font-size: 8px; }
+    /* INTERACTIVE EQUATION TAGS */
+    .eq-tag { 
+      color: #2563eb; font-weight: bold; font-family: Arial, sans-serif; font-size: 8px; 
+      cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: all 0.2s;
+      border: 1px dashed transparent; display: inline-block; line-height: 1;
+    }
+    .eq-tag:hover { background: #dbeafe; border-color: #3b82f6; transform: scale(1.05); }
 
     /* ── Floating input panel ─────────────────────────────── */
     #floatPanel {
-      position: fixed;
-      top: 72px; /* Anchor below navbar */
-      right: 22px;
-      z-index: 1000;
-      background: #1e293b;
-      border: 2px solid #3b82f6;
-      border-radius: 12px;
-      padding: 16px 18px 12px;
-      width: 340px;
-      max-width: 90vw;
-      box-shadow: 0 8px 32px rgba(0,0,0,.45);
-      display: none;
-      flex-direction: column;
-      gap: 10px;
+      position: fixed; top: 72px; right: 22px; z-index: 1000; background: #1e293b;
+      border: 2px solid #3b82f6; border-radius: 12px; padding: 16px 18px 12px;
+      width: 340px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,.45); display: none; flex-direction: column; gap: 10px;
     }
     #floatPanel.open { display: flex; }
-
-    #floatPanel .fp-title {
-      font-family: Arial, sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: #3b82f6;
-      letter-spacing: .06em;
-      margin-bottom: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    #floatPanel .fp-title button {
-      background: none;
-      border: none;
-      color: #64748b;
-      font-size: 15px;
-      cursor: pointer;
-      line-height: 1;
-    }
+    #floatPanel .fp-title { font-family: Arial, sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #3b82f6; display: flex; justify-content: space-between; align-items: center; }
+    #floatPanel .fp-title button { background: none; border: none; color: #64748b; font-size: 15px; cursor: pointer; }
     #floatPanel .fp-title button:hover { color: #e2e8f0; }
-
-    #floatPanel .fp-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    #floatPanel label {
-      display: block;
-      font-family: Arial, sans-serif;
-      font-size: 9px;
-      text-transform: uppercase;
-      color: #94a3b8;
-      margin-bottom: 2px;
-    }
-    #floatPanel input, #floatPanel select {
-      width: 100%;
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 4px;
-      color: #fbbf24;
-      font-family: monospace;
-      font-size: 13px;
-      padding: 4px 6px;
-    }
-    #floatPanel .hint {
-      font-family: Arial, sans-serif;
-      font-size: 8px;
-      color: #475569;
-      margin-top: 1px;
-    }
-    #floatPanel .fp-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 4px;
-    }
-    #prtBtn {
-      flex: 1;
-      background: #0f172a;
-      color: #94a3b8;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      padding: 8px;
-      font-family: Arial, sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
+    #floatPanel .fp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #floatPanel label { display: block; font-family: Arial, sans-serif; font-size: 9px; text-transform: uppercase; color: #94a3b8; margin-bottom: 2px; }
+    #floatPanel input, #floatPanel select { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #fbbf24; font-family: monospace; font-size: 13px; padding: 4px 6px; }
+    #floatPanel .hint { font-family: Arial, sans-serif; font-size: 8px; color: #475569; margin-top: 1px; }
+    #prtBtn { background: #0f172a; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 8px; font-family: Arial, sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 4px; }
     #prtBtn:hover { background: #1e293b; color: #e2e8f0; }
 
+    /* ── AI Chat Widget ─────────────────────────────── */
+    #aiChat {
+      position: fixed; bottom: 22px; right: 22px; width: 340px; max-width: 90vw; height: 420px;
+      background: #fff; border: 2px solid #3b82f6; border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.45); display: none; flex-direction: column; z-index: 1001; overflow: hidden;
+    }
+    #aiChat.open { display: flex; }
+    .chat-header { 
+      background: #1e293b; color: #fff; padding: 14px; font-family: Arial, sans-serif; 
+      font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; 
+    }
+    .chat-header span { color: #60a5fa; font-weight: normal; font-size: 11px;}
+    .chat-header button { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
+    .chat-header button:hover { color: #fff; }
+    .chat-messages { 
+      flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; 
+      font-family: Arial, sans-serif; font-size: 12.5px; background: #f8fafc; 
+    }
+    .msg { padding: 10px 14px; border-radius: 8px; max-width: 85%; line-height: 1.5; }
+    .msg.user { background: #3b82f6; color: white; align-self: flex-end; border-radius: 8px 8px 0 8px; }
+    .msg.ai { background: #e2e8f0; color: #1e293b; align-self: flex-start; border-radius: 8px 8px 8px 0; }
+    .chat-input { display: flex; border-top: 1px solid #cbd5e1; padding: 10px; background: #fff; }
+    .chat-input input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-family: Arial, sans-serif; font-size: 13px; }
+    .chat-input input:focus { border-color: #3b82f6; }
+    .chat-input button { background: #3b82f6; color: white; border: none; padding: 0 16px; margin-left: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s;}
+    .chat-input button:hover { background: #1d4ed8; }
+
     @media print {
-      #navbar, #floatPanel { display: none !important; }
+      #navbar, #floatPanel, #aiChat { display: none !important; }
       body { background: white; padding: 0; }
-      .page { 
-        margin: 0; 
-        box-shadow: none; 
-        width: 100%; 
-        max-width: none;
-        min-height: 297mm; /* Force A4 for print */
-        page-break-after: always; 
-      }
+      .page { margin: 0; box-shadow: none; width: 100%; max-width: none; min-height: 297mm; page-break-after: always; }
+      .eq-tag { border: none !important; color: #888 !important; text-decoration: none !important; pointer-events: none; }
     }
   </style>
 </head>
@@ -301,70 +162,149 @@
     Design Inputs
     <button onclick="togglePanel()" title="Close">✕</button>
   </div>
-
   <div class="fp-grid">
-    <div>
-      <label>a (m)</label>
-      <input id="iL1" type="number" step="0.1" value="8">
-      <div class="hint">Fixed end → point load</div>
-    </div>
-    <div>
-      <label>b (m)</label>
-      <input id="iL2" type="number" step="0.1" value="6.4">
-      <div class="hint">Point load → roller</div>
-    </div>
-    <div>
-      <label>Gk (kN/m)</label>
-      <input id="iGk" type="number" step="0.5" value="4">
-      <div class="hint">Dead UDL</div>
-    </div>
-    <div>
-      <label>Qk (kN/m)</label>
-      <input id="iQk" type="number" step="0.5" value="7">
-      <div class="hint">Imposed UDL</div>
-    </div>
-    <div>
-      <label>Q (kN)</label>
-      <input id="iQ" type="number" step="1" value="70">
-      <div class="hint">Point load</div>
-    </div>
-    <div>
-      <label>Grade</label>
+    <div><label>a (m)</label><input id="iL1" type="number" step="0.1" value="8"><div class="hint">Fixed end → point load</div></div>
+    <div><label>b (m)</label><input id="iL2" type="number" step="0.1" value="6.4"><div class="hint">Point load → roller</div></div>
+    <div><label>Gk (kN/m)</label><input id="iGk" type="number" step="0.5" value="4"><div class="hint">Dead UDL</div></div>
+    <div><label>Qk (kN/m)</label><input id="iQk" type="number" step="0.5" value="7"><div class="hint">Imposed UDL</div></div>
+    <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="70"><div class="hint">Point load</div></div>
+    <div><label>Grade</label>
       <select id="iGrade">
         <option value="460">S460 (fy 460)</option>
         <option value="355">S355 (fy 355)</option>
         <option value="275">S275 (fy 275)</option>
-      </select>
-      <div class="hint">Steel grade</div>
+      </select><div class="hint">Steel grade</div>
     </div>
-    <div>
-      <label>fy (N/mm²)</label>
-      <input id="iFy" type="number" step="5" value="460">
-      <div class="hint">Design strength</div>
-    </div>
-    <div>
-      <label>b₁ (mm)</label>
-      <input id="ib1" type="number" step="5" value="100">
-      <div class="hint">Stiff bearing length</div>
-    </div>
+    <div><label>fy (N/mm²)</label><input id="iFy" type="number" step="5" value="460"><div class="hint">Design strength</div></div>
+    <div><label>b₁ (mm)</label><input id="ib1" type="number" step="5" value="100"><div class="hint">Stiff bearing length</div></div>
   </div>
+  <button id="prtBtn" onclick="window.print()">⎙ Print / Save PDF</button>
+</div>
 
-  <div class="fp-actions">
-    <button id="prtBtn" onclick="window.print()">⎙ Print / Save PDF</button>
+<!-- ═══ AI CHAT TUTOR ═══ -->
+<div id="aiChat">
+  <div class="chat-header">
+    <div>🤖 AI Tutor <span>Powered by Gemini</span></div>
+    <button onclick="closeChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg ai">Hello! I'm your structural engineering tutor. Click any blue <b>[Eq. X.X]</b> tag in the document to ask me how it's calculated.</div>
+  </div>
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="Ask a question..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
+    <button onclick="sendChatMessage()">Send</button>
   </div>
 </div>
 
 <div id="out"></div>
 
 <script>
+// ── GEMINI API INTEGRATION & CHAT LOGIC ────────────────────────────
+
+// IMPORTANT: When hosting on GitHub pages, replace the empty string below 
+// with your actual key: const apiKey = "AIzaSyDosUBb_EWWeyI9vsvveILkvsdWyWCHtL8";
+// For testing inside this canvas preview, leave it as an empty string.
+const apiKey = ""; 
+
+let currentChatContext = "General Beam Design";
+
+function toggleChat() { document.getElementById('aiChat').classList.toggle('open'); }
+function closeChat() { document.getElementById('aiChat').classList.remove('open'); }
+
+function openChat(eqId, description) {
+  const chat = document.getElementById('aiChat');
+  chat.classList.add('open');
+  currentChatContext = `Equation ${eqId} (${description})`;
+  appendMessage('ai', `You clicked on <b>${eqId}</b>.<br><br><i style="color:#475569;">${description}</i><br><br>What would you like me to explain about this step?`);
+}
+
+function appendMessage(role, text) {
+  const container = document.getElementById('chatMessages');
+  container.innerHTML += `<div class="msg ${role}">${text}</div>`;
+  container.scrollTop = container.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  appendMessage('user', text);
+  input.value = '';
+  
+  // Get current beam state to give AI context
+  const a = document.getElementById('iL1').value;
+  const b = document.getElementById('iL2').value;
+  const Gk = document.getElementById('iGk').value;
+  const Qk = document.getElementById('iQk').value;
+  const Q = document.getElementById('iQ').value;
+  const fy = document.getElementById('iFy').value;
+
+  const systemPrompt = `You are a helpful structural engineering tutor helping a student understand BS 5950 calculations for a Propped Cantilever beam.
+  Current Beam State:
+  - Span: ${Number(a)+Number(b)}m (Point load at ${a}m from fixed end)
+  - Loads: Dead UDL = ${Gk} kN/m, Imposed UDL = ${Qk} kN/m, Point Load = ${Q} kN
+  - Steel Strength: fy = ${fy} N/mm²
+  
+  The user is currently asking about: ${currentChatContext}.
+  
+  Provide a clear, brief, educational explanation. Keep it under 4 sentences. Explain the physics/mechanics simply. Format with HTML tags like <b> or <i> if needed for emphasis. NEVER use markdown like \`\`\`.`;
+
+  const msgContainer = document.getElementById('chatMessages');
+  const typingId = 'typing-' + Date.now();
+  msgContainer.innerHTML += `<div class="msg ai" id="${typingId}"><i>Thinking...</i></div>`;
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+
+  const payload = {
+    contents: [{ parts: [{ text: text }] }],
+    systemInstruction: { parts: [{ text: systemPrompt }] }
+  };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+  let data = null;
+  let success = false;
+  // Implement Exponential Backoff (Required for preview environment)
+  const delays = [1000, 2000, 4000, 8000, 16000];
+
+  for (let i = 0; i <= 5; i++) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (response.ok) {
+        data = await response.json();
+        success = true;
+        break;
+      }
+    } catch (e) {
+      // Ignore network errors here to trigger retry logic
+    }
+    
+    if (i < 5) { // Wait before retrying if not the last attempt
+      await new Promise(r => setTimeout(r, delays[i]));
+    }
+  }
+
+  const typingEl = document.getElementById(typingId);
+  if (typingEl) typingEl.remove();
+
+  if (success && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+    appendMessage('ai', data.candidates[0].content.parts[0].text);
+  } else {
+    appendMessage('ai', '<i>Error: Could not connect to the AI tutor. If you are hosting on GitHub Pages, ensure your API Key is inserted in the script!</i>');
+  }
+}
+
 // ── Smart Navbar Scroll Logic ────────────────────────────
 let lastScrollY = window.pageYOffset;
 window.addEventListener('scroll', () => {
   const currentScrollY = window.pageYOffset;
   const navbar = document.getElementById('navbar');
   const panelOpen = document.getElementById('floatPanel').classList.contains('open');
-  
-  // Hide nav if scrolling down and panel is NOT open. Keep visible if panel is open.
   if (currentScrollY > lastScrollY && currentScrollY > 60 && !panelOpen) {
     navbar.classList.add('hidden');
   } else {
@@ -374,7 +314,7 @@ window.addEventListener('scroll', () => {
 });
 
 // ═══════════════════════════════════════════════════════
-//  BS 5950 UB TABLE  (D,B,t,T,r,d mm | Sx,Zx cm³ | Ix cm⁴ | m kg/m)
+//  BS 5950 UB TABLE
 // ═══════════════════════════════════════════════════════
 const UB = [
   {n:"254×102×22",m:22,D:254.0,B:101.6,t:5.8,T:6.8,r:7.6,d:225.1,Sx:262,Zx:226,Ix:2870},
@@ -417,14 +357,14 @@ const f  = (v, d=2) => (+v).toFixed(d);
 const f0 = (v)      => (+v).toFixed(0);
 const OK = (p) => p ? '<span class="ok">&#10003; OK</span>' : '<span class="fail">&#10007; FAIL</span>';
 
+const EQ = (id, desc) => `<span class="eq-tag" onclick="openChat('${id}', '${desc}')" title="Ask AI about this calculation">[${id}]</span>`;
+
 function R(ref, calc, out='') {
   return `<div class="rc">${ref}</div><div class="cc">${calc}</div><div class="oc">${out}</div>`;
 }
-
 function BLANK() {
   return `<div class="rc"></div><div class="cc"></div><div class="oc"></div>`;
 }
-
 function SVGR(ref, svgHTML, out='') {
   return `<div class="rc tall" style="align-self:center;">${ref}</div>
           <div class="cc tall" style="overflow-x:auto;">${svgHTML}</div>
@@ -443,7 +383,6 @@ function update() {
   const fy   = +document.getElementById('iFy').value;
   const b1   = +document.getElementById('ib1').value;
 
-  // ── PHASE 2: INPUT VALIDATION (HARD ERRORS) ──
   const errors = [];
   if (isNaN(a) || a <= 0) errors.push("Dimension 'a' (Fixed end to point load) must be greater than zero.");
   if (isNaN(b) || b <= 0) errors.push("Dimension 'b' (Point load to roller) must be greater than zero.");
@@ -455,20 +394,11 @@ function update() {
 
   if (errors.length > 0) {
     document.getElementById('out').innerHTML = `
-      <div style="max-width:210mm; margin: 20px auto; padding: 24px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; font-family: Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <h2 style="color: #991b1b; margin-top: 0; display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 24px;">⚠️</span> Input Validation Error
-        </h2>
-        <p style="color: #7f1d1d; font-size: 14px; margin-bottom: 12px;">The following inputs are geometrically or structurally invalid:</p>
-        <ul style="color: #991b1b; padding-left: 24px; font-size: 14px; line-height: 1.6;">
-          ${errors.map(e => `<li>${e}</li>`).join('')}
-        </ul>
-        <p style="margin-bottom: 0; margin-top: 20px; font-size: 13px; color: #b91c1c; font-style: italic;">
-          Please open the <b>⚙ Edit Inputs</b> panel and correct these values to proceed.
-        </p>
-      </div>
-    `;
-    return; // Abort calculation
+      <div style="max-width:210mm; margin: 20px auto; padding: 24px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; font-family: Arial, sans-serif;">
+        <h2 style="color: #991b1b; margin-top: 0;">⚠️ Input Validation Error</h2>
+        <ul style="color: #991b1b; padding-left: 24px;">${errors.map(e => `<li>${e}</li>`).join('')}</ul>
+      </div>`;
+    return;
   }
 
   const L   = a + b;             
@@ -476,7 +406,6 @@ function update() {
   const Wu  = 1.6*Q;             
   const tot = wu*L + Wu;         
 
-  // ── Area Moment Method (Macaulay's / Mohr's) for Propped Cantilever ──
   const A1_coeff = Math.pow(L, 3) / 3;
   const A2X2 = (wu * Math.pow(L, 4)) / 8;
   const part1 = 0.5 * a * (Wu * a);
@@ -486,66 +415,52 @@ function update() {
   const RB = (A2X2 + A3X3) / A1_coeff;
   const RA = tot - RB;
 
-  // ── Shear forces ──
   const SFA  = RA;
   const SFCb = RA - wu*a;           
   const SFCa = SFCb - Wu;            
   const SFBl = SFCa - wu*b;         
 
-  // ── Bending moments ──
   const MA  = RB*L - wu*Math.pow(L, 2)/2 - Wu*a;  
   const BMC = RB*b - wu*Math.pow(b, 2)/2;
   const Mmax = Math.max(Math.abs(MA), Math.abs(BMC));
 
-  // ── Section selection ──
-  const Sx_req  = (Mmax*1e6)/(fy); // mm3
+  const Sx_req  = (Mmax*1e6)/(fy);
   const Sx_req_cm3 = Sx_req / 1000;
   
   const validSecs = UB.filter(s => s.Sx >= Sx_req_cm3);
-  validSecs.sort((s1, s2) => s1.m - s2.m); // lightest first
+  validSecs.sort((s1, s2) => s1.m - s2.m);
   
   if (validSecs.length === 0) {
     document.getElementById('out').innerHTML = `
-      <div style="max-width:210mm; margin: 20px auto; padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px; font-family: Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <h2 style="color: #92400e; margin-top: 0; display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 24px;">⛔</span> Capacity Exceeded
-        </h2>
-        <p style="color: #92400e; font-size: 14px; margin-bottom: 0;">
-          The applied loads generate a design moment (${f(Mmax, 1)} kNm) requiring an <b>S<sub>x</sub> &ge; ${f(Sx_req_cm3, 1)} cm³</b>. <br><br>
-          This exceeds the capacity of the largest Universal Beam (610×229×140 UB) in the database. Please reduce the span, reduce the loading, or consider a built-up plate girder.
-        </p>
-      </div>
-    `;
+      <div style="max-width:210mm; margin: 20px auto; padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px; font-family: Arial, sans-serif;">
+        <h2 style="color: #92400e; margin-top: 0;">⛔ Capacity Exceeded</h2>
+        <p style="color: #92400e;">The applied loads generate a design moment requiring an <b>S<sub>x</sub> &ge; ${f(Sx_req_cm3, 1)} cm³</b>. This exceeds the database capacity.</p>
+      </div>`;
     return;
   }
   let sec = validSecs[0];
 
-  // ── Classification ──
   const eps   = (fy === 460) ? 0.8 : Math.sqrt(275/fy);
   const b_T   = (sec.B/2)/sec.T; 
   const d_t   = sec.d/sec.t;
   const flCls = b_T<=9*eps  ? 'Plastic' : b_T<=10*eps ? 'Compact' : b_T<=15*eps ? 'Semi-compact' : 'Slender';
   const wbCls = d_t<=80*eps  ? 'Plastic' : d_t<=100*eps ? 'Compact' : 'Semi-compact';
 
-  // ── Shear ──
   const Av    = sec.t * sec.D;
   const Pv    = 0.6*fy*Av/1e3;
   const Fv    = Math.max(Math.abs(RA), Math.abs(RB));
   const lowSh = Fv <= 0.6*Pv;
   const sh_ok = Fv <= Pv;
 
-  // ── Moment capacity ──
   const Mc_f  = fy*sec.Sx*1e3/1e6;
   const Mc_l  = 1.2*fy*sec.Zx*1e3/1e6;
   const Mc    = Math.min(Mc_f, Mc_l);
 
-  // ── Moment due to self weight ──
   const Gsw   = sec.m * 9.81/1000;
   const Msw   = 1.4 * Gsw * L * L * (9 / 128);
   const Mmax2 = Math.abs(MA) + Msw; 
   const mc_ok = Mmax2 <= Mc;
 
-  // ── Deflection (unfactored imposed) ──
   const EI    = 205e3 * sec.Ix * 1e4;          
   const Lmm   = L*1e3, amm=a*1e3, bmm=b*1e3;
   const dS_udl = Qk*Math.pow(Lmm,4)/(185*EI);
@@ -554,7 +469,6 @@ function update() {
   const dCL    = Lmm/180;
   const dC_ok  = dC <= dCL;
 
-  // ── Web bearing / buckling ──
   const k      = sec.T + sec.r;
   const n      = 2;
   const Pbw    = (b1 + n*k)*sec.t*fy/1e3;
@@ -567,9 +481,8 @@ function update() {
   const bk_ok  = RA<=Px;
   const allOk  = sh_ok&&mc_ok&&dC_ok&&br_ok&&bk_ok;
 
-  // ── PHASE 2: ENGINEERING SANITY CHECKS (WARNINGS) ──
   const warnings = [];
-  if ((Lmm / sec.D) > 40) warnings.push(`<b>Slenderness:</b> Span-to-depth ratio (${f(Lmm/sec.D, 1)}) exceeds 40. Beam may be susceptible to excessive vibration.`);
+  if ((Lmm / sec.D) > 40) warnings.push(`<b>Slenderness:</b> Span-to-depth ratio (${f(Lmm/sec.D, 1)}) exceeds 40.`);
   if (mc_ok && (Mmax2 / Mc) > 0.95) warnings.push(`<b>Moment Utilization:</b> Section is operating at ${f((Mmax2/Mc)*100, 1)}% of flexural capacity.`);
   if (sh_ok && (Fv / Pv) > 0.95) warnings.push(`<b>Shear Utilization:</b> Section is operating at ${f((Fv/Pv)*100, 1)}% of shear capacity.`);
   if (dC_ok && (dC / dCL) > 0.95) warnings.push(`<b>Deflection Limit:</b> Deflection is at ${f((dC/dCL)*100, 1)}% of L/180 limit.`);
@@ -580,20 +493,14 @@ function update() {
       ${BLANK()}
       ${R('', `
         <div style="border: 2px solid #d97706; background: #fffbeb; padding: 12px 16px; border-radius: 4px; color: #92400e; font-family: Arial, sans-serif; font-size: 11.5px; margin: 8px 0;">
-          <div style="font-weight: 700; margin-bottom: 8px; font-size: 13px; display:flex; align-items:center; gap:6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            Engineering Warnings
-          </div>
-          <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
-            ${warnings.map(w => `<li>${w}</li>`).join('')}
-          </ul>
-        </div>
-      `, '')}
+          <div style="font-weight: 700; margin-bottom: 8px; font-size: 13px;">⚠️ Engineering Warnings</div>
+          <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">${warnings.map(w => `<li>${w}</li>`).join('')}</ul>
+        </div>`, '')}
     `;
   }
 
   // ════════════════════════════════════════════════════════
-  //  SVG: STRUCTURAL DIAGRAM
+  //  SVG DIAGRAMS
   // ════════════════════════════════════════════════════════
   const SW=480, SH=160, beamY=85;
   const Ax=40, Bx=SW-40;
@@ -611,7 +518,6 @@ function update() {
       <marker id="Wa" markerWidth="7" markerHeight="7" refX="3.5" refY="7" orient="auto"><path d="M0,0 L3.5,7 L7,0 Z" fill="#cc0000"/></marker>
       <marker id="Ra" markerWidth="6" markerHeight="6" refX="3" refY="0" orient="auto"><path d="M0,6 L3,0 L6,6 Z" fill="#166534"/></marker>
     </defs>
-    <!-- UDL -->
     <line x1="${Ax}" y1="${beamY-32}" x2="${Bx}" y2="${beamY-32}" stroke="#00008b" stroke-width="1.2"/>
     ${sp}
     <text x="${(Ax+Bx)/2}" y="${beamY-38}" text-anchor="middle" font-family="Architects Daughter" font-size="10.5" fill="#00008b">Gk = ${Gk} kN/m,  Qk = ${Qk} kN/m</text>
@@ -640,53 +546,30 @@ function update() {
     <text x="${(Cx+Bx)/2}" y="${beamY+105}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">${b} m</text>
   </svg>`;
 
-  // ════════════════════════════════════════════════════════
-  //  SVG: SHEAR FORCE DIAGRAM (SFD)
-  // ════════════════════════════════════════════════════════
-  const FW=400;
-  const sfdBase = 80;
-  const FCx=40+Math.round(320*(a/L));
-  
+  const FW=400; const sfdBase = 80;
+  const FCx=40+Math.round(320*(a/L)); // BUG FIX: restored missing line!
   const sfMax = Math.max(Math.abs(SFA), Math.abs(SFCb), Math.abs(SFCa), Math.abs(SFBl));
   const sfScale = sfMax > 0 ? 55 / sfMax : 1;
-  const ySFA = sfdBase - SFA * sfScale;
-  const ySFCb = sfdBase - SFCb * sfScale;
-  const ySFCa = sfdBase - SFCa * sfScale;
-  const ySFBl = sfdBase - SFBl * sfScale;
-  
   const sfdSVG=`
   <svg viewBox="0 0 ${FW} 160" style="width:100%;min-width:320px;max-width:400px;display:block;margin:4px auto;">
     <line x1="40" y1="${sfdBase}" x2="360" y2="${sfdBase}" stroke="#333" stroke-width="1.5"/>
     <text x="368" y="${sfdBase+3}" font-family="Arial" font-size="9" fill="#333">0</text>
-    <polygon points="40,${sfdBase} 40,${ySFA} ${FCx},${ySFCb} ${FCx},${ySFCa} 360,${ySFBl} 360,${sfdBase}" 
-             fill="rgba(22, 101, 52, 0.15)" stroke="#166534" stroke-width="1.5" stroke-linejoin="round"/>
-    <circle cx="40" cy="${sfdBase}" r="2" fill="#333"/>
-    <circle cx="${FCx}" cy="${sfdBase}" r="2" fill="#333"/>
-    <circle cx="360" cy="${sfdBase}" r="2" fill="#333"/>
+    <polygon points="40,${sfdBase} 40,${sfdBase-SFA*sfScale} ${FCx},${sfdBase-SFCb*sfScale} ${FCx},${sfdBase-SFCa*sfScale} 360,${sfdBase-SFBl*sfScale} 360,${sfdBase}" fill="rgba(22, 101, 52, 0.15)" stroke="#166534" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="40" cy="${sfdBase}" r="2" fill="#333"/><circle cx="${FCx}" cy="${sfdBase}" r="2" fill="#333"/><circle cx="360" cy="${sfdBase}" r="2" fill="#333"/>
     <text x="40" y="${sfdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">A</text>
     <text x="${FCx}" y="${sfdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">C</text>
     <text x="360" y="${sfdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">B</text>
-    <text x="45" y="${ySFA-5}" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFA,1)}</text>
-    <text x="${FCx-5}" y="${ySFCb-5}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534">${f(SFCb,1)}</text>
-    <text x="${FCx+5}" y="${ySFCa+10}" text-anchor="start" font-family="Arial" font-size="9" fill="#166534">${f(SFCa,1)}</text>
-    <text x="355" y="${ySFBl+12}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFBl,1)}</text>
+    <text x="45" y="${sfdBase-SFA*sfScale-5}" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFA,1)}</text>
+    <text x="${FCx-5}" y="${sfdBase-SFCb*sfScale-5}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534">${f(SFCb,1)}</text>
+    <text x="${FCx+5}" y="${sfdBase-SFCa*sfScale+10}" text-anchor="start" font-family="Arial" font-size="9" fill="#166534">${f(SFCa,1)}</text>
+    <text x="355" y="${sfdBase-SFBl*sfScale+12}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFBl,1)}</text>
   </svg>`;
 
-  // ════════════════════════════════════════════════════════
-  //  SVG: BENDING MOMENT DIAGRAM (BMD)
-  // ════════════════════════════════════════════════════════
-  let bmdPtsStr = `40,90 `;
-  const bmScale = Mmax > 0 ? 60 / Mmax : 1;
-  const bmdBase = 90;
-  
+  let bmdPtsStr = `40,90 `; const bmScale = Mmax > 0 ? 60 / Mmax : 1; const bmdBase = 90;
   for(let i=0; i<=50; i++) {
-     let x_from_A = (i/50)*L;
-     let x_from_B = L - x_from_A;
-     let mx = RB * x_from_B - wu * Math.pow(x_from_B, 2) / 2;
-     if (x_from_B > b) mx -= Wu * (x_from_B - b);
-     let px = 40 + (i/50)*320;
-     let py = bmdBase - mx * bmScale; 
-     bmdPtsStr += `${px},${py} `;
+     let xB = L - ((i/50)*L);
+     let mx = RB*xB - wu*Math.pow(xB, 2)/2; if (xB > b) mx -= Wu*(xB - b);
+     bmdPtsStr += `${40+(i/50)*320},${bmdBase-mx*bmScale} `;
   }
   bmdPtsStr += `360,90`;
 
@@ -695,34 +578,21 @@ function update() {
     <line x1="40" y1="${bmdBase}" x2="360" y2="${bmdBase}" stroke="#333" stroke-width="1.5"/>
     <text x="368" y="${bmdBase+3}" font-family="Arial" font-size="9" fill="#333">0</text>
     <polygon points="${bmdPtsStr}" fill="rgba(0, 0, 139, 0.1)" stroke="#00008b" stroke-width="1.5" stroke-linejoin="round"/>
-    <line x1="40" y1="${bmdBase}" x2="40" y2="${bmdBase - MA * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
-    <line x1="${FCx}" y1="${bmdBase}" x2="${FCx}" y2="${bmdBase - BMC * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
-    <circle cx="40" cy="${bmdBase}" r="2" fill="#333"/>
-    <circle cx="${FCx}" cy="${bmdBase}" r="2" fill="#333"/>
-    <circle cx="360" cy="${bmdBase}" r="2" fill="#333"/>
+    <line x1="40" y1="${bmdBase}" x2="40" y2="${bmdBase-MA*bmScale}" stroke="#777" stroke-dasharray="2,2"/>
+    <line x1="${FCx}" y1="${bmdBase}" x2="${FCx}" y2="${bmdBase-BMC*bmScale}" stroke="#777" stroke-dasharray="2,2"/>
+    <circle cx="40" cy="${bmdBase}" r="2" fill="#333"/><circle cx="${FCx}" cy="${bmdBase}" r="2" fill="#333"/><circle cx="360" cy="${bmdBase}" r="2" fill="#333"/>
     <text x="40" y="${bmdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">A</text>
     <text x="${FCx}" y="${bmdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">C</text>
     <text x="360" y="${bmdBase+15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">B</text>
-    <text x="45" y="${bmdBase - MA * bmScale + 12}" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(MA,1)}</text>
-    <text x="${FCx}" y="${bmdBase - BMC * bmScale - 6}" text-anchor="middle" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(BMC,1)}</text>
+    <text x="45" y="${bmdBase-MA*bmScale+12}" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(MA,1)}</text>
+    <text x="${FCx}" y="${bmdBase-BMC*bmScale-6}" text-anchor="middle" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(BMC,1)}</text>
   </svg>`;
 
   // ════════════════════════════════════════════════════════
   //  BUILD PAGES 
   // ════════════════════════════════════════════════════════
   function page(rows, pgNum) {
-    return `
-    <div class="page">
-      <div class="tbl-head">
-        <div>Reference</div>
-        <div>Calculation</div>
-        <div>Output</div>
-      </div>
-      <div class="sheet-body">
-        ${rows}
-      </div>
-      <div class="pgnum">Page No <u>${pgNum}</u></div>
-    </div>`;
+    return `<div class="page"><div class="tbl-head"><div>Reference</div><div>Calculation</div><div>Output</div></div><div class="sheet-body">${rows}</div><div class="pgnum">Page No <u>${pgNum}</u></div></div>`;
   }
 
   const p1 = page(`
@@ -732,7 +602,7 @@ function update() {
     ${BLANK()}
     ${SVGR('', diagramSVG, '')}
     ${BLANK()}
-    ${R('<span class="eq-tag">[Eq. 1.1]</span>', '<span class="uline">Total load on the beam.</span>', '')}
+    ${R(EQ('Eq. 1.1', 'Calculation for the total factored load on the beam'), '<span class="uline">Total factored load on the beam.</span>', '')}
     ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × ${f(L,1)} + 1.6(${Q})`, '')}
     ${R('', `= ${f(wu,1)} × ${f(L,1)} + ${f(Wu,1)}`, '')}
     ${R('', `<b>Total Design loading = ${f(tot,2)} kN</b>`, `${f(tot,0)} kN`)}
@@ -743,41 +613,41 @@ function update() {
   `, 1);
 
   const p2 = page(`
-    ${R('<span class="eq-tag">[Eq. 2.1]</span>', `A₁x̄₁ = [½ × R<sub>B</sub> × ${f(L,1)} × ${f(L,1)}] × [⅔ × ${f(L,1)}]`, '')}
+    ${R(EQ('Eq. 2.1', 'Moment of the area of the RB triangular diagram about fixed support A'), `A₁x̄₁ = [½ × R<sub>B</sub> × ${f(L,1)} × ${f(L,1)}] × [⅔ × ${f(L,1)}]`, '')}
     ${R('', `= <b>${f(A1_coeff, 2)} R<sub>B</sub></b>`, '')}
     ${BLANK()}
-    ${R('<span class="eq-tag">[Eq. 2.2]</span>', `A₂x̄₂ = [⅓ × ${f(L,1)} × (${f(wu,1)}×${f(L,1)}² / 2)] × [¾ × ${f(L,1)}]`, '')}
+    ${R(EQ('Eq. 2.2', 'Moment of the area of the UDL parabolic diagram about fixed support A'), `A₂x̄₂ = [⅓ × ${f(L,1)} × (${f(wu,1)}×${f(L,1)}² / 2)] × [¾ × ${f(L,1)}]`, '')}
     ${R('', `= <b>${f(A2X2, 1)}</b>`, '')}
     ${BLANK()}
-    ${R('<span class="eq-tag">[Eq. 2.3]</span>', `A₃x̄₃ = [½ × ${a} × (${f(Wu,1)}×${a})] × [${f(L,1)} - ⅓ × ${a}]`, '')}
+    ${R(EQ('Eq. 2.3', 'Moment of the area of the Point Load triangular diagram about fixed support A'), `A₃x̄₃ = [½ × ${a} × (${f(Wu,1)}×${a})] × [${f(L,1)} - ⅓ × ${a}]`, '')}
     ${R('', `= <b>${f(A3X3, 1)}</b>`, '')}
     ${BLANK()}
     ${R('', `A₁x̄₁ = A₂x̄₂ + A₃x̄₃`, '')}
     ${R('', `${f(A1_coeff, 2)} R<sub>B</sub> = ${f(A2X2, 1)} + ${f(A3X3, 1)}`, '')}
-    ${R('<span class="eq-tag">[Eq. 2.4]</span>', `R<sub>B</sub> = ${f(A2X2 + A3X3, 1)} / ${f(A1_coeff, 2)}`, '')}
+    ${R(EQ('Eq. 2.4', 'Solving for Reaction RB using the Area-Moment theorem'), `R<sub>B</sub> = ${f(A2X2 + A3X3, 1)} / ${f(A1_coeff, 2)}`, '')}
     ${R('', `<span class="rbox"><b>R<sub>B</sub> = ${f(RB,2)} kN</b></span>`, `R<sub>B</sub> = ${f(RB,2)} kN`)}
     ${BLANK()}
-    ${R('<span class="eq-tag">[Eq. 2.5]</span>', `R<sub>A</sub> = (${f(wu,1)} × ${f(L,1)}) + (${f(Wu,1)}) - ${f(RB,2)}`, '')}
+    ${R(EQ('Eq. 2.5', 'Solving for Reaction RA using sum of vertical forces'), `R<sub>A</sub> = (${f(wu,1)} × ${f(L,1)}) + (${f(Wu,1)}) - ${f(RB,2)}`, '')}
     ${R('', `<span class="rbox"><b>R<sub>A</sub> = ${f(RA,2)} kN</b></span>`, `R<sub>A</sub> = ${f(RA,2)} kN`)}
     ${BLANK()}
     ${R('', '<span class="uline">SF (Shear force)</span>', '')}
     ${R('', `SF @ A = R<sub>A</sub> = ${f(SFA,2)} kN`, `${f(SFA,2)} kN`)}
-    ${R('<span class="eq-tag">[Eq. 2.6]</span>', `SF @ C (before) = ${f(SFA,2)} − (${f(wu,1)}×${a}) = ${f(SFCb,2)} kN`, '')}
+    ${R(EQ('Eq. 2.6', 'Shear Force at point C just before the point load acts'), `SF @ C (before) = ${f(SFA,2)} − (${f(wu,1)}×${a}) = ${f(SFCb,2)} kN`, '')}
   `, 2);
 
   const p3 = page(`
-    ${R('<span class="eq-tag">[Eq. 3.1]</span>', `SF @ C (after) = ${f(SFCb,2)} − ${f(Wu,1)} = ${f(SFCa,2)} kN`, '')}
-    ${R('<span class="eq-tag">[Eq. 3.2]</span>', `SF @ B = ${f(SFCa,2)} − (${f(wu,1)}×${b}) = ${f(SFBl,2)} kN ≈ -R<sub>B</sub>`, '')}
+    ${R(EQ('Eq. 3.1', 'Shear Force at point C immediately after the point load acts'), `SF @ C (after) = ${f(SFCb,2)} − ${f(Wu,1)} = ${f(SFCa,2)} kN`, '')}
+    ${R(EQ('Eq. 3.2', 'Shear Force at point B (Roller Support)'), `SF @ B = ${f(SFCa,2)} − (${f(wu,1)}×${b}) = ${f(SFBl,2)} kN ≈ -R<sub>B</sub>`, '')}
     ${BLANK()}
     ${R('', '<span class="uline">Shear Force Diagram</span>', '')}
     ${SVGR('', sfdSVG, '')}
     ${BLANK()}
     ${R('', '<span class="uline">Bending Moment</span>', '')}
     ${R('', `&Sigma; M<sub>A</sub> = 0`, '')}
-    ${R('<span class="eq-tag">[Eq. 3.3]</span>', `${f(RB,2)}(${f(L,1)}) - ${f(wu,1)}(${f(L,1)}² / 2) - ${f(Wu,1)}(${a}) + M<sub>A</sub> = 0`, '')}
+    ${R(EQ('Eq. 3.3', 'Calculation of Bending Moment at Fixed Support A'), `${f(RB,2)}(${f(L,1)}) - ${f(wu,1)}(${f(L,1)}² / 2) - ${f(Wu,1)}(${a}) + M<sub>A</sub> = 0`, '')}
     ${R('', `<span class="rbox"><b>M<sub>A</sub> = ${f(MA,2)} kNm</b></span>`, `M<sub>A</sub> = ${f(MA,2)} kNm`)}
     ${BLANK()}
-    ${R('<span class="eq-tag">[Eq. 3.4]</span>', `M<sub>C</sub> = ${f(RB,2)}(${b}) - ${f(wu,1)}(${b}² / 2)`, '')}
+    ${R(EQ('Eq. 3.4', 'Calculation of Bending Moment at Point C'), `M<sub>C</sub> = ${f(RB,2)}(${b}) - ${f(wu,1)}(${b}² / 2)`, '')}
     ${R('', `M<sub>C</sub> = ${f(RB*b,2)} - ${f(wu*b*b/2, 2)} = <b>${f(BMC,2)} kNm</b>`, `M<sub>C</sub> = ${f(BMC,2)} kNm`)}
     ${BLANK()}
     ${R('', `M<sub>B</sub> = 0 kNm`, '')}
@@ -791,7 +661,7 @@ function update() {
     ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp;&nbsp;&nbsp; Take f<sub>y</sub> = ${fy} N/mm²`, '')}
     ${R('', `Design Moment M<sub>max</sub> = ${f(Mmax, 2)} kNm`, '')}
     ${R('', `S<sub>x</sub> = M<sub>max</sub> × 10⁶ / f<sub>y</sub>`, '')}
-    ${R('<span class="eq-tag">[Eq. 4.1]</span>', `S<sub>x</sub> = ${f(Mmax,2)} × 10⁶ / ${fy}`, '')}
+    ${R(EQ('Eq. 4.1', 'Calculating Required Plastic Modulus (Sx) for initial sizing'), `S<sub>x</sub> = ${f(Mmax,2)} × 10⁶ / ${fy}`, '')}
     ${R('', `S<sub>x</sub> = ${f(Sx_req, 2)} mm³`, '')}
     ${R('', `<b>S<sub>x</sub> required = ${f(Sx_req_cm3, 2)} cm³</b>`, `S<sub>x</sub> = ${f0(Sx_req_cm3)} cm³`)}
     ${BLANK()}
@@ -827,26 +697,24 @@ function update() {
   const p5 = page(`
     ${R('BS 5950-1:2000<br>Table 11<br>Cl. 3.5.2', '<span class="uline">Strength Classification.</span>', '')}
     ${R('', `Since T (${sec.T}mm) ≤ 16mm, thus f<sub>y</sub> = ${fy} N/mm²`, `f<sub>y</sub> = ${fy}`)}
-    ${R('<span class="eq-tag">[Eq. 5.1]</span>', `&epsilon; = &radic;(275/f<sub>y</sub>) = &radic;(275/${fy}) = <b>${f(eps,3)}</b>`, `&epsilon; = ${f(eps,3)}`)}
+    ${R(EQ('Eq. 5.1', 'Calculation of the epsilon modification factor'), `&epsilon; = &radic;(275/f<sub>y</sub>) = &radic;(275/${fy}) = <b>${f(eps,3)}</b>`, `&epsilon; = ${f(eps,3)}`)}
     ${BLANK()}
     ${R('', '<span class="uline">Section Classification.</span>', '')}
-    ${R('<span class="eq-tag">[Eq. 5.2]</span>', `b/T = ${f(sec.B/2, 2)} / ${sec.T} = <b>${f(b_T,2)}</b>`, `b/T = ${f(b_T,2)}`)}
+    ${R(EQ('Eq. 5.2', 'Checking the flange outstand-to-thickness ratio for classification'), `b/T = ${f(sec.B/2, 2)} / ${sec.T} = <b>${f(b_T,2)}</b>`, `b/T = ${f(b_T,2)}`)}
     ${R('', `Since b/T (${f(b_T,2)}) &le; 9&epsilon; (${f(9*eps,2)})`, '')}
     ${R('', `The flange is <b>${flCls}</b>`, `${flCls}`)}
     ${BLANK()}
-    ${R('<span class="eq-tag">[Eq. 5.3]</span>', `d/t = ${sec.d}/${sec.t} = <b>${f(d_t,2)}</b>`, `d/t = ${f(d_t,2)}`)}
+    ${R(EQ('Eq. 5.3', 'Checking the web depth-to-thickness ratio for classification'), `d/t = ${sec.d}/${sec.t} = <b>${f(d_t,2)}</b>`, `d/t = ${f(d_t,2)}`)}
     ${R('', `Since d/t (${f(d_t,2)}) &le; 80&epsilon; (${f(80*eps,2)})`, '')}
     ${R('', `It has a <b>${wbCls}</b> web`, `${wbCls}`)}
     ${BLANK()}
     ${R('BS 5950-1:2000<br>Cl. 4.4.5', '<span class="uline">Shear buckling</span>', '')}
     ${R('', `Since d/t (${f(d_t,2)}) ${d_t<=70*eps?'&lt;':'&gt;'} 70&epsilon; (${f(70*eps,2)})`, '')}
-    ${d_t<=70*eps
-      ? R('', `No shear buckling is required.`, `${OK(true)}`)
-      : R('', `Shear buckling critical`, `${OK(false)}`)}
+    ${d_t<=70*eps ? R('', `No shear buckling is required.`, `${OK(true)}`) : R('', `Shear buckling critical`, `${OK(false)}`)}
     ${BLANK()}
     ${R('BS 5950-1:2000<br>Cl. 4.2.3', '<span class="uline">Shear Capacity</span>', '')}
     ${R('', `P<sub>v</sub> = 0.6 · f<sub>y</sub> · A<sub>v</sub>&nbsp;&nbsp; (where A<sub>v</sub> = t · D)`, '')}
-    ${R('<span class="eq-tag">[Eq. 5.4]</span>', `P<sub>v</sub> = 0.6 × ${fy} × ${sec.t} × ${sec.D} / 1000`, '')}
+    ${R(EQ('Eq. 5.4', 'Calculation of the Shear Capacity (Pv) of the section'), `P<sub>v</sub> = 0.6 × ${fy} × ${sec.t} × ${sec.D} / 1000`, '')}
     ${R('', `P<sub>v</sub> = <b>${f(Pv,1)} kN</b>`, `P<sub>v</sub> = ${f(Pv,1)} kN`)}
     ${R('', `Since F<sub>v</sub> (${f(RA,2)}) ${sh_ok?'&lt;':'&gt;'} P<sub>v</sub> (${f(Pv,1)}) thus okay.`, `${OK(sh_ok)}`)}
     ${R('', `This implies the section has ${lowSh?'<b>low</b>':'<b>high</b>'} shear.`, '')}
@@ -855,16 +723,16 @@ function update() {
   const p6 = page(`
     ${R('BS 5950-1:2000<br>Cl. 4.2.5', '<span class="uline">Bending Moment Capacity</span>', '')}
     ${R('', `Moment Capacity M<sub>c</sub> = f<sub>y</sub> S<sub>x</sub> &le; 1.2 f<sub>y</sub> Z<sub>x</sub>`, '')}
-    ${R('<span class="eq-tag">[Eq. 6.1]</span>', `M<sub>c</sub> = ${fy} × ${sec.Sx} × 10³ / 10⁶ = <b>${f(Mc_f,2)} kNm</b>`, '')}
+    ${R(EQ('Eq. 6.1', 'Calculation of the strict Moment Capacity based on plastic modulus'), `M<sub>c</sub> = ${fy} × ${sec.Sx} × 10³ / 10⁶ = <b>${f(Mc_f,2)} kNm</b>`, '')}
     ${R('', `1.2 f<sub>y</sub> Z<sub>x</sub> = 1.2 × ${fy} × ${sec.Zx} × 10³ / 10⁶ = <b>${f(Mc_l,2)} kNm</b>`, '')}
     ${R('', `Since M<sub>c</sub> (${f(Mc,2)}) &le; 1.2 f<sub>y</sub> Z<sub>x</sub> (${f(Mc_l,2)})`, '')}
     ${R('', `The bending moment capacity is <b>${f(Mc,2)} kNm</b>.`, `M<sub>c</sub> = ${f(Mc,2)} kNm`)}
     ${BLANK()}
     ${R('', '<span class="uline">Moment due to self weight & Imposed loading</span>', '')}
     ${R('', `G<sub>sw</sub> = ${sec.m} × 9.81 / 1000 = ${f(Gsw,3)} kN/m`, '')}
-    ${R('<span class="eq-tag">[Eq. 6.2]</span>', `Span Moment (Propped Cantilever) M<sub>sw</sub> = 1.4(${f(Gsw,3)}) × ${f(L,1)}² × 9 / 128`, '')}
+    ${R(EQ('Eq. 6.2', 'Calculation of additional moment caused by the self-weight of the beam'), `Span Moment M<sub>sw</sub> = 1.4(${f(Gsw,3)}) × ${f(L,1)}² × 9 / 128`, '')}
     ${R('', `M<sub>sw</sub> = ${f(Msw, 2)} kNm`, '')}
-    ${R('<span class="eq-tag">[Eq. 6.3]</span>', `M<sub>t</sub> = Max Moment + M<sub>sw</sub>`, '')}
+    ${R(EQ('Eq. 6.3', 'Calculation of the total applied design moment including self-weight'), `M<sub>t</sub> = Max Moment + M<sub>sw</sub>`, '')}
     ${R('', `M<sub>t</sub> = ${f(Mmax,2)} + ${f(Msw,2)} = <b>${f(Mmax2,2)} kNm</b>`, `M<sub>t</sub> = ${f(Mmax2,2)} kNm`)}
     ${R('', `Since M<sub>t</sub> (${f(Mmax2,2)} kNm) ${mc_ok?'&lt;':'&gt;'} M<sub>c</sub> (${f(Mc,2)} kNm)`, '')}
     ${R('', `Thus the section is ${mc_ok?'<b>okay</b>':'<b class="fail">inadequate</b>'}.`, `${OK(mc_ok)}`)}
@@ -874,19 +742,17 @@ function update() {
     ${R('BS 5950-1:2000<br>Cl. 2.5.2', '<span class="uline">Deflection Check</span>', '')}
     ${R('', 'Limit on Beams due to vertical and point load on propped cantilever', '')}
     ${R('', `&delta;<sub>c</sub> = wL⁴ / 185 EI + W a² b² / 3 E I L`, '')}
-    ${R('<span class="eq-tag">[Eq. 7.1]</span>', `&delta;<sub>c</sub> (UDL) = ${Qk} × ${Lmm}⁴ / (185 × 205000 × ${sec.Ix}0000)`, '')}
+    ${R(EQ('Eq. 7.1', 'Calculation of maximum deflection caused by the Uniformly Distributed Load'), `&delta;<sub>c</sub> (UDL) = ${Qk} × ${Lmm}⁴ / (185 × 205000 × ${sec.Ix}0000)`, '')}
     ${R('', `= ${f(dS_udl,2)} mm`, '')}
-    ${R('<span class="eq-tag">[Eq. 7.2]</span>', `&delta;<sub>c</sub> (Pt) = ${Q*1000} × ${amm}² × ${bmm}² / (3 × 205000 × ${sec.Ix}0000 × ${Lmm})`, '')}
+    ${R(EQ('Eq. 7.2', 'Calculation of maximum deflection caused by the Point Load'), `&delta;<sub>c</sub> (Pt) = ${Q*1000} × ${amm}² × ${bmm}² / (3 × 205000 × ${sec.Ix}0000 × ${Lmm})`, '')}
     ${R('', `= ${f(dS_pt,2)} mm`, '')}
-    ${R('<span class="eq-tag">[Eq. 7.3]</span>', `&delta;<sub>c</sub> = ${f(dS_udl,2)} + ${f(dS_pt,2)} = <b>${f(dC,2)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC,1)} mm`)}
+    ${R(EQ('Eq. 7.3', 'Summing the UDL and Point Load deflections (Superposition principle)'), `&delta;<sub>c</sub> = ${f(dS_udl,2)} + ${f(dS_pt,2)} = <b>${f(dC,2)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC,1)} mm`)}
     ${BLANK()}
     ${R('', '<b>Limit:</b>', '')}
     ${R('', `Limit = L / 180 = ${Lmm} / 180 = <b>${f(dCL,2)} mm</b>`, `L/180 = ${f(dCL,1)} mm`)}
     ${BLANK()}
     ${R('', `Since max deflection ${f(dC,2)} mm &lt; ${f(dCL,2)} mm`, '')}
-    ${dC_ok
-      ? R('', 'No deflection at the beam. <b>Deflection is OK</b>', `${OK(dC_ok)}`)
-      : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
+    ${dC_ok ? R('', 'No deflection at the beam. <b>Deflection is OK</b>', `${OK(dC_ok)}`) : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
     ${BLANK()}
     ${R('BS 8895<br>Table 8', '<span class="uline">Standard Case for deflection.</span>', '')}
     ${R('Note: for Standard', `I = Second moment of Area (${sec.Ix} cm⁴)`, '')}
@@ -901,7 +767,7 @@ function update() {
     ${R('', `k = T + r = ${sec.T} + ${sec.r} = <b>${f(k,1)} mm</b>`, `k = ${f(k,1)} mm`)}
     ${R('', `n = ${n}`, '')}
     ${BLANK()}
-    ${R('<span class="eq-tag">[Eq. 8.1]</span>', `P<sub>bw</sub> = (${b1} + ${n} × ${f(k,1)}) × ${sec.t} × ${fy} / 1000`, '')}
+    ${R(EQ('Eq. 8.1', 'Calculation of Web Bearing Capacity (Pbw) at the support'), `P<sub>bw</sub> = (${b1} + ${n} × ${f(k,1)}) × ${sec.t} × ${fy} / 1000`, '')}
     ${R('', `<span class="rbox"><b>P<sub>bw</sub> = ${f(Pbw,2)} kN</b></span>`, `P<sub>bw</sub> = ${f(Pbw,2)} kN`)}
     ${BLANK()}
     ${R('', `Since it is greater than Shear force at the support`, '')}
@@ -910,14 +776,14 @@ function update() {
     ${BLANK()}
     ${R('', `<b>Contact stress at support</b>`, '')}
     ${R('', `P<sub>cs</sub> = (b₁ + n(r + T)) · f<sub>y</sub>`, '')}
-    ${R('<span class="eq-tag">[Eq. 8.2]</span>', `= (${b1} + ${n}(${sec.r} + ${sec.T})) × ${fy} / 1000`, '')}
+    ${R(EQ('Eq. 8.2', 'Calculation of the maximum allowable contact stress (Pcs)'), `= (${b1} + ${n}(${sec.r} + ${sec.T})) × ${fy} / 1000`, '')}
     ${R('', `P<sub>cs</sub> = <b>${f(Pcs,2)} kN</b>`, `P<sub>cs</sub> = ${f(Pcs,2)} kN`)}
     ${R('', `Since P<sub>cs</sub> (${f(Pcs,2)} kN) &gt; R<sub>A</sub> (${f(RA,2)} kN) thus it is okay.`, '')}
     ${BLANK()}
     ${R('BS 5950-1:2000<br>Cl. 4.5.3.1', '<span class="uline">Web Buckling at the Support</span>', '')}
     ${R('', `From table d = ${sec.d} mm`, '')}
     ${R('', `P<sub>x</sub> = [25&epsilon;·t / &radic;((b₁+n·k)·d)] × P<sub>bw</sub>`, '')}
-    ${R('<span class="eq-tag">[Eq. 8.3]</span>', `= [25 × ${f(epsS,3)} × ${sec.t} / &radic;((${b1} + ${f(n*k,1)}) × ${sec.d})] × ${f(Pbw,2)}`, '')}
+    ${R(EQ('Eq. 8.3', 'Calculation of the Web Buckling Capacity (Px) at the support'), `= [25 × ${f(epsS,3)} × ${sec.t} / &radic;((${b1} + ${f(n*k,1)}) × ${sec.d})] × ${f(Pbw,2)}`, '')}
   `, 8);
 
   const p9 = page(`
@@ -994,18 +860,11 @@ function update() {
   document.getElementById('out').innerHTML = p1+p2+p3+p4+p5+p6+p7+p8+p9+p10;
 }
 
-// ── Toggle floating panel ──────────────────────────────
-function togglePanel() {
-  document.getElementById('floatPanel').classList.toggle('open');
-}
-
-// ── Wire all inputs to update() ──────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('#floatPanel input, #floatPanel select').forEach(el => {
     el.addEventListener('input', update);
     el.addEventListener('change', update);
   });
-  // Grade dropdown syncs fy field
   document.getElementById('iGrade').addEventListener('change', function(){
     document.getElementById('iFy').value = this.value;
     update();
