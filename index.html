@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CVE 502 – Steel Beam Design (Propped Cantilever)</title>
+  <title>Steel Design Pro – CVE 502 (Propped Cantilever)</title>
   <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap" rel="stylesheet">
   <style>
     /* ── Global ─────────────────────────────────────────── */
@@ -12,10 +12,56 @@
     body {
       background: #b8bec8;
       font-family: 'Architects Daughter', cursive;
-      padding-bottom: 20px;
+      padding-bottom: 40px;
+      padding-top: 80px; /* Space for the fixed navbar */
     }
 
-    /* ── A4 Page ─────────────────────────────────────────── */
+    /* ── Navigation Bar ─────────────────────────────────── */
+    #navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 60px;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      z-index: 1000;
+      transition: transform 0.3s ease;
+      border-bottom: 2px solid #3b82f6;
+    }
+    #navbar.hidden {
+      transform: translateY(-100%);
+    }
+    .nav-brand {
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-brand span { color: #3b82f6; }
+    .nav-btn {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37,99,235,.4);
+      transition: background 0.2s, transform 0.1s;
+    }
+    .nav-btn:hover { background: #1d4ed8; }
+    .nav-btn:active { transform: scale(0.96); }
+
+    /* ── Dynamic Page ────────────────────────────────────── */
     .page {
       background: #fffef9;
       background-image: repeating-linear-gradient(
@@ -23,12 +69,13 @@
         #dde6ef    23px, #dde6ef    24px
       );
       width: 210mm;
-      min-height: 297mm;
+      max-width: 95vw; /* For mobile responsiveness */
+      height: auto; /* Dynamic height based on content */
+      padding-bottom: 12px; 
       margin: 16px auto;
       box-shadow: 0 4px 24px rgba(0,0,0,.25);
       position: relative;
       overflow: hidden;
-      page-break-after: always;
       display: flex;
       flex-direction: column;
     }
@@ -113,7 +160,7 @@
     /* Page number */
     .pgnum {
       border-top: 1.5px solid #222;
-      margin: 0 5mm;
+      margin: 12px 5mm 0;
       text-align: center;
       padding: 2px 0;
       font-size: 11px;
@@ -134,40 +181,18 @@
     
     .eq-tag { color: #888; font-weight: bold; font-family: Arial, sans-serif; font-size: 8px; }
 
-    /* ── Floating FAB button ─────────────────────────────── */
-    #fabBtn {
-      position: fixed;
-      bottom: 22px;
-      right: 22px;
-      z-index: 110;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 50px;
-      padding: 10px 18px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 4px 18px rgba(37,99,235,.55);
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      transition: background .2s;
-    }
-    #fabBtn:hover { background: #1d4ed8; }
-
     /* ── Floating input panel ─────────────────────────────── */
     #floatPanel {
       position: fixed;
-      bottom: 72px;
+      top: 72px; /* Anchor below navbar */
       right: 22px;
-      z-index: 109;
+      z-index: 1000;
       background: #1e293b;
       border: 2px solid #3b82f6;
       border-radius: 12px;
       padding: 16px 18px 12px;
       width: 340px;
+      max-width: 90vw;
       box-shadow: 0 8px 32px rgba(0,0,0,.45);
       display: none;
       flex-direction: column;
@@ -246,21 +271,31 @@
     #prtBtn:hover { background: #1e293b; color: #e2e8f0; }
 
     @media print {
-      #fabBtn, #floatPanel { display: none !important; }
-      body { background: white; padding-bottom: 0; }
-      .page { margin: 0; box-shadow: none; width: 100%; page-break-after: always; }
+      #navbar, #floatPanel { display: none !important; }
+      body { background: white; padding: 0; }
+      .page { 
+        margin: 0; 
+        box-shadow: none; 
+        width: 100%; 
+        max-width: none;
+        min-height: 297mm; /* Force A4 for print */
+        page-break-after: always; 
+      }
     }
   </style>
 </head>
 <body>
 
-<div id="out"></div>
+<!-- ═══ NAVBAR ═══ -->
+<nav id="navbar">
+  <div class="nav-brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>
+    Steel Design <span>Pro</span>
+  </div>
+  <button class="nav-btn" onclick="togglePanel()">⚙ User Input</button>
+</nav>
 
 <!-- ═══ FLOATING INPUT PANEL ═══ -->
-<button id="fabBtn" onclick="togglePanel()">
-  <span>⚙</span> Edit Inputs
-</button>
-
 <div id="floatPanel">
   <div class="fp-title">
     Design Inputs
@@ -319,7 +354,25 @@
   </div>
 </div>
 
+<div id="out"></div>
+
 <script>
+// ── Smart Navbar Scroll Logic ────────────────────────────
+let lastScrollY = window.pageYOffset;
+window.addEventListener('scroll', () => {
+  const currentScrollY = window.pageYOffset;
+  const navbar = document.getElementById('navbar');
+  const panelOpen = document.getElementById('floatPanel').classList.contains('open');
+  
+  // Hide nav if scrolling down and panel is NOT open. Keep visible if panel is open.
+  if (currentScrollY > lastScrollY && currentScrollY > 60 && !panelOpen) {
+    navbar.classList.add('hidden');
+  } else {
+    navbar.classList.remove('hidden');
+  }
+  lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+});
+
 // ═══════════════════════════════════════════════════════
 //  BS 5950 UB TABLE  (D,B,t,T,r,d mm | Sx,Zx cm³ | Ix cm⁴ | m kg/m)
 // ═══════════════════════════════════════════════════════
@@ -374,7 +427,7 @@ function BLANK() {
 
 function SVGR(ref, svgHTML, out='') {
   return `<div class="rc tall" style="align-self:center;">${ref}</div>
-          <div class="cc tall">${svgHTML}</div>
+          <div class="cc tall" style="overflow-x:auto;">${svgHTML}</div>
           <div class="oc tall" style="align-self:center;">${out}</div>`;
 }
 
@@ -402,7 +455,7 @@ function update() {
 
   if (errors.length > 0) {
     document.getElementById('out').innerHTML = `
-      <div style="max-width:210mm; margin: 40px auto; padding: 24px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; font-family: Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      <div style="max-width:210mm; margin: 20px auto; padding: 24px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; font-family: Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
         <h2 style="color: #991b1b; margin-top: 0; display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 24px;">⚠️</span> Input Validation Error
         </h2>
@@ -453,7 +506,7 @@ function update() {
   
   if (validSecs.length === 0) {
     document.getElementById('out').innerHTML = `
-      <div style="max-width:210mm; margin: 40px auto; padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px; font-family: Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      <div style="max-width:210mm; margin: 20px auto; padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px; font-family: Arial, sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
         <h2 style="color: #92400e; margin-top: 0; display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 24px;">⛔</span> Capacity Exceeded
         </h2>
@@ -552,7 +605,7 @@ function update() {
     sp+=`<line x1="${x}" y1="${beamY-30}" x2="${x}" y2="${beamY-4}" stroke="#00008b" stroke-width="1.3" marker-end="url(#ua)"/>`;
   }
   const diagramSVG=`
-  <svg viewBox="0 0 ${SW} ${SH}" style="width:100%;max-width:480px;display:block;margin:6px auto;">
+  <svg viewBox="0 0 ${SW} ${SH}" style="width:100%;min-width:320px;max-width:480px;display:block;margin:6px auto;">
     <defs>
       <marker id="ua" markerWidth="5" markerHeight="5" refX="2.5" refY="5" orient="auto"><path d="M0,0 L2.5,5 L5,0" fill="none" stroke="#00008b" stroke-width="1.2"/></marker>
       <marker id="Wa" markerWidth="7" markerHeight="7" refX="3.5" refY="7" orient="auto"><path d="M0,0 L3.5,7 L7,0 Z" fill="#cc0000"/></marker>
@@ -602,7 +655,7 @@ function update() {
   const ySFBl = sfdBase - SFBl * sfScale;
   
   const sfdSVG=`
-  <svg viewBox="0 0 ${FW} 160" style="width:100%;max-width:400px;display:block;margin:4px auto;">
+  <svg viewBox="0 0 ${FW} 160" style="width:100%;min-width:320px;max-width:400px;display:block;margin:4px auto;">
     <line x1="40" y1="${sfdBase}" x2="360" y2="${sfdBase}" stroke="#333" stroke-width="1.5"/>
     <text x="368" y="${sfdBase+3}" font-family="Arial" font-size="9" fill="#333">0</text>
     <polygon points="40,${sfdBase} 40,${ySFA} ${FCx},${ySFCb} ${FCx},${ySFCa} 360,${ySFBl} 360,${sfdBase}" 
@@ -638,7 +691,7 @@ function update() {
   bmdPtsStr += `360,90`;
 
   const bmdSVG=`
-  <svg viewBox="0 0 ${FW} 180" style="width:100%;max-width:400px;display:block;margin:4px auto;">
+  <svg viewBox="0 0 ${FW} 180" style="width:100%;min-width:320px;max-width:400px;display:block;margin:4px auto;">
     <line x1="40" y1="${bmdBase}" x2="360" y2="${bmdBase}" stroke="#333" stroke-width="1.5"/>
     <text x="368" y="${bmdBase+3}" font-family="Arial" font-size="9" fill="#333">0</text>
     <polygon points="${bmdPtsStr}" fill="rgba(0, 0, 139, 0.1)" stroke="#00008b" stroke-width="1.5" stroke-linejoin="round"/>
@@ -743,12 +796,12 @@ function update() {
     ${R('', `<b>S<sub>x</sub> required = ${f(Sx_req_cm3, 2)} cm³</b>`, `S<sub>x</sub> = ${f0(Sx_req_cm3)} cm³`)}
     ${BLANK()}
     ${R('BS 5950-1:2000<br>Table B1', '<span class="uline">Suitable Sections from Table B1 (S<sub>x</sub> &ge; ${f(Sx_req_cm3,1)} cm³)</span>', '')}
-    ${R('', `<div style="font-size:11px;color:#00008b;">
-      <table style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:10px;">
+    ${R('', `<div style="font-size:11px;color:#00008b;overflow-x:auto;">
+      <table style="border-collapse:collapse;width:100%;min-width:240px;font-family:Arial,sans-serif;font-size:10px;">
         <thead>
           <tr style="border-bottom:1.5px solid #00008b;">
             <th style="text-align:left;padding:2px 6px;">Section</th>
-            <th style="text-align:right;padding:2px 6px;">Mass (kg/m)</th>
+            <th style="text-align:right;padding:2px 6px;">Mass</th>
             <th style="text-align:right;padding:2px 6px;">S<sub>x</sub> (cm³)</th>
             <th style="text-align:right;padding:2px 6px;">Z<sub>x</sub> (cm³)</th>
           </tr>
@@ -765,7 +818,7 @@ function update() {
       </table>
     </div>`, '')}
     ${BLANK()}
-    ${R('', `Selected: <b>${sec.n} UB</b> — lightest section with S<sub>x</sub> &ge; ${f(Sx_req_cm3,1)} cm³`, `${sec.n}`)}
+    ${R('', `Selected: <b>${sec.n} UB</b> — lightest valid section`, `${sec.n}`)}
     ${R('', `D = ${sec.D} mm &nbsp;&nbsp; B = ${sec.B} mm &nbsp;&nbsp; t = ${sec.t} mm`, '')}
     ${R('', `T = ${sec.T} mm &nbsp;&nbsp; r = ${sec.r} mm &nbsp;&nbsp; d = ${sec.d} mm`, '')}
     ${R('', `S<sub>x</sub> = ${sec.Sx} cm³ &nbsp;&nbsp; Z<sub>x</sub> = ${sec.Zx} cm³`, `S<sub>x</sub> = ${sec.Sx} cm³`)}
