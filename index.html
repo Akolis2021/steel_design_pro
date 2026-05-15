@@ -14,47 +14,53 @@
       font-family: 'Architects Daughter', cursive;
       padding-bottom: 40px;
       padding-top: 80px; 
+      overflow-x: hidden; /* Prevents the whole site from swaying sideways */
     }
 
     /* ── Navigation Bar ─────────────────────────────────── */
     #navbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 60px;
-      background: #0f172a;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 5%;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-      z-index: 1000;
-      transition: transform 0.3s ease;
-      border-bottom: 2px solid #3b82f6;
+      position: fixed; top: 0; left: 0; right: 0; height: 65px;
+      background: #0f172a; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5%; box-shadow: 0 4px 16px rgba(0,0,0,0.5); z-index: 900;
+      transition: transform 0.3s ease; border-bottom: 2px solid #3b82f6;
     }
     #navbar.hidden { transform: translateY(-100%); }
-    .nav-brand {
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .nav-brand { color: #fff; font-family: Arial, sans-serif; font-size: 19px; font-weight: 800; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; }
     .nav-brand span { color: #3b82f6; }
+    
+    .nav-actions { display: flex; gap: 10px; }
     .nav-btn {
       background: #2563eb; color: #fff; border: none; border-radius: 6px;
       padding: 8px 16px; font-family: Arial, sans-serif; font-size: 13px; font-weight: 700;
-      cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,.4); transition: background 0.2s;
+      cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,.4); transition: background 0.2s, transform 0.1s;
     }
     .nav-btn:hover { background: #1d4ed8; }
+    .nav-btn:active { transform: scale(0.96); }
+    .nav-btn.secondary { background: #1e293b; color: #94a3b8; border: 1px solid #334155; box-shadow: none; }
+    .nav-btn.secondary:hover { background: #334155; color: #fff; }
 
-    /* ── Dynamic Page ────────────────────────────────────── */
+    /* ── Dynamic Page & Scroll Wrapper ───────────────────── */
+    #out { 
+      display: none; /* Hidden until first calculation */
+      width: 100%;
+      overflow-x: auto; /* Enables native mobile horizontal swiping */
+      -webkit-overflow-scrolling: touch;
+    } 
+    #out.visible { display: block; }
+
+    .page-wrapper {
+      min-width: max-content;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Centers the A4 pages in the scrollable view */
+    }
+
     .page {
       background: #fffef9;
       background-image: repeating-linear-gradient(transparent 0px, transparent 23px, #dde6ef 23px, #dde6ef 24px);
-      width: 210mm; max-width: 95vw; height: auto; padding-bottom: 12px; margin: 16px auto;
+      width: 210mm; min-width: 210mm; /* Strictly enforces A4 width. NO SQUISHING! */
+      height: auto; padding-bottom: 12px; margin-bottom: 24px;
       box-shadow: 0 4px 24px rgba(0,0,0,.25); position: relative; overflow: hidden; display: flex; flex-direction: column;
     }
     .page::before {
@@ -93,28 +99,47 @@
     }
     .eq-tag:hover { background: #dbeafe; border-color: #3b82f6; transform: scale(1.05); }
 
-    /* ── Floating input panel ─────────────────────────────── */
-    #floatPanel {
-      position: fixed; top: 72px; right: 22px; z-index: 1000; background: #1e293b;
-      border: 2px solid #3b82f6; border-radius: 12px; padding: 16px 18px 12px;
-      width: 340px; max-width: 90vw; box-shadow: 0 8px 32px rgba(0,0,0,.45); display: none; flex-direction: column; gap: 10px;
+    /* ── Centered Modal Input Form ─────────────────────────────── */
+    #backdrop {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
+      z-index: 1000; display: none; opacity: 0; transition: opacity 0.3s;
     }
-    #floatPanel.open { display: flex; }
-    #floatPanel .fp-title { font-family: Arial, sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #3b82f6; display: flex; justify-content: space-between; align-items: center; }
-    #floatPanel .fp-title button { background: none; border: none; color: #64748b; font-size: 15px; cursor: pointer; }
-    #floatPanel .fp-title button:hover { color: #e2e8f0; }
-    #floatPanel .fp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    #floatPanel label { display: block; font-family: Arial, sans-serif; font-size: 9px; text-transform: uppercase; color: #94a3b8; margin-bottom: 2px; }
-    #floatPanel input, #floatPanel select { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #fbbf24; font-family: monospace; font-size: 13px; padding: 4px 6px; }
-    #floatPanel .hint { font-family: Arial, sans-serif; font-size: 8px; color: #475569; margin-top: 1px; }
-    #prtBtn { background: #0f172a; color: #94a3b8; border: 1px solid #334155; border-radius: 6px; padding: 8px; font-family: Arial, sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 4px; }
-    #prtBtn:hover { background: #1e293b; color: #e2e8f0; }
+    #backdrop.open { display: block; opacity: 1; }
+
+    #inputModal {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
+      background: #1e293b; border: 2px solid #3b82f6; border-radius: 12px;
+      padding: 24px 24px 16px; width: 380px; max-width: 92vw; z-index: 1001;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: none; opacity: 0;
+      transition: all 0.3s; flex-direction: column; gap: 14px;
+    }
+    #inputModal.open { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+    .modal-title { font-family: Arial, sans-serif; font-size: 14px; font-weight: 800; text-transform: uppercase; color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px;}
+    .modal-title span { color: #3b82f6; font-size: 16px; margin-right: 6px; }
+    .modal-title button { background: none; border: none; color: #64748b; font-size: 18px; cursor: pointer; display: none; }
+    .modal-title button.show { display: block; }
+    .modal-title button:hover { color: #e2e8f0; }
+
+    .fp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .fp-grid label { display: block; font-family: Arial, sans-serif; font-size: 10px; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; font-weight: bold; }
+    .fp-grid input, .fp-grid select { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 5px; color: #fbbf24; font-family: monospace; font-size: 14px; padding: 6px 8px; }
+    .fp-grid input:focus, .fp-grid select:focus { outline: none; border-color: #3b82f6; }
+    .fp-grid .hint { font-family: Arial, sans-serif; font-size: 9px; color: #64748b; margin-top: 3px; }
+
+    .calc-btn {
+      background: #3b82f6; color: #fff; border: none; padding: 12px; margin-top: 8px;
+      border-radius: 6px; font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; 
+      cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .calc-btn:hover { background: #2563eb; }
 
     /* ── AI Chat Widget ─────────────────────────────── */
     #aiChat {
       position: fixed; bottom: 22px; right: 22px; width: 340px; max-width: 90vw; height: 420px;
       background: #fff; border: 2px solid #3b82f6; border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.45); display: none; flex-direction: column; z-index: 1001; overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,.45); display: none; flex-direction: column; z-index: 1002; overflow: hidden;
     }
     #aiChat.open { display: flex; }
     .chat-header { 
@@ -138,9 +163,11 @@
     .chat-input button:hover { background: #1d4ed8; }
 
     @media print {
-      #navbar, #floatPanel, #aiChat { display: none !important; }
-      body { background: white; padding: 0; }
-      .page { margin: 0; box-shadow: none; width: 100%; max-width: none; min-height: 297mm; page-break-after: always; }
+      #navbar, #backdrop, #inputModal, #aiChat { display: none !important; }
+      body { background: white; padding: 0 !important; overflow: visible !important; }
+      #out { display: block !important; overflow: visible !important; }
+      .page-wrapper { padding: 0 !important; min-width: 100% !important; display: block !important; }
+      .page { margin: 0; box-shadow: none; width: 100%; min-width: 100%; max-width: none; min-height: 297mm; page-break-after: always; }
       .eq-tag { border: none !important; color: #888 !important; text-decoration: none !important; pointer-events: none; }
     }
   </style>
@@ -153,14 +180,18 @@
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>
     Steel Design <span>Pro</span>
   </div>
-  <button class="nav-btn" onclick="togglePanel()">⚙ User Input</button>
+  <div class="nav-actions">
+    <button class="nav-btn secondary" onclick="window.print()">⎙ Print PDF</button>
+    <button class="nav-btn" onclick="openModal()">⚙ Edit Inputs</button>
+  </div>
 </nav>
 
-<!-- ═══ FLOATING INPUT PANEL ═══ -->
-<div id="floatPanel">
-  <div class="fp-title">
-    Design Inputs
-    <button onclick="togglePanel()" title="Close">✕</button>
+<!-- ═══ CENTERED MODAL INPUT FORM ═══ -->
+<div id="backdrop" onclick="closeModal()"></div>
+<div id="inputModal">
+  <div class="modal-title">
+    <div><span>⚙️</span> Design Parameters</div>
+    <button id="closeModalBtn" onclick="closeModal()" title="Close">✕</button>
   </div>
   <div class="fp-grid">
     <div><label>a (m)</label><input id="iL1" type="number" step="0.1" value="8"><div class="hint">Fixed end → point load</div></div>
@@ -178,7 +209,7 @@
     <div><label>fy (N/mm²)</label><input id="iFy" type="number" step="5" value="460"><div class="hint">Design strength</div></div>
     <div><label>b₁ (mm)</label><input id="ib1" type="number" step="5" value="100"><div class="hint">Stiff bearing length</div></div>
   </div>
-  <button id="prtBtn" onclick="window.print()">⎙ Print / Save PDF</button>
+  <button class="calc-btn" onclick="runCalculation()">Generate Design Report</button>
 </div>
 
 <!-- ═══ AI CHAT TUTOR ═══ -->
@@ -199,16 +230,38 @@
 <div id="out"></div>
 
 <script>
-// ── GEMINI API INTEGRATION & CHAT LOGIC ────────────────────────────
+// ── MODAL LOGIC ────────────────────────────
+let hasRunOnce = false;
 
+function openModal() {
+  document.getElementById('backdrop').classList.add('open');
+  document.getElementById('inputModal').classList.add('open');
+  if (hasRunOnce) {
+    document.getElementById('closeModalBtn').classList.add('show');
+  }
+}
+
+function closeModal() {
+  if (!hasRunOnce) return; // Prevent closing if they haven't calculated yet
+  document.getElementById('backdrop').classList.remove('open');
+  document.getElementById('inputModal').classList.remove('open');
+}
+
+function runCalculation() {
+  update(); // Generate the report
+  hasRunOnce = true;
+  document.getElementById('out').classList.add('visible');
+  closeModal();
+  window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back to top
+}
+
+// ── GEMINI API INTEGRATION & CHAT LOGIC ────────────────────────────
 // IMPORTANT: When hosting on GitHub pages, replace the empty string below 
-// with your actual key: const apiKey = "AIzaSyDosUBb_EWWeyI9vsvveILkvsdWyWCHtL8";
-// For testing inside this canvas preview, leave it as an empty string.
+// with your actual key: const apiKey = "YOUR_NEW_API_KEY_HERE";
 const apiKey = ""; 
 
 let currentChatContext = "General Beam Design";
 
-function toggleChat() { document.getElementById('aiChat').classList.toggle('open'); }
 function closeChat() { document.getElementById('aiChat').classList.remove('open'); }
 
 function openChat(eqId, description) {
@@ -232,7 +285,6 @@ async function sendChatMessage() {
   appendMessage('user', text);
   input.value = '';
   
-  // Get current beam state to give AI context
   const a = document.getElementById('iL1').value;
   const b = document.getElementById('iL2').value;
   const Gk = document.getElementById('iGk').value;
@@ -260,11 +312,10 @@ async function sendChatMessage() {
     systemInstruction: { parts: [{ text: systemPrompt }] }
   };
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+  const url = '/api/chat';
 
   let data = null;
   let success = false;
-  // Implement Exponential Backoff (Required for preview environment)
   const delays = [1000, 2000, 4000, 8000, 16000];
 
   for (let i = 0; i <= 5; i++) {
@@ -280,13 +331,9 @@ async function sendChatMessage() {
         success = true;
         break;
       }
-    } catch (e) {
-      // Ignore network errors here to trigger retry logic
-    }
+    } catch (e) {}
     
-    if (i < 5) { // Wait before retrying if not the last attempt
-      await new Promise(r => setTimeout(r, delays[i]));
-    }
+    if (i < 5) await new Promise(r => setTimeout(r, delays[i]));
   }
 
   const typingEl = document.getElementById(typingId);
@@ -295,7 +342,7 @@ async function sendChatMessage() {
   if (success && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
     appendMessage('ai', data.candidates[0].content.parts[0].text);
   } else {
-    appendMessage('ai', '<i>Error: Could not connect to the AI tutor. If you are hosting on GitHub Pages, ensure your API Key is inserted in the script!</i>');
+    appendMessage('ai', '<i>Error: Could not connect to the AI tutor. Ensure your API Key is valid.</i>');
   }
 }
 
@@ -304,8 +351,8 @@ let lastScrollY = window.pageYOffset;
 window.addEventListener('scroll', () => {
   const currentScrollY = window.pageYOffset;
   const navbar = document.getElementById('navbar');
-  const panelOpen = document.getElementById('floatPanel').classList.contains('open');
-  if (currentScrollY > lastScrollY && currentScrollY > 60 && !panelOpen) {
+  const modalOpen = document.getElementById('inputModal').classList.contains('open');
+  if (currentScrollY > lastScrollY && currentScrollY > 60 && !modalOpen) {
     navbar.classList.add('hidden');
   } else {
     navbar.classList.remove('hidden');
@@ -359,12 +406,8 @@ const OK = (p) => p ? '<span class="ok">&#10003; OK</span>' : '<span class="fail
 
 const EQ = (id, desc) => `<span class="eq-tag" onclick="openChat('${id}', '${desc}')" title="Ask AI about this calculation">[${id}]</span>`;
 
-function R(ref, calc, out='') {
-  return `<div class="rc">${ref}</div><div class="cc">${calc}</div><div class="oc">${out}</div>`;
-}
-function BLANK() {
-  return `<div class="rc"></div><div class="cc"></div><div class="oc"></div>`;
-}
+function R(ref, calc, out='') { return `<div class="rc">${ref}</div><div class="cc">${calc}</div><div class="oc">${out}</div>`; }
+function BLANK() { return `<div class="rc"></div><div class="cc"></div><div class="oc"></div>`; }
 function SVGR(ref, svgHTML, out='') {
   return `<div class="rc tall" style="align-self:center;">${ref}</div>
           <div class="cc tall" style="overflow-x:auto;">${svgHTML}</div>
@@ -394,9 +437,11 @@ function update() {
 
   if (errors.length > 0) {
     document.getElementById('out').innerHTML = `
-      <div style="max-width:210mm; margin: 20px auto; padding: 24px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; font-family: Arial, sans-serif;">
-        <h2 style="color: #991b1b; margin-top: 0;">⚠️ Input Validation Error</h2>
-        <ul style="color: #991b1b; padding-left: 24px;">${errors.map(e => `<li>${e}</li>`).join('')}</ul>
+      <div class="page-wrapper">
+        <div style="width:210mm; margin: 20px auto; padding: 24px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; font-family: Arial, sans-serif; box-sizing: border-box;">
+          <h2 style="color: #991b1b; margin-top: 0;">⚠️ Input Validation Error</h2>
+          <ul style="color: #991b1b; padding-left: 24px;">${errors.map(e => `<li>${e}</li>`).join('')}</ul>
+        </div>
       </div>`;
     return;
   }
@@ -432,9 +477,11 @@ function update() {
   
   if (validSecs.length === 0) {
     document.getElementById('out').innerHTML = `
-      <div style="max-width:210mm; margin: 20px auto; padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px; font-family: Arial, sans-serif;">
-        <h2 style="color: #92400e; margin-top: 0;">⛔ Capacity Exceeded</h2>
-        <p style="color: #92400e;">The applied loads generate a design moment requiring an <b>S<sub>x</sub> &ge; ${f(Sx_req_cm3, 1)} cm³</b>. This exceeds the database capacity.</p>
+      <div class="page-wrapper">
+        <div style="width:210mm; margin: 20px auto; padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px; font-family: Arial, sans-serif; box-sizing: border-box;">
+          <h2 style="color: #92400e; margin-top: 0;">⛔ Capacity Exceeded</h2>
+          <p style="color: #92400e;">The applied loads generate a design moment requiring an <b>S<sub>x</sub> &ge; ${f(Sx_req_cm3, 1)} cm³</b>. This exceeds the database capacity.</p>
+        </div>
       </div>`;
     return;
   }
@@ -547,7 +594,7 @@ function update() {
   </svg>`;
 
   const FW=400; const sfdBase = 80;
-  const FCx=40+Math.round(320*(a/L)); // BUG FIX: restored missing line!
+  const FCx=40+Math.round(320*(a/L)); 
   const sfMax = Math.max(Math.abs(SFA), Math.abs(SFCb), Math.abs(SFCa), Math.abs(SFBl));
   const sfScale = sfMax > 0 ? 55 / sfMax : 1;
   const sfdSVG=`
@@ -857,19 +904,12 @@ function update() {
     `, '')}
   `, 10);
 
-  document.getElementById('out').innerHTML = p1+p2+p3+p4+p5+p6+p7+p8+p9+p10;
+  document.getElementById('out').innerHTML = `<div class="page-wrapper">${p1+p2+p3+p4+p5+p6+p7+p8+p9+p10}</div>`;
 }
 
+// Ensure modal opens automatically on initial load
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('#floatPanel input, #floatPanel select').forEach(el => {
-    el.addEventListener('input', update);
-    el.addEventListener('change', update);
-  });
-  document.getElementById('iGrade').addEventListener('change', function(){
-    document.getElementById('iFy').value = this.value;
-    update();
-  });
-  update();
+  openModal();
 });
 </script>
 </body>
