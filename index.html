@@ -110,11 +110,18 @@
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
       background: #172236; border: 2px solid #3b82f6; border-radius: 12px;
       padding: 32px 28px 24px; width: 440px; max-width: 92vw; z-index: 1001;
+      max-height: 90vh; /* FIX: Prevents modal from getting cut off on small screens */
+      overflow-y: auto; /* FIX: Allows scrolling inside modal if needed */
       box-shadow: 0 0 0 1px rgba(59,130,246,0.2), 0 10px 40px rgba(0,0,0,0.6); 
       display: none; opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
       flex-direction: column;
     }
     #inputModal.open { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+    /* Custom scrollbar for modal */
+    #inputModal::-webkit-scrollbar { width: 6px; }
+    #inputModal::-webkit-scrollbar-track { background: transparent; }
+    #inputModal::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
 
     /* Close Button */
     #closeModalBtn {
@@ -166,10 +173,10 @@
     }
     .print-modal-btn:hover { background: #1e293b; color: #fff; border-color: #475569; }
 
-
     /* ── AI Chat Widget ─────────────────────────────── */
     #aiChat {
-      position: fixed; bottom: 22px; right: 22px; width: 340px; max-width: 90vw; height: 420px;
+      position: fixed; bottom: 22px; right: 22px; width: 340px; max-width: 90vw; 
+      height: 420px; max-height: 85vh; /* Safety limit for small screens */
       background: #fff; border: 2px solid #3b82f6; border-radius: 12px;
       box-shadow: 0 8px 32px rgba(0,0,0,.45); display: none; flex-direction: column; z-index: 1002; overflow: hidden;
     }
@@ -305,6 +312,7 @@ function runCalculation() {
 }
 
 // ── GEMINI API INTEGRATION & CHAT LOGIC ────────────────────────────
+// If you are testing locally or without Vercel, paste your API key here:
 const apiKey = ""; 
 
 let currentChatContext = "General Beam Design";
@@ -359,7 +367,13 @@ async function sendChatMessage() {
     systemInstruction: { parts: [{ text: systemPrompt }] }
   };
 
-  const url = '/api/chat';
+  // SMART FETCH LOGIC:
+  // If apiKey string is filled out (for local testing), use direct Google API.
+  // Otherwise, use the Vercel backend `/api/chat` route.
+  let url = '/api/chat';
+  if (apiKey && apiKey.length > 5) {
+    url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+  }
 
   let data = null;
   let success = false;
@@ -389,7 +403,7 @@ async function sendChatMessage() {
   if (success && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
     appendMessage('ai', data.candidates[0].content.parts[0].text);
   } else {
-    appendMessage('ai', '<i>Error: Could not connect to the AI tutor. Ensure your API Key is valid.</i>');
+    appendMessage('ai', '<i>Error: Could not connect to the AI tutor. Ensure your API Key is valid or Vercel is set up correctly.</i>');
   }
 }
 
@@ -930,7 +944,7 @@ function update() {
     ${R('', `
       <div style="border:3px double ${allOk?'#166534':'#991b1b'};
                   padding:10px 16px; text-align:center;
-                  color:${allOk?'#166534':'#991b1b'}; font-size:14px; font-weight:bold;">
+                  color:${allOk?'#166534':'#991b1b'}; font-size:14px; font-weight:bold;\">
         ${allOk
           ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY<br>for the given loading conditions.`
           : `&#10007; Section ${sec.n} UB is INADEQUATE<br>&mdash; please review warnings.`}
@@ -938,11 +952,11 @@ function update() {
 
     ${BLANK()}
     ${R('', `
-      <div style="margin-top: 15px; border: 1.5px solid #3b82f6; border-radius: 6px; padding: 12px; background-color: #f0f9ff; font-family: Arial, sans-serif; box-shadow: inset 0 2px 8px rgba(59, 130, 246, 0.15);">
-        <div style="font-weight: 800; font-size: 11px; color: #1e40af; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-           <span style="font-size: 16px;">🛡️</span> Engineering Verification & Compliance
+      <div style=\"margin-top: 15px; border: 1.5px solid #3b82f6; border-radius: 6px; padding: 12px; background-color: #f0f9ff; font-family: Arial, sans-serif; box-shadow: inset 0 2px 8px rgba(59, 130, 246, 0.15);\">
+        <div style=\"font-weight: 800; font-size: 11px; color: #1e40af; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;\">
+           <span style=\"font-size: 16px;\">🛡️</span> Engineering Verification & Compliance
         </div>
-        <div style="font-size: 10.5px; color: #1e3a8a; line-height: 1.6;">
+        <div style=\"font-size: 10.5px; color: #1e3a8a; line-height: 1.6;\">
           <b>&check; Formulation:</b> Pure Area-Moment Method (Macaulay's). Verified for boundary continuity.<br>
           <b>&check; Standards:</b> Strictly governed by BS 5950-1:2000 Structural Use of Steelwork.<br>
           <b>&check; Optimization:</b> Algorithm dynamically selects lightest valid Universal Beam (UB).
@@ -951,7 +965,7 @@ function update() {
     `, '')}
   `, 10);
 
-  document.getElementById('out').innerHTML = `<div class="page-wrapper">${p1+p2+p3+p4+p5+p6+p7+p8+p9+p10}</div>`;
+  document.getElementById('out').innerHTML = `<div class=\"page-wrapper\">${p1+p2+p3+p4+p5+p6+p7+p8+p9+p10}</div>`;
 }
 
 // Ensure modal opens automatically on initial load
