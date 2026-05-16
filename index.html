@@ -871,34 +871,37 @@
       }
 
       let data = null;
-      let success = false;
-      const delays = [1000, 2000, 4000, 8000, 16000];
+      let lastError = 'Unknown error';
 
-      for (let i = 0; i <= 5; i++) {
-        try {
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-          if (response.ok) {
-            data = await response.json();
-            success = true;
-            break;
-          }
-        } catch (e) { }
+        let body;
+        try { body = await response.json(); } catch (_) { body = null; }
 
-        if (i < 5) await new Promise(r => setTimeout(r, delays[i]));
+        if (response.ok) {
+          data = body;
+        } else {
+          // Capture the real error from Vercel/Google so we can show it
+          const status = response.status;
+          const msg = body?.error || body?.error?.message || JSON.stringify(body) || 'No details returned';
+          lastError = `HTTP ${status}: ${msg}`;
+        }
+      } catch (e) {
+        lastError = `Network error: ${e.message}`;
       }
 
       const typingEl = document.getElementById(typingId);
       if (typingEl) typingEl.remove();
 
-      if (success && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
         appendMessage('ai', data.candidates[0].content.parts[0].text);
       } else {
-        appendMessage('ai', '<i>Error: Could not connect to the AI tutor. Ensure your API Key is valid or Vercel is set up correctly.</i>');
+        appendMessage('ai', `<i style="color:#ef4444;">⚠️ AI Error — ${lastError}</i><br><span style="font-size:11px;color:#94a3b8;">Check: Vercel env var <b>GEMINI_API_KEY</b> is set & redeployed.</span>`);
       }
     }
 
