@@ -1,7 +1,7 @@
 {
-    "name": "steel-design-pro",
-    "version": "1.0.0",
-    "engines": {
-        "node": "18.x"
-    }
+  "name": "steel-design-pro",
+  "version": "1.0.0",
+  "engines": {
+    "node": "22.x"
+  }
 }
