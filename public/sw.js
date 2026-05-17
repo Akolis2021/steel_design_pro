@@ -4,11 +4,12 @@
 //   • /api/* routes → Network Only (never cache API calls)
 // ────────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'steelpro-v1';
+const CACHE_NAME = 'steelpro-v2';
 
 // Everything the app needs to work completely offline
 const APP_SHELL = [
   '/',
+  '/home.html',
   '/index.html',
   '/manifest.json',
   '/icon-192.png',
