@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-  <title>Steel Design Pro – CVE 502 (Propped Cantilever)</title>
-  <!-- PWA manifest & theme -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steel Design Pro – CVE 502</title>
+  <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#3b82f6">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,1611 +12,464 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SteelPro">
   <link rel="apple-touch-icon" href="/icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-  <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap" rel="stylesheet">
   <style>
-    /* ── Global ─────────────────────────────────────────── */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #0f172a;
+      --navy2:   #172236;
+      --navy3:   #1e293b;
+      --border:  #334155;
+      --blue:    #3b82f6;
+      --blue2:   #2563eb;
+      --blue3:   #60a5fa;
+      --amber:   #fbbf24;
+      --muted:   #94a3b8;
+      --text:    #e2e8f0;
+      --green:   #22c55e;
+      --purple:  #a78bfa;
     }
 
     body {
-      background: #b8bec8;
-      font-family: 'Architects Daughter', cursive;
-      padding-bottom: 40px;
-      padding-top: 80px;
+      background: var(--navy);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      min-height: 100vh;
       overflow-x: hidden;
-      /* Prevents the whole site from swaying sideways */
     }
 
-    /* ── Navigation Bar ─────────────────────────────────── */
-    #navbar {
+    /* ── Grid background pattern ── */
+    body::before {
+      content: '';
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 65px;
-      background: #0f172a;
-      display: flex;
-      align-items: center;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Navbar ── */
+    #navbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 64px;
+      background: rgba(15,23,42,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(59,130,246,0.3);
+      display: flex; align-items: center;
       justify-content: space-between;
       padding: 0 5%;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-      z-index: 900;
-      transition: transform 0.3s ease;
-      border-bottom: 2px solid #3b82f6;
-    }
-
-    #navbar.hidden {
-      transform: translateY(-100%);
+      z-index: 100;
     }
 
     .nav-brand {
-      color: #fff;
+      display: flex; align-items: center; gap: 10px;
       font-family: Arial, sans-serif;
-      font-size: 19px;
-      font-weight: 800;
+      font-size: 18px; font-weight: 800;
+      color: #fff; letter-spacing: 0.03em;
+    }
+    .nav-brand .icon-wrap {
+      width: 36px; height: 36px; background: var(--blue2);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px rgba(59,130,246,0.5);
+    }
+    .nav-brand .icon-wrap svg { width: 20px; height: 20px; }
+    .nav-brand span { color: var(--blue3); }
+
+    .nav-badge {
+      font-family: Arial, sans-serif;
+      font-size: 10px; font-weight: 700;
+      background: rgba(59,130,246,0.15);
+      color: var(--blue3);
+      border: 1px solid rgba(59,130,246,0.3);
+      border-radius: 20px; padding: 3px 10px;
       letter-spacing: 0.05em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
-    .nav-brand span {
-      color: #3b82f6;
+    /* ── Main content ── */
+    main {
+      position: relative; z-index: 1;
+      max-width: 700px; margin: 0 auto;
+      padding: 96px 20px 100px;
     }
 
-    .nav-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .nav-btn {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, .4);
-      transition: background 0.2s, transform 0.1s;
-    }
-
-    .nav-btn:hover {
-      background: #1d4ed8;
-    }
-
-    .nav-btn:active {
-      transform: scale(0.96);
-    }
-
-    .nav-btn.secondary {
-      background: #1e293b;
-      color: #94a3b8;
-      border: 1px solid #334155;
-      box-shadow: none;
-    }
-
-    .nav-btn.secondary:hover {
-      background: #334155;
-      color: #fff;
-    }
-
-    /* ── Dynamic Page & Scroll Wrapper ───────────────────── */
-    #out {
-      display: none;
-      /* Hidden until first calculation */
-      width: 100%;
-      overflow-x: hidden;
-      overflow-y: visible;
-    }
-
-    #out.visible {
-      display: block;
-    }
-
-    .page-wrapper {
-      width: 210mm; /* A4 width */
-      margin: 0 auto;
-      padding: 20px 10px;
-      display: block;
-      transform-origin: top center;
-      /* JS will apply scale() here */
-    }
-
-    .page {
-      background: #fffef9;
-      background-image: repeating-linear-gradient(transparent 0px, transparent 23px, #dde6ef 23px, #dde6ef 24px);
-      width: 210mm;
-      /* Strictly enforces A4 width. NO SQUISHING! */
-      height: auto;
-      padding-bottom: 12px;
-      margin: 0 auto 24px auto;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, .25);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .page::before {
-      content: '';
-      position: absolute;
-      left: 21mm;
-      top: 0;
-      bottom: 0;
-      border-left: 2px solid #cc0000;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    /* ── Table Grids ────────────────────────────────────── */
-    .tbl-head {
-      display: grid;
-      grid-template-columns: 24mm 1fr 32mm;
-      border: 2px solid #222;
-      margin: 5mm 5mm 0;
-      font-family: Arial, sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .tbl-head div {
-      padding: 4px 6px;
+    /* ── Hero ── */
+    .hero {
       text-align: center;
+      margin-bottom: 48px;
+      animation: fadeUp 0.6s ease both;
     }
-
-    .tbl-head div:not(:last-child) {
-      border-right: 1.5px solid #222;
+    .hero-label {
+      font-size: 10px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--blue3);
+      margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-
-    .sheet-body {
-      display: grid;
-      grid-template-columns: 24mm 1fr 32mm;
-      border: 2px solid #222;
-      border-top: none;
-      margin: 0 5mm 4mm;
-      flex: 1;
-      align-content: start;
+    .hero-label::before, .hero-label::after {
+      content: ''; flex: 1; max-width: 60px;
+      height: 1px; background: rgba(96,165,250,0.3);
     }
-
-    .rc {
-      border-right: 1.5px solid #222;
-      border-bottom: 1px solid #dde6ef;
-      padding: 1px 4px;
-      font-size: 8.5px;
-      color: #666;
-      line-height: 24px;
-      min-height: 24px;
-    }
-
-    .cc {
-      border-right: 1.5px solid #222;
-      border-bottom: 1px solid #dde6ef;
-      padding: 1px 8px;
-      font-size: 13px;
-      color: #00008b;
-      line-height: 24px;
-      min-height: 24px;
-    }
-
-    .oc {
-      border-bottom: 1px solid #dde6ef;
-      padding: 1px 5px;
-      font-size: 11.5px;
-      color: #00008b;
-      line-height: 24px;
-      min-height: 24px;
-      text-align: right;
-    }
-
-    .rc.tall,
-    .cc.tall,
-    .oc.tall {
-      min-height: auto;
-      line-height: normal;
-      padding: 6px 8px;
-    }
-
-    .pgnum {
-      border-top: 1.5px solid #222;
-      margin: 12px 5mm 0;
-      text-align: center;
-      padding: 2px 0;
-      font-size: 11px;
-      color: #00008b;
-    }
-
-    .rbox {
-      display: inline-block;
-      border: 1.5px solid #00008b;
-      padding: 0 6px;
-      margin: 0 2px;
-    }
-
-    .ok {
-      color: #166534;
-      font-weight: bold;
-    }
-
-    .fail {
-      color: #991b1b;
-      font-weight: bold;
-    }
-
-    .uline {
-      text-decoration: underline;
-      font-weight: bold;
-    }
-
-    /* INTERACTIVE EQUATION TAGS */
-    .eq-tag {
-      color: #2563eb;
-      font-weight: bold;
+    .hero h1 {
       font-family: Arial, sans-serif;
-      font-size: 8px;
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 4px;
-      transition: all 0.2s;
-      border: 1px dashed transparent;
-      display: inline-block;
-      line-height: 1;
+      font-size: clamp(28px, 6vw, 42px);
+      font-weight: 900; line-height: 1.1;
+      color: #fff; margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 span { color: var(--blue); }
+    .hero p {
+      font-size: 13px; color: var(--muted);
+      line-height: 1.7; max-width: 400px; margin: 0 auto;
     }
 
-    .eq-tag:hover {
-      background: #dbeafe;
-      border-color: #3b82f6;
-      transform: scale(1.05);
-    }
-
-    /* ── Centered Modal Input Form ─────────────────────────────── */
-    #backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(5px);
-      z-index: 1000;
-      display: none;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    #backdrop.open {
-      display: block;
-      opacity: 1;
-    }
-
-    #inputModal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.95);
-      background: #172236;
-      border: 2px solid #3b82f6;
-      border-radius: 12px;
-      padding: 32px 28px 24px;
-      width: 440px;
-      max-width: 92vw;
-      z-index: 1001;
-      max-height: 90vh;
-      /* FIX: Prevents modal from getting cut off on small screens */
-      overflow-y: auto;
-      overflow-x: hidden;
-      /* FIX: No horizontal scroll */
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2), 0 10px 40px rgba(0, 0, 0, 0.6);
-      display: none;
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      flex-direction: column;
-    }
-
-    #inputModal.open {
-      display: flex;
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    /* Custom scrollbar for modal */
-    #inputModal::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    #inputModal::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    #inputModal::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
-    }
-
-    /* Close Button */
-    #closeModalBtn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #94a3b8;
-      border-radius: 6px;
-      width: 32px;
-      height: 32px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    #closeModalBtn.show {
-      display: flex;
-    }
-
-    #closeModalBtn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-    }
-
-    /* Modal Header Details */
-    .modal-logo {
-      font-size: 32px;
-      margin-bottom: 12px;
-      line-height: 1;
-    }
-
-    .modal-header-text h2 {
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 6px;
-      letter-spacing: 0.5px;
-    }
-
-    .modal-header-text p {
-      color: #93c5fd;
-      font-family: Arial, sans-serif;
-      font-size: 11px;
-      margin-bottom: 24px;
-      letter-spacing: 0.5px;
-    }
-
-    .section-header {
-      color: #60a5fa;
-      font-family: Arial, sans-serif;
-      font-size: 10.5px;
-      font-weight: 800;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-
-    /* Modal Grid & Inputs */
-    .fp-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px 12px;
-      margin-bottom: 24px;
-    }
-
-    .fp-grid>div {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .fp-grid label {
-      font-family: Arial, sans-serif;
-      font-size: 10px;
-      text-transform: uppercase;
-      color: #94a3b8;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-
-    .fp-grid input,
-    .fp-grid select {
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      color: #fbbf24;
-      font-family: monospace;
-      font-size: 15px;
-      padding: 10px 12px;
-      width: 100%;
-      min-width: 0;
-      box-sizing: border-box;
-      transition: border-color 0.2s;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .fp-grid input:focus,
-    .fp-grid select:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-    }
-
-    .fp-grid .hint {
-      font-family: Arial, sans-serif;
-      font-size: 9.5px;
-      color: #475569;
-      margin-top: 5px;
-    }
-
-    @media (max-width: 380px) {
-      .fp-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Modal Buttons */
-    .calc-btn {
-      width: 100%;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-family: Arial, sans-serif;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .calc-btn:hover {
-      background: #1d4ed8;
-    }
-
-    .print-modal-btn {
-      width: 100%;
-      background: #0f172a;
-      color: #cbd5e1;
-      border: 1px solid #334155;
-      padding: 12px;
-      border-radius: 8px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 10px;
-      transition: all 0.2s;
-    }
-
-    .print-modal-btn:hover {
-      background: #1e293b;
-      color: #fff;
-      border-color: #475569;
-    }
-
-    /* ── AI Chat Widget ─────────────────────────────── */
-    #aiChat {
-      position: fixed;
-      bottom: 22px;
-      right: 22px;
-      width: 340px;
-      max-width: 90vw;
-      height: 420px;
-      max-height: 85vh;
-      /* Safety limit for small screens */
-      background: #fff;
-      border: 2px solid #3b82f6;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, .45);
-      display: none;
-      flex-direction: column;
-      z-index: 1002;
-      overflow: hidden;
-    }
-
-    #aiChat.open {
-      display: flex;
-    }
-
-    .chat-header {
-      background: #1e293b;
-      color: #fff;
-      padding: 14px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .chat-header span {
-      color: #60a5fa;
-      font-weight: normal;
-      font-size: 11px;
-    }
-
-    .chat-header button {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    .chat-header button:hover {
-      color: #fff;
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 12px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-family: Arial, sans-serif;
-      font-size: 12.5px;
-      background: #f8fafc;
-    }
-
-    .msg {
-      padding: 10px 14px;
-      border-radius: 8px;
-      max-width: 85%;
-      line-height: 1.5;
-    }
-
-    .msg.user {
-      background: #3b82f6;
-      color: white;
-      align-self: flex-end;
-      border-radius: 8px 8px 0 8px;
-    }
-
-    .msg.ai {
-      background: #e2e8f0;
-      color: #1e293b;
-      align-self: flex-start;
-      border-radius: 8px 8px 8px 0;
-    }
-
-    .chat-input {
-      display: flex;
-      border-top: 1px solid #cbd5e1;
-      padding: 10px;
-      background: #fff;
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      outline: none;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-    }
-
-    .chat-input input:focus {
-      border-color: #3b82f6;
-    }
-
-    .chat-input button {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 0 16px;
-      margin-left: 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-
-    .chat-input button:hover {
-      background: #1d4ed8;
-    }
-
-    /* ── Offline banner ───────────────────────── */
-    #offline-banner {
-      display: none;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #1e293b;
-      color: #94a3b8;
-      text-align: center;
-      padding: 10px 16px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      border-top: 1px solid #334155;
-      z-index: 2000;
-    }
-
-    #offline-banner.show {
-      display: block;
-    }
-
-    #offline-banner b {
-      color: #60a5fa;
-    }
-
-    /* ── Zoom controls ─────────────────────────────── */
-    #zoom-bar {
-      display: none;
-      position: fixed;
-      bottom: 24px;
-      right: 16px;
-      flex-direction: column;
-      gap: 6px;
-      z-index: 500;
-    }
-    #zoom-bar.visible { display: flex; }
-    .zoom-btn {
-      width: 40px; height: 40px;
-      background: #172236;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      color: #e2e8f0;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-      transition: background 0.15s, border-color 0.15s;
-      font-family: Arial, sans-serif; font-weight: 700;
-    }
-    .zoom-btn:hover { background: #1e293b; border-color: #3b82f6; }
-    .zoom-btn:active { transform: scale(0.93); }
-    #zoom-pct {
-      width: 40px; height: 28px;
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      color: #60a5fa;
+    /* ── Section label ── */
+    .section-label {
       font-size: 9px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      font-family: Arial, sans-serif; letter-spacing: 0.5px;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px;
+      background: var(--border);
     }
 
-    @media print {
+    /* ── Calculation cards ── */
+    .calc-grid {
+      display: flex; flex-direction: column; gap: 14px;
+      margin-bottom: 40px;
+    }
 
-      #navbar,
-      #backdrop,
-      #inputModal,
-      #aiChat {
-        display: none !important;
-      }
+    .calc-card {
+      background: var(--navy2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      cursor: pointer;
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; gap: 20px;
+      transition: border-color 0.25s, transform 0.18s, box-shadow 0.25s;
+      text-decoration: none; color: inherit;
+      animation: fadeUp 0.5s ease both;
+    }
+    .calc-card:nth-child(1) { animation-delay: 0.15s; }
+    .calc-card:nth-child(2) { animation-delay: 0.25s; }
+    .calc-card:nth-child(3) { animation-delay: 0.35s; }
 
-      body {
-        background: white;
-        padding: 0 !important;
-        overflow: visible !important;
-      }
+    /* Glow line on left */
+    .calc-card::before {
+      content: ''; position: absolute;
+      left: 0; top: 0; bottom: 0; width: 3px;
+      border-radius: 14px 0 0 14px;
+      background: var(--card-accent, var(--blue));
+      transition: width 0.2s;
+    }
 
-      #out {
-        display: block !important;
-        overflow: visible !important;
-      }
+    .calc-card:hover {
+      border-color: var(--card-accent, var(--blue));
+      transform: translateX(4px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3), -4px 0 20px rgba(59,130,246,0.15);
+    }
+    .calc-card:hover::before { width: 4px; }
+    .calc-card:active { transform: translateX(2px) scale(0.99); }
 
-      .page-wrapper {
-        padding: 0 !important;
-        min-width: 100% !important;
-        display: block !important;
-        margin: 0 !important;
-      }
+    /* Shimmer on hover */
+    .calc-card::after {
+      content: ''; position: absolute;
+      inset: 0; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .calc-card:hover::after { opacity: 1; }
 
-      .page {
-        margin: 0;
-        box-shadow: none;
-        width: 100%;
-        min-width: 100%;
-        max-width: none;
-        min-height: 297mm;
-        page-break-after: always;
-      }
+    /* Card accent colors */
+    .card-blue   { --card-accent: #3b82f6; }
+    .card-green  { --card-accent: #22c55e; }
+    .card-purple { --card-accent: #a78bfa; }
 
-      .eq-tag {
-        border: none !important;
-        color: #888 !important;
-        text-decoration: none !important;
-        pointer-events: none;
-      }
+    .card-icon {
+      width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+
+    .card-body { flex: 1; min-width: 0; }
+    .card-standard {
+      font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--card-accent, var(--blue));
+      margin-bottom: 4px; font-weight: 700;
+    }
+    .card-title {
+      font-family: Arial, sans-serif;
+      font-size: 16px; font-weight: 800;
+      color: #fff; margin-bottom: 5px;
+      letter-spacing: -0.01em;
+    }
+    .card-desc {
+      font-size: 11px; color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .card-arrow {
+      color: var(--muted); flex-shrink: 0;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .calc-card:hover .card-arrow {
+      color: var(--card-accent, var(--blue));
+      transform: translateX(4px);
+    }
+
+    /* Available badge */
+    .badge-available {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
+      color: var(--green); border-radius: 20px;
+      font-size: 9px; font-weight: 700;
+      padding: 2px 8px; letter-spacing: 0.5px; text-transform: uppercase;
+      margin-top: 8px;
+    }
+    .badge-available::before {
+      content: ''; width: 5px; height: 5px;
+      background: var(--green); border-radius: 50%;
+    }
+
+    .badge-soon {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(148,163,184,0.08); border: 1px solid var(--border);
+      color: var(--muted); border-radius: 20px;
+      font-size: 9px; font-weight: 700;
+      padding: 2px 8px; letter-spacing: 0.5px; text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* ── Coming soon card dimmed ── */
+    .calc-card.coming-soon {
+      opacity: 0.55; cursor: not-allowed;
+      pointer-events: none;
+    }
+    /* re-enable pointer for visual only */
+    .calc-card.coming-soon { pointer-events: auto; }
+    .calc-card.coming-soon:hover {
+      transform: none; box-shadow: none;
+      border-color: var(--border);
+    }
+    .calc-card.coming-soon::after { display: none; }
+
+    /* ── Offline AI section ── */
+    .ai-card {
+      background: linear-gradient(135deg, rgba(23,34,54,0.9), rgba(15,23,42,0.95));
+      border: 1px solid rgba(167,139,250,0.25);
+      border-radius: 14px; padding: 22px 24px;
+      display: flex; align-items: center; gap: 20px;
+      animation: fadeUp 0.5s 0.45s ease both;
+      position: relative; overflow: hidden;
+    }
+    .ai-card::before {
+      content: ''; position: absolute;
+      left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--purple); border-radius: 14px 0 0 14px;
+    }
+    .ai-icon {
+      width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0;
+      background: rgba(167,139,250,0.1);
+      border: 1px solid rgba(167,139,250,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .ai-body { flex: 1; min-width: 0; }
+    .ai-label {
+      font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--purple); margin-bottom: 4px; font-weight: 700;
+    }
+    .ai-title {
+      font-family: Arial, sans-serif;
+      font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px;
+    }
+    .ai-desc { font-size: 11px; color: var(--muted); line-height: 1.55; }
+    .ai-size {
+      font-size: 10px; color: var(--purple);
+      font-weight: 700; margin-top: 6px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .ai-size::before { content: '↓'; }
+
+    .ai-btn {
+      flex-shrink: 0;
+      background: rgba(167,139,250,0.12);
+      border: 1px solid rgba(167,139,250,0.3);
+      color: var(--purple); border-radius: 8px;
+      padding: 8px 14px; font-family: Arial, sans-serif;
+      font-size: 11px; font-weight: 700; cursor: not-allowed;
+      letter-spacing: 0.03em;
+      opacity: 0.6;
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative; z-index: 1;
+      text-align: center;
+      padding: 0 20px 40px;
+      font-size: 10px; color: var(--border);
+      letter-spacing: 0.05em;
+      animation: fadeUp 0.5s 0.55s ease both;
+    }
+    footer span { color: var(--muted); }
+
+    /* ── Offline banner ── */
+    #offline-banner {
+      display: none; position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--navy3); color: var(--muted); text-align: center;
+      padding: 10px 16px; font-family: Arial, sans-serif; font-size: 13px;
+      border-top: 1px solid var(--border); z-index: 200;
+    }
+    #offline-banner.show { display: block; }
+    #offline-banner b { color: var(--blue3); }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .card-title { font-size: 14px; }
+      .card-desc  { font-size: 10.5px; }
+      .calc-card  { padding: 18px 16px; gap: 14px; }
+      .card-icon, .ai-icon { width: 44px; height: 44px; font-size: 20px; }
+      .ai-btn { padding: 8px 10px; font-size: 10px; }
     }
   </style>
 </head>
-
 <body>
 
-  <!-- ═══ NAVBAR ═══ -->
-  <nav id="navbar">
-    <div class="nav-brand">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="M2 20h20" />
-        <path d="M5 20V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
+<!-- Navbar -->
+<nav id="navbar">
+  <div class="nav-brand">
+    <div class="icon-wrap">
+      <!-- I-beam SVG -->
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="3" width="16" height="3" rx="1" fill="white"/>
+        <rect x="10.5" y="6" width="3" height="12" fill="white"/>
+        <rect x="4" y="18" width="16" height="3" rx="1" fill="white"/>
       </svg>
-      Steel Design <span>Pro</span>
     </div>
-    <div class="nav-actions">
-      <button class="nav-btn secondary" onclick="window.print()">⎙ Print PDF</button>
-      <button class="nav-btn" onclick="openModal()">⚙ Edit Inputs</button>
-    </div>
-  </nav>
+    Steel Design <span>&nbsp;Pro</span>
+  </div>
+  <div class="nav-badge">CVE 502</div>
+</nav>
 
-  <!-- ═══ CENTERED MODAL INPUT FORM ═══ -->
-  <div id="backdrop" onclick="closeModal()"></div>
-  <div id="inputModal">
-    <button id="closeModalBtn" onclick="closeModal()" title="Close">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
+<!-- Main -->
+<main>
 
-    <div class="modal-logo">🏗️</div>
-    <div class="modal-header-text">
-      <h2>Steel Design Pro</h2>
-      <p>BS 5950-1:2000 - Propped Cantilever - CVE 502</p>
-    </div>
-
-    <div class="section-header">Beam Parameters</div>
-
-    <div class="fp-grid">
-      <div><label>a (m)</label><input id="iL1" type="number" step="0.1" value="8">
-        <div class="hint">Fixed end → point load</div>
-      </div>
-      <div><label>b (m)</label><input id="iL2" type="number" step="0.1" value="6.4">
-        <div class="hint">Point load → roller</div>
-      </div>
-      <div><label>Gk (kN/m)</label><input id="iGk" type="number" step="0.5" value="4">
-        <div class="hint">Dead UDL</div>
-      </div>
-      <div><label>Qk (kN/m)</label><input id="iQk" type="number" step="0.5" value="7">
-        <div class="hint">Imposed UDL</div>
-      </div>
-      <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="70">
-        <div class="hint">Point load</div>
-      </div>
-      <div><label>Grade</label>
-        <select id="iGrade">
-          <option value="460">S460 – fy 460</option>
-          <option value="355">S355 – fy 355</option>
-          <option value="275">S275 – fy 275</option>
-        </select>
-        <div class="hint">Steel grade</div>
-      </div>
-      <div><label>fy (N/mm²)</label><input id="iFy" type="number" step="5" value="460">
-        <div class="hint">Design strength</div>
-      </div>
-      <div><label>b₁ (mm)</label><input id="ib1" type="number" step="5" value="100">
-        <div class="hint">Stiff bearing length</div>
-      </div>
-    </div>
-
-    <button class="calc-btn" onclick="runCalculation()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8 5v14l11-7z" />
-      </svg>
-      Run Calculation
-    </button>
-
-    <button class="print-modal-btn" onclick="window.print()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="6 9 6 2 18 2 18 9"></polyline>
-        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-        <rect x="6" y="14" width="12" height="8"></rect>
-      </svg>
-      Print / Save PDF
-    </button>
+  <!-- Hero -->
+  <div class="hero">
+    <p class="hero-label">BS 5950-1:2000 &nbsp;·&nbsp; BS 8110-1:1997</p>
+    <h1>Structural <span>Design</span><br>Calculator</h1>
+    <p>Select a calculation type below. All computations run offline — no internet required.</p>
   </div>
 
-  <!-- ═══ AI CHAT TUTOR ═══ -->
-  <div id="aiChat">
-    <div class="chat-header">
-      <div>🤖 AI Tutor <span>Powered by Gemini</span></div>
-      <button onclick="closeChat()">✕</button>
+  <!-- Calculations -->
+  <p class="section-label">Calculations</p>
+  <div class="calc-grid">
+
+    <!-- Propped Cantilever — AVAILABLE -->
+    <a class="calc-card card-blue" href="/propped.html">
+      <div class="card-icon">🏗️</div>
+      <div class="card-body">
+        <div class="card-standard">BS 5950-1:2000</div>
+        <div class="card-title">Propped Cantilever</div>
+        <div class="card-desc">Steel beam design with fixed end, UDL, point load and roller support. Shear, moment & section checks.</div>
+        <span class="badge-available">Available</span>
+      </div>
+      <div class="card-arrow">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+
+    <!-- One-Way Slab — COMING SOON -->
+    <div class="calc-card card-green coming-soon">
+      <div class="card-icon">📐</div>
+      <div class="card-body">
+        <div class="card-standard">BS 8110-1:1997</div>
+        <div class="card-title">One-Way Slab</div>
+        <div class="card-desc">Reinforced concrete slab spanning in one direction. Bending, shear and deflection checks.</div>
+        <span class="badge-soon">Coming Soon</span>
+      </div>
+      <div class="card-arrow">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
     </div>
-    <div class="chat-messages" id="chatMessages">
-      <div class="msg ai">Hello! I'm your structural engineering tutor. Click any blue <b>[Eq. X.X]</b> tag in the
-        document to ask me how it's calculated.</div>
+
+    <!-- Two-Way Slab — COMING SOON -->
+    <div class="calc-card card-purple coming-soon">
+      <div class="card-icon">🔲</div>
+      <div class="card-body">
+        <div class="card-standard">BS 8110-1:1997</div>
+        <div class="card-title">Two-Way Slab</div>
+        <div class="card-desc">Slab supported on four sides with moment coefficients. Steel in both directions.</div>
+        <span class="badge-soon">Coming Soon</span>
+      </div>
+      <div class="card-arrow">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
     </div>
-    <div class="chat-input">
-      <input type="text" id="chatInput" placeholder="Ask a question..."
-        onkeypress="if(event.key === 'Enter') sendChatMessage()">
-      <button onclick="sendChatMessage()">Send</button>
-    </div>
+
   </div>
 
-  <div id="out"></div>
-
-  <script>
-    // ── MODAL LOGIC ────────────────────────────
-    let hasRunOnce = false;
-
-    function openModal() {
-      document.getElementById('backdrop').classList.add('open');
-      document.getElementById('inputModal').classList.add('open');
-      if (hasRunOnce) {
-        document.getElementById('closeModalBtn').classList.add('show');
-      }
-    }
-
-    function closeModal() {
-      if (!hasRunOnce) return; // Prevent closing if they haven't calculated yet
-      document.getElementById('backdrop').classList.remove('open');
-      document.getElementById('inputModal').classList.remove('open');
-    }
-
-    function runCalculation() {
-      update(); // Generate the report
-      hasRunOnce = true;
-      document.getElementById('out').classList.add('visible');
-      closeModal();
-      window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back to top
-    }
-
-    // ── GEMINI API INTEGRATION & CHAT LOGIC ────────────────────────────
-    // If you are testing locally or without Vercel, paste your API key here:
-    const apiKey = "";
-
-    let currentChatContext = "General Beam Design";
-
-    function closeChat() { document.getElementById('aiChat').classList.remove('open'); }
-
-    function openChat(eqId, description) {
-      const chat = document.getElementById('aiChat');
-      chat.classList.add('open');
-      currentChatContext = `Equation ${eqId} (${description})`;
-      appendMessage('ai', `You clicked on <b>${eqId}</b>.<br><br><i style="color:#475569;">${description}</i><br><br>What would you like me to explain about this step?`);
-    }
-
-    function appendMessage(role, text) {
-      const container = document.getElementById('chatMessages');
-      container.innerHTML += `<div class="msg ${role}">${text}</div>`;
-      container.scrollTop = container.scrollHeight;
-    }
-
-    async function sendChatMessage() {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text) return;
-
-      appendMessage('user', text);
-      input.value = '';
-
-      const a = document.getElementById('iL1').value;
-      const b = document.getElementById('iL2').value;
-      const Gk = document.getElementById('iGk').value;
-      const Qk = document.getElementById('iQk').value;
-      const Q = document.getElementById('iQ').value;
-      const fy = document.getElementById('iFy').value;
-
-      const systemPrompt = `You are a helpful structural engineering tutor helping a student understand BS 5950 calculations for a Propped Cantilever beam.
-  Current Beam State:
-  - Span: ${Number(a) + Number(b)}m (Point load at ${a}m from fixed end)
-  - Loads: Dead UDL = ${Gk} kN/m, Imposed UDL = ${Qk} kN/m, Point Load = ${Q} kN
-  - Steel Strength: fy = ${fy} N/mm²
-  
-  The user is currently asking about: ${currentChatContext}.
-  
-  Provide a clear, brief, educational explanation. Keep it under 4 sentences. Explain the physics/mechanics simply. Format with HTML tags like <b> or <i> if needed for emphasis. NEVER use markdown like \`\`\`.`;
-
-      const msgContainer = document.getElementById('chatMessages');
-      const typingId = 'typing-' + Date.now();
-      msgContainer.innerHTML += `<div class="msg ai" id="${typingId}"><i>Thinking...</i></div>`;
-      msgContainer.scrollTop = msgContainer.scrollHeight;
-
-      const payload = {
-        contents: [{ parts: [{ text: text }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] }
-      };
-
-      // SMART FETCH LOGIC:
-      // If apiKey string is filled out (for local testing), use direct Google API.
-      // Otherwise, use the Vercel backend `/api/chat` route.
-      let url = '/api/chat';
-      if (apiKey && apiKey.length > 5) {
-        url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      }
-
-      let data = null;
-      let lastError = 'Unknown error';
-
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        let body;
-        try { body = await response.json(); } catch (_) { body = null; }
-
-        if (response.ok) {
-          data = body;
-        } else {
-          // Capture the real error from Vercel/Google so we can show it
-          const status = response.status;
-          const msg = body?.error || body?.error?.message || JSON.stringify(body) || 'No details returned';
-          lastError = `HTTP ${status}: ${msg}`;
-        }
-      } catch (e) {
-        lastError = `Network error: ${e.message}`;
-      }
-
-      const typingEl = document.getElementById(typingId);
-      if (typingEl) typingEl.remove();
-
-      if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        appendMessage('ai', data.candidates[0].content.parts[0].text);
-      } else {
-        appendMessage('ai', `<i style="color:#ef4444;">⚠️ AI Error — ${lastError}</i><br><span style="font-size:11px;color:#94a3b8;">Check: Vercel env var <b>GEMINI_API_KEY</b> is set & redeployed.</span>`);
-      }
-    }
-
-    // ── Smart Navbar Scroll Logic ────────────────────────────
-    let lastScrollY = window.pageYOffset;
-    window.addEventListener('scroll', () => {
-      const currentScrollY = window.pageYOffset;
-      const navbar = document.getElementById('navbar');
-      const modalOpen = document.getElementById('inputModal').classList.contains('open');
-      if (currentScrollY > lastScrollY && currentScrollY > 60 && !modalOpen) {
-        navbar.classList.add('hidden');
-      } else {
-        navbar.classList.remove('hidden');
-      }
-      lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
-    });
-
-    // ═══════════════════════════════════════════════════════
-    //  BS 5950 UB TABLE
-    // ═══════════════════════════════════════════════════════
-    const UB = [
-      { n: "254×102×22", m: 22, D: 254.0, B: 101.6, t: 5.8, T: 6.8, r: 7.6, d: 225.1, Sx: 262, Zx: 226, Ix: 2870 },
-      { n: "305×102×25", m: 25, D: 304.8, B: 101.9, t: 6.1, T: 6.8, r: 7.6, d: 275.9, Sx: 338, Zx: 307, Ix: 4380 },
-      { n: "305×127×37", m: 37, D: 304.4, B: 123.4, t: 7.2, T: 10.7, r: 8.9, d: 264.6, Sx: 539, Zx: 471, Ix: 7160 },
-      { n: "305×127×48", m: 48, D: 310.4, B: 125.3, t: 9.0, T: 14.0, r: 8.9, d: 264.6, Sx: 706, Zx: 616, Ix: 9580 },
-      { n: "305×165×40", m: 40, D: 303.8, B: 165.1, t: 6.1, T: 10.2, r: 8.9, d: 265.7, Sx: 624, Zx: 560, Ix: 8500 },
-      { n: "305×165×54", m: 54, D: 310.9, B: 166.9, t: 7.7, T: 13.7, r: 8.9, d: 265.7, Sx: 845, Zx: 753, Ix: 11700 },
-      { n: "356×171×45", m: 45, D: 352.0, B: 171.1, t: 6.9, T: 9.7, r: 10.2, d: 312.3, Sx: 775, Zx: 687, Ix: 12100 },
-      { n: "356×171×51", m: 51, D: 355.6, B: 171.5, t: 7.3, T: 11.5, r: 10.2, d: 312.3, Sx: 895, Zx: 796, Ix: 14200 },
-      { n: "356×171×57", m: 57, D: 358.6, B: 172.2, t: 8.0, T: 13.0, r: 10.2, d: 312.3, Sx: 1010, Zx: 896, Ix: 16000 },
-      { n: "356×171×67", m: 67, D: 364.0, B: 173.2, t: 9.1, T: 15.7, r: 10.2, d: 312.3, Sx: 1210, Zx: 1070, Ix: 19500 },
-      { n: "406×178×54", m: 54, D: 402.6, B: 177.6, t: 7.6, T: 10.9, r: 10.2, d: 360.5, Sx: 1050, Zx: 925, Ix: 18600 },
-      { n: "406×178×60", m: 60, D: 406.4, B: 177.8, t: 7.8, T: 12.8, r: 10.2, d: 360.5, Sx: 1200, Zx: 1060, Ix: 21500 },
-      { n: "406×178×67", m: 67, D: 409.4, B: 178.8, t: 8.8, T: 14.3, r: 10.2, d: 360.5, Sx: 1350, Zx: 1190, Ix: 24300 },
-      { n: "406×178×74", m: 74, D: 412.8, B: 179.7, t: 9.7, T: 16.0, r: 10.2, d: 360.5, Sx: 1500, Zx: 1320, Ix: 27300 },
-      { n: "457×152×52", m: 52, D: 449.8, B: 152.4, t: 7.6, T: 10.9, r: 10.2, d: 407.0, Sx: 1090, Zx: 949, Ix: 21300 },
-      { n: "457×152×60", m: 60, D: 454.7, B: 152.9, t: 8.0, T: 13.3, r: 10.2, d: 407.0, Sx: 1290, Zx: 1120, Ix: 25500 },
-      { n: "457×152×67", m: 67, D: 457.2, B: 151.9, t: 9.1, T: 15.0, r: 10.2, d: 407.0, Sx: 1450, Zx: 1250, Ix: 28600 },
-      { n: "457×152×74", m: 74, D: 461.3, B: 152.7, t: 9.9, T: 17.0, r: 10.2, d: 407.0, Sx: 1630, Zx: 1410, Ix: 32400 },
-      { n: "457×152×82", m: 82, D: 465.1, B: 153.5, t: 10.7, T: 18.9, r: 10.2, d: 407.0, Sx: 1800, Zx: 1560, Ix: 36200 },
-      { n: "457×191×67", m: 67, D: 453.6, B: 189.9, t: 8.5, T: 12.7, r: 10.2, d: 407.9, Sx: 1470, Zx: 1300, Ix: 29400 },
-      { n: "457×191×74", m: 74, D: 457.2, B: 190.5, t: 9.1, T: 14.5, r: 10.2, d: 407.9, Sx: 1660, Zx: 1460, Ix: 33300 },
-      { n: "457×191×82", m: 82, D: 460.2, B: 191.3, t: 9.9, T: 16.0, r: 10.2, d: 407.9, Sx: 1870, Zx: 1610, Ix: 37100 },
-      { n: "457×191×89", m: 89, D: 463.6, B: 192.0, t: 10.6, T: 17.7, r: 10.2, d: 407.9, Sx: 2100, Zx: 1770, Ix: 41000 },
-      { n: "457×191×98", m: 98, D: 467.4, B: 192.8, t: 11.4, T: 19.6, r: 10.2, d: 407.9, Sx: 2340, Zx: 1960, Ix: 45700 },
-      { n: "533×210×82", m: 82, D: 528.3, B: 208.7, t: 9.6, T: 13.2, r: 12.7, d: 476.5, Sx: 2060, Zx: 1800, Ix: 47500 },
-      { n: "533×210×92", m: 92, D: 533.1, B: 209.3, t: 10.2, T: 15.6, r: 12.7, d: 476.5, Sx: 2370, Zx: 2080, Ix: 55400 },
-      { n: "533×210×101", m: 101, D: 536.7, B: 210.1, t: 10.9, T: 17.4, r: 12.7, d: 476.5, Sx: 2620, Zx: 2300, Ix: 61700 },
-      { n: "533×210×109", m: 109, D: 539.5, B: 210.8, t: 11.6, T: 18.8, r: 12.7, d: 476.5, Sx: 2830, Zx: 2470, Ix: 66700 },
-      { n: "533×210×122", m: 122, D: 544.6, B: 211.9, t: 12.8, T: 21.3, r: 12.7, d: 476.5, Sx: 3200, Zx: 2790, Ix: 76000 },
-      { n: "610×229×101", m: 101, D: 602.6, B: 227.6, t: 10.6, T: 14.8, r: 12.7, d: 547.3, Sx: 2870, Zx: 2510, Ix: 75700 },
-      { n: "610×229×113", m: 113, D: 607.3, B: 228.2, t: 11.2, T: 17.3, r: 12.7, d: 547.3, Sx: 3280, Zx: 2880, Ix: 87500 },
-      { n: "610×229×125", m: 125, D: 612.2, B: 229.0, t: 11.9, T: 19.6, r: 12.7, d: 547.3, Sx: 3680, Zx: 3220, Ix: 98600 },
-      { n: "610×229×140", m: 140, D: 617.0, B: 230.1, t: 13.1, T: 22.1, r: 12.7, d: 547.3, Sx: 4140, Zx: 3630, Ix: 111000 },
-    ];
-
-    // ── helpers ──────────────────────────────────────────────
-    const f = (v, d = 2) => (+v).toFixed(d);
-    const f0 = (v) => (+v).toFixed(0);
-    const OK = (p) => p ? '<span class="ok">&#10003; OK</span>' : '<span class="fail">&#10007; FAIL</span>';
-
-    const EQ = (id, desc) => `<span class="eq-tag" onclick="openChat('${id}', '${desc}')" title="Ask AI about this calculation">[${id}]</span>`;
-
-    function R(ref, calc, out = '') { return `<div class="rc">${ref}</div><div class="cc">${calc}</div><div class="oc">${out}</div>`; }
-    function BLANK() { return `<div class="rc"></div><div class="cc"></div><div class="oc"></div>`; }
-    function SVGR(ref, svgHTML, out = '') {
-      return `<div class="rc tall" style="align-self:center;">${ref}</div>
-          <div class="cc tall" style="overflow-x:auto;">${svgHTML}</div>
-          <div class="oc tall" style="align-self:center;">${out}</div>`;
-    }
-
-    // ═══════════════════════════════════════════════════════
-    //  MAIN CALCULATION ENGINE
-    // ═══════════════════════════════════════════════════════
-    function update() {
-      const a = +document.getElementById('iL1').value;
-      const b = +document.getElementById('iL2').value;
-      const Gk = +document.getElementById('iGk').value;
-      const Qk = +document.getElementById('iQk').value;
-      const Q = +document.getElementById('iQ').value;
-      const fy = +document.getElementById('iFy').value;
-      const b1 = +document.getElementById('ib1').value;
-
-      const errors = [];
-      if (isNaN(a) || a <= 0) errors.push("Dimension 'a' (Fixed end to point load) must be greater than zero.");
-      if (isNaN(b) || b <= 0) errors.push("Dimension 'b' (Point load to roller) must be greater than zero.");
-      if (isNaN(Gk) || Gk < 0) errors.push("Dead UDL (Gk) cannot be negative.");
-      if (isNaN(Qk) || Qk < 0) errors.push("Imposed UDL (Qk) cannot be negative.");
-      if (isNaN(Q) || Q < 0) errors.push("Point load (Q) cannot be negative.");
-      if (isNaN(fy) || fy < 200 || fy > 550) errors.push("Yield strength (f<sub>y</sub>) is outside standard BS 5950 bounds (200 - 550 N/mm²).");
-      if (isNaN(b1) || b1 <= 0) errors.push("Stiff bearing length (b₁) must be greater than zero.");
-
-      if (errors.length > 0) {
-        document.getElementById('out').innerHTML = `
-      <div class="page-wrapper">
-        <div style="width:210mm; margin: 20px auto; padding: 24px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; font-family: Arial, sans-serif; box-sizing: border-box;">
-          <h2 style="color: #991b1b; margin-top: 0;">⚠️ Input Validation Error</h2>
-          <ul style="color: #991b1b; padding-left: 24px;">${errors.map(e => `<li>${e}</li>`).join('')}</ul>
-        </div>
-      </div>`;
-        return;
-      }
-
-      const L = a + b;
-      const wu = 1.4 * Gk + 1.6 * Qk;
-      const Wu = 1.6 * Q;
-      const tot = wu * L + Wu;
-
-      const A1_coeff = Math.pow(L, 3) / 3;
-      const A2X2 = (wu * Math.pow(L, 4)) / 8;
-      const part1 = 0.5 * a * (Wu * a);
-      const part2 = L - (a / 3);
-      const A3X3 = part1 * part2;
-
-      const RB = (A2X2 + A3X3) / A1_coeff;
-      const RA = tot - RB;
-
-      const SFA = RA;
-      const SFCb = RA - wu * a;
-      const SFCa = SFCb - Wu;
-      const SFBl = SFCa - wu * b;
-
-      const MA = RB * L - wu * Math.pow(L, 2) / 2 - Wu * a;
-      const BMC = RB * b - wu * Math.pow(b, 2) / 2;
-      const Mmax = Math.max(Math.abs(MA), Math.abs(BMC));
-
-      const Sx_req = (Mmax * 1e6) / (fy);
-      const Sx_req_cm3 = Sx_req / 1000;
-
-      const validSecs = UB.filter(s => s.Sx >= Sx_req_cm3);
-      validSecs.sort((s1, s2) => s1.m - s2.m);
-
-      if (validSecs.length === 0) {
-        document.getElementById('out').innerHTML = `
-      <div class="page-wrapper">
-        <div style="width:210mm; margin: 20px auto; padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px; font-family: Arial, sans-serif; box-sizing: border-box;">
-          <h2 style="color: #92400e; margin-top: 0;">⛔ Capacity Exceeded</h2>
-          <p style="color: #92400e;">The applied loads generate a design moment requiring an <b>S<sub>x</sub> &ge; ${f(Sx_req_cm3, 1)} cm³</b>. This exceeds the database capacity.</p>
-        </div>
-      </div>`;
-        return;
-      }
-      let sec = validSecs[0];
-
-      const eps = (fy === 460) ? 0.8 : Math.sqrt(275 / fy);
-      const b_T = (sec.B / 2) / sec.T;
-      const d_t = sec.d / sec.t;
-      const flCls = b_T <= 9 * eps ? 'Plastic' : b_T <= 10 * eps ? 'Compact' : b_T <= 15 * eps ? 'Semi-compact' : 'Slender';
-      const wbCls = d_t <= 80 * eps ? 'Plastic' : d_t <= 100 * eps ? 'Compact' : 'Semi-compact';
-
-      const Av = sec.t * sec.D;
-      const Pv = 0.6 * fy * Av / 1e3;
-      const Fv = Math.max(Math.abs(RA), Math.abs(RB));
-      const lowSh = Fv <= 0.6 * Pv;
-      const sh_ok = Fv <= Pv;
-
-      const Mc_f = fy * sec.Sx * 1e3 / 1e6;
-      const Mc_l = 1.2 * fy * sec.Zx * 1e3 / 1e6;
-      const Mc = Math.min(Mc_f, Mc_l);
-
-      const Gsw = sec.m * 9.81 / 1000;
-      const Msw = 1.4 * Gsw * L * L * (9 / 128);
-      const Mmax2 = Math.abs(MA) + Msw;
-      const mc_ok = Mmax2 <= Mc;
-
-      const EI = 205e3 * sec.Ix * 1e4;
-      const Lmm = L * 1e3, amm = a * 1e3, bmm = b * 1e3;
-      const dS_udl = Qk * Math.pow(Lmm, 4) / (185 * EI);
-      const dS_pt = Q * 1e3 * Math.pow(amm, 2) * Math.pow(bmm, 2) / (3 * EI * Lmm);
-      const dC = dS_udl + dS_pt;
-      const dCL = Lmm / 180;
-      const dC_ok = dC <= dCL;
-
-      const k = sec.T + sec.r;
-      const n = 2;
-      const Pbw = (b1 + n * k) * sec.t * fy / 1e3;
-      const Pcs = (b1 + n * (sec.r + sec.T)) * fy / 1e3;
-      const epsS = Math.sqrt(275 / fy);
-      const bot_in = (b1 + n * k) * sec.d;
-      const Px = (25 * eps * sec.t / Math.sqrt(bot_in)) * Pbw;
-
-      const br_ok = RA <= Pbw;
-      const bk_ok = RA <= Px;
-      const allOk = sh_ok && mc_ok && dC_ok && br_ok && bk_ok;
-
-      const warnings = [];
-      if ((Lmm / sec.D) > 40) warnings.push(`<b>Slenderness:</b> Span-to-depth ratio (${f(Lmm / sec.D, 1)}) exceeds 40.`);
-      if (mc_ok && (Mmax2 / Mc) > 0.95) warnings.push(`<b>Moment Utilization:</b> Section is operating at ${f((Mmax2 / Mc) * 100, 1)}% of flexural capacity.`);
-      if (sh_ok && (Fv / Pv) > 0.95) warnings.push(`<b>Shear Utilization:</b> Section is operating at ${f((Fv / Pv) * 100, 1)}% of shear capacity.`);
-      if (dC_ok && (dC / dCL) > 0.95) warnings.push(`<b>Deflection Limit:</b> Deflection is at ${f((dC / dCL) * 100, 1)}% of L/180 limit.`);
-
-      let warningsHTML = '';
-      if (warnings.length > 0) {
-        warningsHTML = `
-      ${BLANK()}
-      ${R('', `
-        <div style="border: 2px solid #d97706; background: #fffbeb; padding: 12px 16px; border-radius: 4px; color: #92400e; font-family: Arial, sans-serif; font-size: 11.5px; margin: 8px 0;">
-          <div style="font-weight: 700; margin-bottom: 8px; font-size: 13px;">⚠️ Engineering Warnings</div>
-          <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">${warnings.map(w => `<li>${w}</li>`).join('')}</ul>
-        </div>`, '')}
-    `;
-      }
-
-      // ════════════════════════════════════════════════════════
-      //  SVG DIAGRAMS
-      // ════════════════════════════════════════════════════════
-      const SW = 480, SH = 160, beamY = 85;
-      const Ax = 40, Bx = SW - 40;
-      const Cx = Ax + Math.round((Bx - Ax) * (a / L));
-
-      let sp = '';
-      for (let i = 0; i <= 13; i++) {
-        const x = Ax + i * (Bx - Ax) / 13;
-        sp += `<line x1="${x}" y1="${beamY - 30}" x2="${x}" y2="${beamY - 4}" stroke="#00008b" stroke-width="1.3" marker-end="url(#ua)"/>`;
-      }
-      const diagramSVG = `
-  <svg viewBox="0 0 ${SW} ${SH}" style="width:100%;min-width:320px;max-width:480px;display:block;margin:6px auto;">
-    <defs>
-      <marker id="ua" markerWidth="5" markerHeight="5" refX="2.5" refY="5" orient="auto"><path d="M0,0 L2.5,5 L5,0" fill="none" stroke="#00008b" stroke-width="1.2"/></marker>
-      <marker id="Wa" markerWidth="7" markerHeight="7" refX="3.5" refY="7" orient="auto"><path d="M0,0 L3.5,7 L7,0 Z" fill="#cc0000"/></marker>
-      <marker id="Ra" markerWidth="6" markerHeight="6" refX="3" refY="0" orient="auto"><path d="M0,6 L3,0 L6,6 Z" fill="#166534"/></marker>
-    </defs>
-    <line x1="${Ax}" y1="${beamY - 32}" x2="${Bx}" y2="${beamY - 32}" stroke="#00008b" stroke-width="1.2"/>
-    ${sp}
-    <text x="${(Ax + Bx) / 2}" y="${beamY - 38}" text-anchor="middle" font-family="Architects Daughter" font-size="10.5" fill="#00008b">Gk = ${Gk} kN/m,  Qk = ${Qk} kN/m</text>
-    <rect x="${Ax}" y="${beamY - 3}" width="${Bx - Ax}" height="7" fill="#00008b" rx="1.5"/>
-    <line x1="${Ax}" y1="${beamY - 20}" x2="${Ax}" y2="${beamY + 30}" stroke="#333" stroke-width="3"/>
-    ${[-15, -5, 5, 15, 25].map(dy => `<line x1="${Ax - 10}" y1="${beamY + dy}" x2="${Ax}" y2="${beamY + 6 + dy}" stroke="#333" stroke-width="1.5"/>`).join('')}
-    <polygon points="${Bx},${beamY + 4} ${Bx - 9},${beamY + 24} ${Bx + 9},${beamY + 24}" fill="none" stroke="#333" stroke-width="1.8"/>
-    <circle cx="${Bx - 4.5}" cy="${beamY + 29}" r="4" fill="none" stroke="#333" stroke-width="1.5"/>
-    <circle cx="${Bx + 4.5}" cy="${beamY + 29}" r="4" fill="none" stroke="#333" stroke-width="1.5"/>
-    <line x1="${Bx - 16}" y1="${beamY + 33}" x2="${Bx + 16}" y2="${beamY + 33}" stroke="#333" stroke-width="2"/>
-    <line x1="${Cx}" y1="${beamY - 64}" x2="${Cx}" y2="${beamY - 4}" stroke="#cc0000" stroke-width="2.2" marker-end="url(#Wa)"/>
-    <text x="${Cx}" y="${beamY - 68}" text-anchor="middle" font-family="Architects Daughter" font-size="11" fill="#cc0000">${Q} kN</text>
-    <line x1="${Ax + 10}" y1="${beamY + 54}" x2="${Ax + 10}" y2="${beamY + 24}" stroke="#166534" stroke-width="2" marker-end="url(#Ra)"/>
-    <text x="${Ax + 10}" y="${beamY + 68}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#166534">RA</text>
-    <line x1="${Bx}" y1="${beamY + 64}" x2="${Bx}" y2="${beamY + 38}" stroke="#166534" stroke-width="2" marker-end="url(#Ra)"/>
-    <text x="${Bx}" y="${beamY + 78}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#166534">RB</text>
-    <text x="${Ax - 6}" y="${beamY - 8}" text-anchor="end" font-family="Architects Daughter" font-size="10" fill="#333">A</text>
-    <text x="${Cx + 6}" y="${beamY + 15}" text-anchor="start" font-family="Architects Daughter" font-size="10" fill="#333">C</text>
-    <text x="${Bx + 12}" y="${beamY - 8}" text-anchor="start" font-family="Architects Daughter" font-size="10" fill="#333">B</text>
-    <line x1="${Ax}" y1="${beamY + 92}" x2="${Cx}" y2="${beamY + 92}" stroke="#555" stroke-width="1"/>
-    <line x1="${Ax}" y1="${beamY + 87}" x2="${Ax}" y2="${beamY + 97}" stroke="#555" stroke-width="1"/>
-    <line x1="${Cx}" y1="${beamY + 87}" x2="${Cx}" y2="${beamY + 97}" stroke="#555" stroke-width="1"/>
-    <text x="${(Ax + Cx) / 2}" y="${beamY + 105}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">${a} m</text>
-    <line x1="${Cx}" y1="${beamY + 92}" x2="${Bx}" y2="${beamY + 92}" stroke="#555" stroke-width="1"/>
-    <line x1="${Bx}" y1="${beamY + 87}" x2="${Bx}" y2="${beamY + 97}" stroke="#555" stroke-width="1"/>
-    <text x="${(Cx + Bx) / 2}" y="${beamY + 105}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">${b} m</text>
-  </svg>`;
-
-      const FW = 400; const sfdBase = 80;
-      const FCx = 40 + Math.round(320 * (a / L));
-      const sfMax = Math.max(Math.abs(SFA), Math.abs(SFCb), Math.abs(SFCa), Math.abs(SFBl));
-      const sfScale = sfMax > 0 ? 55 / sfMax : 1;
-      const sfdSVG = `
-  <svg viewBox="0 0 ${FW} 160" style="width:100%;min-width:320px;max-width:400px;display:block;margin:4px auto;">
-    <line x1="40" y1="${sfdBase}" x2="360" y2="${sfdBase}" stroke="#333" stroke-width="1.5"/>
-    <text x="368" y="${sfdBase + 3}" font-family="Arial" font-size="9" fill="#333">0</text>
-    <polygon points="40,${sfdBase} 40,${sfdBase - SFA * sfScale} ${FCx},${sfdBase - SFCb * sfScale} ${FCx},${sfdBase - SFCa * sfScale} 360,${sfdBase - SFBl * sfScale} 360,${sfdBase}" fill="rgba(22, 101, 52, 0.15)" stroke="#166534" stroke-width="1.5" stroke-linejoin="round"/>
-    <circle cx="40" cy="${sfdBase}" r="2" fill="#333"/><circle cx="${FCx}" cy="${sfdBase}" r="2" fill="#333"/><circle cx="360" cy="${sfdBase}" r="2" fill="#333"/>
-    <text x="40" y="${sfdBase + 15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">A</text>
-    <text x="${FCx}" y="${sfdBase + 15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">C</text>
-    <text x="360" y="${sfdBase + 15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">B</text>
-    <text x="45" y="${sfdBase - SFA * sfScale - 5}" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFA, 1)}</text>
-    <text x="${FCx - 5}" y="${sfdBase - SFCb * sfScale - 5}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534">${f(SFCb, 1)}</text>
-    <text x="${FCx + 5}" y="${sfdBase - SFCa * sfScale + 10}" text-anchor="start" font-family="Arial" font-size="9" fill="#166534">${f(SFCa, 1)}</text>
-    <text x="355" y="${sfdBase - SFBl * sfScale + 12}" text-anchor="end" font-family="Arial" font-size="9" fill="#166534" font-weight="bold">${f(SFBl, 1)}</text>
-  </svg>`;
-
-      let bmdPtsStr = `40,90 `; const bmScale = Mmax > 0 ? 60 / Mmax : 1; const bmdBase = 90;
-      for (let i = 0; i <= 50; i++) {
-        let xB = L - ((i / 50) * L);
-        let mx = RB * xB - wu * Math.pow(xB, 2) / 2; if (xB > b) mx -= Wu * (xB - b);
-        bmdPtsStr += `${40 + (i / 50) * 320},${bmdBase - mx * bmScale} `;
-      }
-      bmdPtsStr += `360,90`;
-
-      const bmdSVG = `
-  <svg viewBox="0 0 ${FW} 180" style="width:100%;min-width:320px;max-width:400px;display:block;margin:4px auto;">
-    <line x1="40" y1="${bmdBase}" x2="360" y2="${bmdBase}" stroke="#333" stroke-width="1.5"/>
-    <text x="368" y="${bmdBase + 3}" font-family="Arial" font-size="9" fill="#333">0</text>
-    <polygon points="${bmdPtsStr}" fill="rgba(0, 0, 139, 0.1)" stroke="#00008b" stroke-width="1.5" stroke-linejoin="round"/>
-    <line x1="40" y1="${bmdBase}" x2="40" y2="${bmdBase - MA * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
-    <line x1="${FCx}" y1="${bmdBase}" x2="${FCx}" y2="${bmdBase - BMC * bmScale}" stroke="#777" stroke-dasharray="2,2"/>
-    <circle cx="40" cy="${bmdBase}" r="2" fill="#333"/><circle cx="${FCx}" cy="${bmdBase}" r="2" fill="#333"/><circle cx="360" cy="${bmdBase}" r="2" fill="#333"/>
-    <text x="40" y="${bmdBase + 15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">A</text>
-    <text x="${FCx}" y="${bmdBase + 15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">C</text>
-    <text x="360" y="${bmdBase + 15}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#555">B</text>
-    <text x="45" y="${bmdBase - MA * bmScale + 12}" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(MA, 1)}</text>
-    <text x="${FCx}" y="${bmdBase - BMC * bmScale - 6}" text-anchor="middle" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(BMC, 1)}</text>
-  </svg>`;
-
-      // ════════════════════════════════════════════════════════
-      //  BUILD PAGES 
-      // ════════════════════════════════════════════════════════
-      function page(rows, pgNum) {
-        return `<div class="page"><div class="tbl-head"><div>Reference</div><div>Calculation</div><div>Output</div></div><div class="sheet-body">${rows}</div><div class="pgnum">Page No <u>${pgNum}</u></div></div>`;
-      }
-
-      const p1 = page(`
-    ${R('BS 5950-1:2000', '<span class="uline">Parameters given.</span>', '')}
-    ${R('', `L = ${f(L, 1)} m&nbsp;&nbsp;&nbsp; Q = ${Q} kN`, '')}
-    ${R('', `Gk = ${Gk} kN/m&nbsp;&nbsp;&nbsp; Qk = ${Qk} kN/m`, '')}
-    ${BLANK()}
-    ${SVGR('', diagramSVG, '')}
-    ${BLANK()}
-    ${R(EQ('Eq. 1.1', 'Calculation for the total factored load on the beam'), '<span class="uline">Total factored load on the beam.</span>', '')}
-    ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × ${f(L, 1)} + 1.6(${Q})`, '')}
-    ${R('', `= ${f(wu, 1)} × ${f(L, 1)} + ${f(Wu, 1)}`, '')}
-    ${R('', `<b>Total Design loading = ${f(tot, 2)} kN</b>`, `${f(tot, 0)} kN`)}
-    ${BLANK()}
-    ${R('', 'The beam section is statically indeterminate.', '')}
-    ${R('', 'Thus reactions become', '')}
-    ${R('', '<b>A₁x̄₁ = A₂x̄₂ + A₃x̄₃</b>', '')}
-  `, 1);
-
-      const p2 = page(`
-    ${R(EQ('Eq. 2.1', 'Moment of the area of the RB triangular diagram about fixed support A'), `A₁x̄₁ = [½ × R<sub>B</sub> × ${f(L, 1)} × ${f(L, 1)}] × [⅔ × ${f(L, 1)}]`, '')}
-    ${R('', `= <b>${f(A1_coeff, 2)} R<sub>B</sub></b>`, '')}
-    ${BLANK()}
-    ${R(EQ('Eq. 2.2', 'Moment of the area of the UDL parabolic diagram about fixed support A'), `A₂x̄₂ = [⅓ × ${f(L, 1)} × (${f(wu, 1)}×${f(L, 1)}² / 2)] × [¾ × ${f(L, 1)}]`, '')}
-    ${R('', `= <b>${f(A2X2, 1)}</b>`, '')}
-    ${BLANK()}
-    ${R(EQ('Eq. 2.3', 'Moment of the area of the Point Load triangular diagram about fixed support A'), `A₃x̄₃ = [½ × ${a} × (${f(Wu, 1)}×${a})] × [${f(L, 1)} - ⅓ × ${a}]`, '')}
-    ${R('', `= <b>${f(A3X3, 1)}</b>`, '')}
-    ${BLANK()}
-    ${R('', `A₁x̄₁ = A₂x̄₂ + A₃x̄₃`, '')}
-    ${R('', `${f(A1_coeff, 2)} R<sub>B</sub> = ${f(A2X2, 1)} + ${f(A3X3, 1)}`, '')}
-    ${R(EQ('Eq. 2.4', 'Solving for Reaction RB using the Area-Moment theorem'), `R<sub>B</sub> = ${f(A2X2 + A3X3, 1)} / ${f(A1_coeff, 2)}`, '')}
-    ${R('', `<span class="rbox"><b>R<sub>B</sub> = ${f(RB, 2)} kN</b></span>`, `R<sub>B</sub> = ${f(RB, 2)} kN`)}
-    ${BLANK()}
-    ${R(EQ('Eq. 2.5', 'Solving for Reaction RA using sum of vertical forces'), `R<sub>A</sub> = (${f(wu, 1)} × ${f(L, 1)}) + (${f(Wu, 1)}) - ${f(RB, 2)}`, '')}
-    ${R('', `<span class="rbox"><b>R<sub>A</sub> = ${f(RA, 2)} kN</b></span>`, `R<sub>A</sub> = ${f(RA, 2)} kN`)}
-    ${BLANK()}
-    ${R('', '<span class="uline">SF (Shear force)</span>', '')}
-    ${R('', `SF @ A = R<sub>A</sub> = ${f(SFA, 2)} kN`, `${f(SFA, 2)} kN`)}
-    ${R(EQ('Eq. 2.6', 'Shear Force at point C just before the point load acts'), `SF @ C (before) = ${f(SFA, 2)} − (${f(wu, 1)}×${a}) = ${f(SFCb, 2)} kN`, '')}
-  `, 2);
-
-      const p3 = page(`
-    ${R(EQ('Eq. 3.1', 'Shear Force at point C immediately after the point load acts'), `SF @ C (after) = ${f(SFCb, 2)} − ${f(Wu, 1)} = ${f(SFCa, 2)} kN`, '')}
-    ${R(EQ('Eq. 3.2', 'Shear Force at point B (Roller Support)'), `SF @ B = ${f(SFCa, 2)} − (${f(wu, 1)}×${b}) = ${f(SFBl, 2)} kN ≈ -R<sub>B</sub>`, '')}
-    ${BLANK()}
-    ${R('', '<span class="uline">Shear Force Diagram</span>', '')}
-    ${SVGR('', sfdSVG, '')}
-    ${BLANK()}
-    ${R('', '<span class="uline">Bending Moment</span>', '')}
-    ${R('', `&Sigma; M<sub>A</sub> = 0`, '')}
-    ${R(EQ('Eq. 3.3', 'Calculation of Bending Moment at Fixed Support A'), `${f(RB, 2)}(${f(L, 1)}) - ${f(wu, 1)}(${f(L, 1)}² / 2) - ${f(Wu, 1)}(${a}) + M<sub>A</sub> = 0`, '')}
-    ${R('', `<span class="rbox"><b>M<sub>A</sub> = ${f(MA, 2)} kNm</b></span>`, `M<sub>A</sub> = ${f(MA, 2)} kNm`)}
-    ${BLANK()}
-    ${R(EQ('Eq. 3.4', 'Calculation of Bending Moment at Point C'), `M<sub>C</sub> = ${f(RB, 2)}(${b}) - ${f(wu, 1)}(${b}² / 2)`, '')}
-    ${R('', `M<sub>C</sub> = ${f(RB * b, 2)} - ${f(wu * b * b / 2, 2)} = <b>${f(BMC, 2)} kNm</b>`, `M<sub>C</sub> = ${f(BMC, 2)} kNm`)}
-    ${BLANK()}
-    ${R('', `M<sub>B</sub> = 0 kNm`, '')}
-  `, 3);
-
-      const p4 = page(`
-    ${R('', '<span class="uline">Bending Moment Diagram</span>', '')}
-    ${SVGR('', bmdSVG, '')}
-    ${BLANK()}
-    ${R('', '<span class="uline">Initial Section Selection</span>', '')}
-    ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp;&nbsp;&nbsp; Take f<sub>y</sub> = ${fy} N/mm²`, '')}
-    ${R('', `Design Moment M<sub>max</sub> = ${f(Mmax, 2)} kNm`, '')}
-    ${R('', `S<sub>x</sub> = M<sub>max</sub> × 10⁶ / f<sub>y</sub>`, '')}
-    ${R(EQ('Eq. 4.1', 'Calculating Required Plastic Modulus (Sx) for initial sizing'), `S<sub>x</sub> = ${f(Mmax, 2)} × 10⁶ / ${fy}`, '')}
-    ${R('', `S<sub>x</sub> = ${f(Sx_req, 2)} mm³`, '')}
-    ${R('', `<b>S<sub>x</sub> required = ${f(Sx_req_cm3, 2)} cm³</b>`, `S<sub>x</sub> = ${f0(Sx_req_cm3)} cm³`)}
-    ${BLANK()}
-    ${R('BS 5950-1:2000<br>Table B1', '<span class="uline">Suitable Sections from Table B1 (S<sub>x</sub> &ge; ${f(Sx_req_cm3,1)} cm³)</span>', '')}
-    ${R('', `<div style="font-size:11px;color:#00008b;overflow-x:auto;">
-      <table style="border-collapse:collapse;width:100%;min-width:240px;font-family:Arial,sans-serif;font-size:10px;">
-        <thead>
-          <tr style="border-bottom:1.5px solid #00008b;">
-            <th style="text-align:left;padding:2px 6px;">Section</th>
-            <th style="text-align:right;padding:2px 6px;">Mass</th>
-            <th style="text-align:right;padding:2px 6px;">S<sub>x</sub> (cm³)</th>
-            <th style="text-align:right;padding:2px 6px;">Z<sub>x</sub> (cm³)</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${validSecs.slice(0, 4).map((s, i) => `
-          <tr style="background:${i === 0 ? 'rgba(22,101,52,0.10)' : 'transparent'};border-bottom:1px solid #dde6ef;">
-            <td style="padding:2px 6px;font-weight:${i === 0 ? 'bold' : 'normal'};color:${i === 0 ? '#166534' : '#00008b'};">${s.n} UB${i === 0 ? ' ◀ selected' : ''}</td>
-            <td style="text-align:right;padding:2px 6px;">${s.m}</td>
-            <td style="text-align:right;padding:2px 6px;font-weight:${i === 0 ? 'bold' : 'normal'};">${s.Sx}</td>
-            <td style="text-align:right;padding:2px 6px;">${s.Zx}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`, '')}
-    ${BLANK()}
-    ${R('', `Selected: <b>${sec.n} UB</b> — lightest valid section`, `${sec.n}`)}
-    ${R('', `D = ${sec.D} mm &nbsp;&nbsp; B = ${sec.B} mm &nbsp;&nbsp; t = ${sec.t} mm`, '')}
-    ${R('', `T = ${sec.T} mm &nbsp;&nbsp; r = ${sec.r} mm &nbsp;&nbsp; d = ${sec.d} mm`, '')}
-    ${R('', `S<sub>x</sub> = ${sec.Sx} cm³ &nbsp;&nbsp; Z<sub>x</sub> = ${sec.Zx} cm³`, `S<sub>x</sub> = ${sec.Sx} cm³`)}
-  `, 4);
-
-      const p5 = page(`
-    ${R('BS 5950-1:2000<br>Table 11<br>Cl. 3.5.2', '<span class="uline">Strength Classification.</span>', '')}
-    ${R('', `Since T (${sec.T}mm) ≤ 16mm, thus f<sub>y</sub> = ${fy} N/mm²`, `f<sub>y</sub> = ${fy}`)}
-    ${R(EQ('Eq. 5.1', 'Calculation of the epsilon modification factor'), `&epsilon; = &radic;(275/f<sub>y</sub>) = &radic;(275/${fy}) = <b>${f(eps, 3)}</b>`, `&epsilon; = ${f(eps, 3)}`)}
-    ${BLANK()}
-    ${R('', '<span class="uline">Section Classification.</span>', '')}
-    ${R(EQ('Eq. 5.2', 'Checking the flange outstand-to-thickness ratio for classification'), `b/T = ${f(sec.B / 2, 2)} / ${sec.T} = <b>${f(b_T, 2)}</b>`, `b/T = ${f(b_T, 2)}`)}
-    ${R('', `Since b/T (${f(b_T, 2)}) &le; 9&epsilon; (${f(9 * eps, 2)})`, '')}
-    ${R('', `The flange is <b>${flCls}</b>`, `${flCls}`)}
-    ${BLANK()}
-    ${R(EQ('Eq. 5.3', 'Checking the web depth-to-thickness ratio for classification'), `d/t = ${sec.d}/${sec.t} = <b>${f(d_t, 2)}</b>`, `d/t = ${f(d_t, 2)}`)}
-    ${R('', `Since d/t (${f(d_t, 2)}) &le; 80&epsilon; (${f(80 * eps, 2)})`, '')}
-    ${R('', `It has a <b>${wbCls}</b> web`, `${wbCls}`)}
-    ${BLANK()}
-    ${R('BS 5950-1:2000<br>Cl. 4.4.5', '<span class="uline">Shear buckling</span>', '')}
-    ${R('', `Since d/t (${f(d_t, 2)}) ${d_t <= 70 * eps ? '&lt;' : '&gt;'} 70&epsilon; (${f(70 * eps, 2)})`, '')}
-    ${d_t <= 70 * eps ? R('', `No shear buckling is required.`, `${OK(true)}`) : R('', `Shear buckling critical`, `${OK(false)}`)}
-    ${BLANK()}
-    ${R('BS 5950-1:2000<br>Cl. 4.2.3', '<span class="uline">Shear Capacity</span>', '')}
-    ${R('', `P<sub>v</sub> = 0.6 · f<sub>y</sub> · A<sub>v</sub>&nbsp;&nbsp; (where A<sub>v</sub> = t · D)`, '')}
-    ${R(EQ('Eq. 5.4', 'Calculation of the Shear Capacity (Pv) of the section'), `P<sub>v</sub> = 0.6 × ${fy} × ${sec.t} × ${sec.D} / 1000`, '')}
-    ${R('', `P<sub>v</sub> = <b>${f(Pv, 1)} kN</b>`, `P<sub>v</sub> = ${f(Pv, 1)} kN`)}
-    ${R('', `Since F<sub>v</sub> (${f(RA, 2)}) ${sh_ok ? '&lt;' : '&gt;'} P<sub>v</sub> (${f(Pv, 1)}) thus okay.`, `${OK(sh_ok)}`)}
-    ${R('', `This implies the section has ${lowSh ? '<b>low</b>' : '<b>high</b>'} shear.`, '')}
-  `, 5);
-
-      const p6 = page(`
-    ${R('BS 5950-1:2000<br>Cl. 4.2.5', '<span class="uline">Bending Moment Capacity</span>', '')}
-    ${R('', `Moment Capacity M<sub>c</sub> = f<sub>y</sub> S<sub>x</sub> &le; 1.2 f<sub>y</sub> Z<sub>x</sub>`, '')}
-    ${R(EQ('Eq. 6.1', 'Calculation of the strict Moment Capacity based on plastic modulus'), `M<sub>c</sub> = ${fy} × ${sec.Sx} × 10³ / 10⁶ = <b>${f(Mc_f, 2)} kNm</b>`, '')}
-    ${R('', `1.2 f<sub>y</sub> Z<sub>x</sub> = 1.2 × ${fy} × ${sec.Zx} × 10³ / 10⁶ = <b>${f(Mc_l, 2)} kNm</b>`, '')}
-    ${R('', `Since M<sub>c</sub> (${f(Mc, 2)}) &le; 1.2 f<sub>y</sub> Z<sub>x</sub> (${f(Mc_l, 2)})`, '')}
-    ${R('', `The bending moment capacity is <b>${f(Mc, 2)} kNm</b>.`, `M<sub>c</sub> = ${f(Mc, 2)} kNm`)}
-    ${BLANK()}
-    ${R('', '<span class="uline">Moment due to self weight & Imposed loading</span>', '')}
-    ${R('', `G<sub>sw</sub> = ${sec.m} × 9.81 / 1000 = ${f(Gsw, 3)} kN/m`, '')}
-    ${R(EQ('Eq. 6.2', 'Calculation of additional moment caused by the self-weight of the beam'), `Span Moment M<sub>sw</sub> = 1.4(${f(Gsw, 3)}) × ${f(L, 1)}² × 9 / 128`, '')}
-    ${R('', `M<sub>sw</sub> = ${f(Msw, 2)} kNm`, '')}
-    ${R(EQ('Eq. 6.3', 'Calculation of the total applied design moment including self-weight'), `M<sub>t</sub> = Max Moment + M<sub>sw</sub>`, '')}
-    ${R('', `M<sub>t</sub> = ${f(Mmax, 2)} + ${f(Msw, 2)} = <b>${f(Mmax2, 2)} kNm</b>`, `M<sub>t</sub> = ${f(Mmax2, 2)} kNm`)}
-    ${R('', `Since M<sub>t</sub> (${f(Mmax2, 2)} kNm) ${mc_ok ? '&lt;' : '&gt;'} M<sub>c</sub> (${f(Mc, 2)} kNm)`, '')}
-    ${R('', `Thus the section is ${mc_ok ? '<b>okay</b>' : '<b class="fail">inadequate</b>'}.`, `${OK(mc_ok)}`)}
-  `, 6);
-
-      const p7 = page(`
-    ${R('BS 5950-1:2000<br>Cl. 2.5.2', '<span class="uline">Deflection Check</span>', '')}
-    ${R('', 'Limit on Beams due to vertical and point load on propped cantilever', '')}
-    ${R('', `&delta;<sub>c</sub> = wL⁴ / 185 EI + W a² b² / 3 E I L`, '')}
-    ${R(EQ('Eq. 7.1', 'Calculation of maximum deflection caused by the Uniformly Distributed Load'), `&delta;<sub>c</sub> (UDL) = ${Qk} × ${Lmm}⁴ / (185 × 205000 × ${sec.Ix}0000)`, '')}
-    ${R('', `= ${f(dS_udl, 2)} mm`, '')}
-    ${R(EQ('Eq. 7.2', 'Calculation of maximum deflection caused by the Point Load'), `&delta;<sub>c</sub> (Pt) = ${Q * 1000} × ${amm}² × ${bmm}² / (3 × 205000 × ${sec.Ix}0000 × ${Lmm})`, '')}
-    ${R('', `= ${f(dS_pt, 2)} mm`, '')}
-    ${R(EQ('Eq. 7.3', 'Summing the UDL and Point Load deflections (Superposition principle)'), `&delta;<sub>c</sub> = ${f(dS_udl, 2)} + ${f(dS_pt, 2)} = <b>${f(dC, 2)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC, 1)} mm`)}
-    ${BLANK()}
-    ${R('', '<b>Limit:</b>', '')}
-    ${R('', `Limit = L / 180 = ${Lmm} / 180 = <b>${f(dCL, 2)} mm</b>`, `L/180 = ${f(dCL, 1)} mm`)}
-    ${BLANK()}
-    ${R('', `Since max deflection ${f(dC, 2)} mm &lt; ${f(dCL, 2)} mm`, '')}
-    ${dC_ok ? R('', 'No deflection at the beam. <b>Deflection is OK</b>', `${OK(dC_ok)}`) : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
-    ${BLANK()}
-    ${R('BS 8895<br>Table 8', '<span class="uline">Standard Case for deflection.</span>', '')}
-    ${R('Note: for Standard', `I = Second moment of Area (${sec.Ix} cm⁴)`, '')}
-    ${R('', `E = Elastic modulus of Steel (205 kN/mm²)`, '')}
-  `, 7);
-
-      const p8 = page(`
-    ${R('BS 5950-1:2000<br>Cl. 4.5.2.1', '<span class="uline">Web bearing at the support</span>', '')}
-    ${R('', `P<sub>bw</sub> = (b₁ + n·k) · t · f<sub>y</sub>`, '')}
-    ${R('', `b₁ = ${b1} mm &nbsp;&nbsp;&nbsp; b<sub>e</sub> = 0`, '')}
-    ${R('', `T = ${sec.T} mm &nbsp;&nbsp;&nbsp; r = ${sec.r} mm`, '')}
-    ${R('', `k = T + r = ${sec.T} + ${sec.r} = <b>${f(k, 1)} mm</b>`, `k = ${f(k, 1)} mm`)}
-    ${R('', `n = ${n}`, '')}
-    ${BLANK()}
-    ${R(EQ('Eq. 8.1', 'Calculation of Web Bearing Capacity (Pbw) at the support'), `P<sub>bw</sub> = (${b1} + ${n} × ${f(k, 1)}) × ${sec.t} × ${fy} / 1000`, '')}
-    ${R('', `<span class="rbox"><b>P<sub>bw</sub> = ${f(Pbw, 2)} kN</b></span>`, `P<sub>bw</sub> = ${f(Pbw, 2)} kN`)}
-    ${BLANK()}
-    ${R('', `Since it is greater than Shear force at the support`, '')}
-    ${R('', `i.e. P<sub>bw</sub> (${f(Pbw, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN)`, '')}
-    ${R('', `Thus web bearing is <b>okay</b>`, `${OK(br_ok)}`)}
-    ${BLANK()}
-    ${R('', `<b>Contact stress at support</b>`, '')}
-    ${R('', `P<sub>cs</sub> = (b₁ + n(r + T)) · f<sub>y</sub>`, '')}
-    ${R(EQ('Eq. 8.2', 'Calculation of the maximum allowable contact stress (Pcs)'), `= (${b1} + ${n}(${sec.r} + ${sec.T})) × ${fy} / 1000`, '')}
-    ${R('', `P<sub>cs</sub> = <b>${f(Pcs, 2)} kN</b>`, `P<sub>cs</sub> = ${f(Pcs, 2)} kN`)}
-    ${R('', `Since P<sub>cs</sub> (${f(Pcs, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN) thus it is okay.`, '')}
-    ${BLANK()}
-    ${R('BS 5950-1:2000<br>Cl. 4.5.3.1', '<span class="uline">Web Buckling at the Support</span>', '')}
-    ${R('', `From table d = ${sec.d} mm`, '')}
-    ${R('', `P<sub>x</sub> = [25&epsilon;·t / &radic;((b₁+n·k)·d)] × P<sub>bw</sub>`, '')}
-    ${R(EQ('Eq. 8.3', 'Calculation of the Web Buckling Capacity (Px) at the support'), `= [25 × ${f(epsS, 3)} × ${sec.t} / &radic;((${b1} + ${f(n * k, 1)}) × ${sec.d})] × ${f(Pbw, 2)}`, '')}
-  `, 8);
-
-      const p9 = page(`
-    ${R('', `= [${f(25 * epsS * sec.t, 2)} / &radic;(${f((b1 + n * k) * sec.d, 1)})] × ${f(Pbw, 2)}`, '')}
-    ${R('', `= [${f(25 * epsS * sec.t, 2)} / ${f(Math.sqrt((b1 + n * k) * sec.d), 2)}] × ${f(Pbw, 2)}`, '')}
-    ${R('', `<span class="rbox"><b>P<sub>x</sub> = ${f(Px, 2)} kN</b></span>`, `P<sub>x</sub> = ${f(Px, 2)} kN`)}
-    ${BLANK()}
-    ${R('', `Since P<sub>x</sub> (${f(Px, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN)`, '')}
-    ${R('', `Thus buckling at the support is <b>okay</b>.`, `${OK(bk_ok)}`)}
-    ${R('', `So no web stiffeners are required at the support.`, '')}
-    ${BLANK()}
-    ${R('', '<span class="uline">Design Summary — Input Details</span>', '')}
-    ${BLANK()}
-    ${R('', '<b>Input Parameters:</b>', '')}
-    ${R('', `a = ${a} m &nbsp; b = ${b} m &nbsp; L = ${f(L, 1)} m`, '')}
-    ${R('', `G<sub>k</sub> = ${Gk} kN/m &nbsp; Q<sub>k</sub> = ${Qk} kN/m &nbsp; Q = ${Q} kN`, '')}
-    ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp; b₁ = ${b1} mm`, '')}
-    ${BLANK()}
-    ${R('', '<b>Factored Loads:</b>', '')}
-    ${R('', `w<sub>u</sub> = 1.4×${Gk} + 1.6×${Qk} = ${f(wu, 2)} kN/m`, `${f(wu, 2)} kN/m`)}
-    ${R('', `W<sub>u</sub> = 1.6×${Q} = ${f(Wu, 1)} kN`, `${f(Wu, 1)} kN`)}
-    ${R('', `Total factored load = ${f(tot, 2)} kN`, `${f(tot, 1)} kN`)}
-    ${BLANK()}
-    ${R('', '<b>Reactions:</b>', '')}
-    ${R('', `R<sub>A</sub> = ${f(RA, 2)} kN`, `${f(RA, 2)} kN`)}
-    ${R('', `R<sub>B</sub> = ${f(RB, 2)} kN`, `${f(RB, 2)} kN`)}
-    ${BLANK()}
-    ${R('', `<b>Selected Section: ${sec.n} UB (${sec.m} kg/m)</b>`, sec.n)}
-    ${R('', `Classification: ${flCls} Flange, ${wbCls} Web`, '')}
-  `, 9);
-
-      const checks = [
-        ['[Cl. 4.2.3] Shear capacity (R<sub>A</sub> &le; P<sub>v</sub>)', sh_ok, `${f(RA, 1)} kN &le; ${f(Pv, 1)} kN`],
-        ['[Cl. 4.2.5] Moment capacity (M<sub>t</sub> &le; M<sub>c</sub>)', mc_ok, `${f(Mmax2, 1)} kNm &le; ${f(Mc, 1)} kNm`],
-        ['[Cl. 2.5.2] Deflection Limit (&delta;<sub>c</sub> &le; L/180)', dC_ok, `${f(dC, 1)} mm &le; ${f(dCL, 1)} mm`],
-        ['[Cl. 4.5.2] Web bearing check (R<sub>A</sub> &le; P<sub>bw</sub>)', br_ok, `${f(RA, 1)} kN &le; ${f(Pbw, 1)} kN`],
-        ['[Cl. 4.5.3] Web buckling check (R<sub>A</sub> &le; P<sub>x</sub>)', bk_ok, `${f(RA, 1)} kN &le; ${f(Px, 1)} kN`],
-      ];
-
-      const p10 = page(`
-    ${R('', '<span class="uline">Summary of Design Checks:</span>', '')}
-    ${checks.map(([lbl, pass, val]) =>
-        R('', `<b>${lbl}:</b> &nbsp; ${val}`, OK(pass))
-      ).join('')}
-    
-    ${warningsHTML}
-
-    ${BLANK()}
-    ${BLANK()}
-    ${R('', `
-      <div style="border:3px double ${allOk ? '#166534' : '#991b1b'};
-                  padding:10px 16px; text-align:center;
-                  color:${allOk ? '#166534' : '#991b1b'}; font-size:14px; font-weight:bold;\">
-        ${allOk
-          ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY<br>for the given loading conditions.`
-          : `&#10007; Section ${sec.n} UB is INADEQUATE<br>&mdash; please review warnings.`}
-      </div>`, '')}
-
-    ${BLANK()}
-    ${R('', `
-      <div style=\"margin-top: 15px; border: 1.5px solid #3b82f6; border-radius: 6px; padding: 12px; background-color: #f0f9ff; font-family: Arial, sans-serif; box-shadow: inset 0 2px 8px rgba(59, 130, 246, 0.15);\">
-        <div style=\"font-weight: 800; font-size: 11px; color: #1e40af; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;\">
-           <span style=\"font-size: 16px;\">🛡️</span> Engineering Verification & Compliance
-        </div>
-        <div style=\"font-size: 10.5px; color: #1e3a8a; line-height: 1.6;\">
-          <b>&check; Formulation:</b> Pure Area-Moment Method (Macaulay's). Verified for boundary continuity.<br>
-          <b>&check; Standards:</b> Strictly governed by BS 5950-1:2000 Structural Use of Steelwork.<br>
-          <b>&check; Optimization:</b> Algorithm dynamically selects lightest valid Universal Beam (UB).
-        </div>
-      </div>
-    `, '')}
-  `, 10);
-
-      document.getElementById('out').innerHTML = `<div class=\"page-wrapper\">${p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10}</div>`;
-    }
-
-    // Ensure modal opens automatically on initial load
-    document.addEventListener('DOMContentLoaded', () => {
-      openModal();
-    });
-  </script>
-  
-<!-- ── Zoom controls (visible after calculation runs) ── -->
-<div id="zoom-bar">
-  <button class="zoom-btn" onclick="adjustZoom(0.1)" title="Zoom in">+</button>
-  <div id="zoom-pct">100%</div>
-  <button class="zoom-btn" onclick="adjustZoom(-0.1)" title="Zoom out">−</button>
-  <button class="zoom-btn" onclick="resetZoom()" title="Fit to screen" style="font-size:13px;">⊡</button>
+  <!-- Offline AI section -->
+  <p class="section-label">AI Tutor</p>
+  <div class="ai-card">
+    <div class="ai-icon">🤖</div>
+    <div class="ai-body">
+      <div class="ai-label">Phase 2 · Coming Soon</div>
+      <div class="ai-title">Offline AI Model</div>
+      <div class="ai-desc">Install Gemma on-device for 100% offline explanations. No internet needed after download.</div>
+      <div class="ai-size">~1.2 GB one-time download</div>
+    </div>
+    <button class="ai-btn" disabled>Install</button>
+  </div>
+
+</main>
+
+<footer>
+  <span>Steel Design Pro</span> &nbsp;·&nbsp; CVE 502 · 2025/2026 &nbsp;·&nbsp; BS 5950 &amp; BS 8110
+</footer>
+
+<!-- Offline banner -->
+<div id="offline-banner">
+  📶 You are <b>offline</b>. Calculations work normally — AI tutor needs a connection.
 </div>
 
 <script>
-// ── Auto-fit & zoom for A4 page ──────────────────────────────────
-const A4_PX = 794;
-let currentScale = 1;
-
-function fitToScreen() {
-  const vw = window.innerWidth;
-  currentScale = Math.min((vw * 0.96) / A4_PX, 1.0);
-  applyScale();
-}
-
-function applyScale() {
-  const wrapper = document.querySelector('.page-wrapper');
-  if (!wrapper) return;
-  wrapper.style.transform = 'scale(' + currentScale + ')';
-  const pages = wrapper.querySelectorAll('.page');
-  const totalH = Array.from(pages).reduce((h, p) => h + p.offsetHeight + 24, 0) + 40;
-  wrapper.style.marginBottom = '-' + (totalH * (1 - currentScale)) + 'px';
-  document.getElementById('zoom-pct').textContent = Math.round(currentScale * 100) + '%';
-}
-
-function adjustZoom(delta) {
-  currentScale = Math.min(Math.max(currentScale + delta, 0.3), 2.0);
-  applyScale();
-}
-
-function resetZoom() { fitToScreen(); }
-
-// Watch for output becoming visible
-const outEl = document.getElementById('out');
-if (outEl) {
-  const obs = new MutationObserver(() => {
-    if (outEl.classList.contains('visible')) {
-      document.getElementById('zoom-bar').classList.add('visible');
-      setTimeout(fitToScreen, 100);
-    }
+// Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .catch(err => console.warn('[SW] Failed:', err));
   });
-  obs.observe(outEl, { attributes: true, attributeFilter: ['class'] });
 }
-window.addEventListener('resize', () => {
-  if (outEl && outEl.classList.contains('visible')) fitToScreen();
-});
+
+// Online/offline banner
+const banner = document.getElementById('offline-banner');
+function updateStatus() { banner.classList.toggle('show', !navigator.onLine); }
+window.addEventListener('online',  updateStatus);
+window.addEventListener('offline', updateStatus);
+updateStatus();
 </script>
 
-<!-- ── Offline banner ── -->
-  <div id="offline-banner">
-    📶 You are <b>offline</b>. Calculations work normally — AI tutor needs a connection.
-  </div>
-
-  <script>
-    // ── Register Service Worker ──────────────────────────────────────────────────
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('[SW] Registered, scope:', reg.scope))
-          .catch(err => console.warn('[SW] Registration failed:', err));
-      });
-    }
-
-    // ── Online / Offline banner ──────────────────────────────────────────────────
-    const offlineBanner = document.getElementById('offline-banner');
-    function updateOnlineStatus() {
-      offlineBanner.classList.toggle('show', !navigator.onLine);
-    }
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus(); // Check immediately on load
-  </script>
 </body>
-
 </html>
