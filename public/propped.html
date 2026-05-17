@@ -17,731 +17,195 @@
   <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap" rel="stylesheet">
   <style>
     /* ── Global ─────────────────────────────────────────── */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: #b8bec8;
       font-family: 'Architects Daughter', cursive;
       padding-bottom: 40px;
       padding-top: 80px;
       overflow-x: hidden;
-      /* Prevents the whole site from swaying sideways */
     }
 
     /* ── Navigation Bar ─────────────────────────────────── */
     #navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 65px;
-      background: #0f172a;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 5%;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-      z-index: 900;
-      transition: transform 0.3s ease;
-      border-bottom: 2px solid #3b82f6;
+      position: fixed; top: 0; left: 0; right: 0; height: 65px;
+      background: #0f172a; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 5%;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5); z-index: 900;
+      transition: transform 0.3s ease; border-bottom: 2px solid #3b82f6;
     }
-
-    #navbar.hidden {
-      transform: translateY(-100%);
-    }
-
+    #navbar.hidden { transform: translateY(-100%); }
     .nav-brand {
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-size: 19px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      color: #fff; font-family: Arial, sans-serif; font-size: 19px;
+      font-weight: 800; letter-spacing: 0.05em; display: flex;
+      align-items: center; gap: 8px;
     }
-
-    .nav-brand span {
-      color: #3b82f6;
-    }
-
-    .nav-actions {
-      display: flex;
-      gap: 10px;
-    }
-
+    .nav-brand span { color: #3b82f6; }
+    .nav-actions { display: flex; gap: 10px; }
     .nav-btn {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, .4);
+      background: #2563eb; color: #fff; border: none; border-radius: 6px;
+      padding: 8px 16px; font-family: Arial, sans-serif; font-size: 13px;
+      font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, .4);
       transition: background 0.2s, transform 0.1s;
     }
-
-    .nav-btn:hover {
-      background: #1d4ed8;
-    }
-
-    .nav-btn:active {
-      transform: scale(0.96);
-    }
-
+    .nav-btn:hover { background: #1d4ed8; }
+    .nav-btn:active { transform: scale(0.96); }
     .nav-btn.secondary {
-      background: #1e293b;
-      color: #94a3b8;
-      border: 1px solid #334155;
-      box-shadow: none;
+      background: #1e293b; color: #94a3b8; border: 1px solid #334155; box-shadow: none;
     }
-
-    .nav-btn.secondary:hover {
-      background: #334155;
-      color: #fff;
-    }
+    .nav-btn.secondary:hover { background: #334155; color: #fff; }
 
     /* ── Dynamic Page & Scroll Wrapper ───────────────────── */
-    #out {
-      display: none;
-      width: 100%;
-      overflow-x: hidden;
-    }
-    #out.visible {
-      display: block;
-    }
-
-    #out.visible {
-      display: block;
-    }
-
+    #out { display: none; width: 100%; overflow-x: hidden; }
+    #out.visible { display: block; }
     .page-wrapper {
-      width: 794px; /* A4 at 96dpi */
-      padding: 20px 10px;
-      display: block;
-      transform-origin: top left;
-      /* JS handles scale + centering via margin-left */
+      width: 794px; padding: 20px 10px; display: block; transform-origin: top left;
     }
-
     .page {
       background: #fffef9;
       background-image: repeating-linear-gradient(transparent 0px, transparent 23px, #dde6ef 23px, #dde6ef 24px);
-      width: 210mm;
-      /* Strictly enforces A4 width. NO SQUISHING! */
-      height: auto;
-      padding-bottom: 12px;
-      margin: 0 auto 24px auto;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, .25);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      width: 210mm; height: auto; padding-bottom: 12px;
+      margin: 0 auto 24px auto; box-shadow: 0 4px 24px rgba(0, 0, 0, .25);
+      position: relative; overflow: hidden; display: flex; flex-direction: column;
     }
-
     .page::before {
-      content: '';
-      position: absolute;
-      left: 21mm;
-      top: 0;
-      bottom: 0;
-      border-left: 2px solid #cc0000;
-      pointer-events: none;
-      z-index: 1;
+      content: ''; position: absolute; left: 21mm; top: 0; bottom: 0;
+      border-left: 2px solid #cc0000; pointer-events: none; z-index: 1;
     }
 
     /* ── Table Grids ────────────────────────────────────── */
     .tbl-head {
-      display: grid;
-      grid-template-columns: 24mm 1fr 32mm;
-      border: 2px solid #222;
-      margin: 5mm 5mm 0;
-      font-family: Arial, sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
+      display: grid; grid-template-columns: 24mm 1fr 32mm;
+      border: 2px solid #222; margin: 5mm 5mm 0; font-family: Arial, sans-serif;
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
     }
-
-    .tbl-head div {
-      padding: 4px 6px;
-      text-align: center;
-    }
-
-    .tbl-head div:not(:last-child) {
-      border-right: 1.5px solid #222;
-    }
-
+    .tbl-head div { padding: 4px 6px; text-align: center; }
+    .tbl-head div:not(:last-child) { border-right: 1.5px solid #222; }
     .sheet-body {
-      display: grid;
-      grid-template-columns: 24mm 1fr 32mm;
-      border: 2px solid #222;
-      border-top: none;
-      margin: 0 5mm 4mm;
-      flex: 1;
-      align-content: start;
+      display: grid; grid-template-columns: 24mm 1fr 32mm;
+      border: 2px solid #222; border-top: none; margin: 0 5mm 4mm;
+      flex: 1; align-content: start;
     }
-
-    .rc {
-      border-right: 1.5px solid #222;
-      border-bottom: 1px solid #dde6ef;
-      padding: 1px 4px;
-      font-size: 8.5px;
-      color: #666;
-      line-height: 24px;
-      min-height: 24px;
-    }
-
-    .cc {
-      border-right: 1.5px solid #222;
-      border-bottom: 1px solid #dde6ef;
-      padding: 1px 8px;
-      font-size: 13px;
-      color: #00008b;
-      line-height: 24px;
-      min-height: 24px;
-    }
-
-    .oc {
-      border-bottom: 1px solid #dde6ef;
-      padding: 1px 5px;
-      font-size: 11.5px;
-      color: #00008b;
-      line-height: 24px;
-      min-height: 24px;
-      text-align: right;
-    }
-
-    .rc.tall,
-    .cc.tall,
-    .oc.tall {
-      min-height: auto;
-      line-height: normal;
-      padding: 6px 8px;
-    }
-
+    .rc, .cc, .oc { border-bottom: 1px solid #dde6ef; min-height: 24px; line-height: 24px; }
+    .rc { border-right: 1.5px solid #222; padding: 1px 4px; font-size: 8.5px; color: #666; }
+    .cc { border-right: 1.5px solid #222; padding: 1px 8px; font-size: 13px; color: #00008b; }
+    .oc { padding: 1px 5px; font-size: 11.5px; color: #00008b; text-align: right; }
+    .rc.tall, .cc.tall, .oc.tall { min-height: auto; line-height: normal; padding: 6px 8px; }
     .pgnum {
-      border-top: 1.5px solid #222;
-      margin: 12px 5mm 0;
-      text-align: center;
-      padding: 2px 0;
-      font-size: 11px;
-      color: #00008b;
+      border-top: 1.5px solid #222; margin: 12px 5mm 0; text-align: center;
+      padding: 2px 0; font-size: 11px; color: #00008b;
     }
-
-    .rbox {
-      display: inline-block;
-      border: 1.5px solid #00008b;
-      padding: 0 6px;
-      margin: 0 2px;
-    }
-
-    .ok {
-      color: #166534;
-      font-weight: bold;
-    }
-
-    .fail {
-      color: #991b1b;
-      font-weight: bold;
-    }
-
-    .uline {
-      text-decoration: underline;
-      font-weight: bold;
-    }
+    .rbox { display: inline-block; border: 1.5px solid #00008b; padding: 0 6px; margin: 0 2px; }
+    .ok { color: #166534; font-weight: bold; }
+    .fail { color: #991b1b; font-weight: bold; }
+    .uline { text-decoration: underline; font-weight: bold; }
 
     /* INTERACTIVE EQUATION TAGS */
     .eq-tag {
-      color: #2563eb;
-      font-weight: bold;
-      font-family: Arial, sans-serif;
-      font-size: 8px;
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 4px;
-      transition: all 0.2s;
-      border: 1px dashed transparent;
-      display: inline-block;
-      line-height: 1;
+      color: #2563eb; font-weight: bold; font-family: Arial, sans-serif;
+      font-size: 8px; cursor: pointer; padding: 2px 4px; border-radius: 4px;
+      transition: all 0.2s; border: 1px dashed transparent; display: inline-block; line-height: 1;
     }
-
-    .eq-tag:hover {
-      background: #dbeafe;
-      border-color: #3b82f6;
-      transform: scale(1.05);
-    }
+    .eq-tag:hover { background: #dbeafe; border-color: #3b82f6; transform: scale(1.05); }
 
     /* ── Centered Modal Input Form ─────────────────────────────── */
     #backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(5px);
-      z-index: 1000;
-      display: none;
-      opacity: 0;
-      transition: opacity 0.3s;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
+      z-index: 1000; display: none; opacity: 0; transition: opacity 0.3s;
     }
-
-    #backdrop.open {
-      display: block;
-      opacity: 1;
-    }
-
+    #backdrop.open { display: block; opacity: 1; }
     #inputModal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.95);
-      background: #172236;
-      border: 2px solid #3b82f6;
-      border-radius: 12px;
-      padding: 32px 28px 24px;
-      width: 440px;
-      max-width: 92vw;
-      z-index: 1001;
-      max-height: 90vh;
-      /* FIX: Prevents modal from getting cut off on small screens */
-      overflow-y: auto;
-      overflow-x: hidden;
-      /* FIX: No horizontal scroll */
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
+      background: #172236; border: 2px solid #3b82f6; border-radius: 12px;
+      padding: 32px 28px 24px; width: 440px; max-width: 92vw; z-index: 1001;
+      max-height: 90vh; overflow-y: auto; overflow-x: hidden;
       box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2), 0 10px 40px rgba(0, 0, 0, 0.6);
-      display: none;
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: none; opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       flex-direction: column;
     }
-
-    #inputModal.open {
-      display: flex;
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    /* Custom scrollbar for modal */
-    #inputModal::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    #inputModal::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    #inputModal::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
-    }
-
-    /* Close Button */
+    #inputModal.open { display: flex; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    #inputModal::-webkit-scrollbar { width: 6px; }
+    #inputModal::-webkit-scrollbar-track { background: transparent; }
+    #inputModal::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     #closeModalBtn {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #94a3b8;
-      border-radius: 6px;
-      width: 32px;
-      height: 32px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
+      position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1); color: #94a3b8; border-radius: 6px;
+      width: 32px; height: 32px; display: none; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s;
     }
+    #closeModalBtn.show { display: flex; }
+    #closeModalBtn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 
-    #closeModalBtn.show {
-      display: flex;
-    }
+    .modal-logo { font-size: 32px; margin-bottom: 12px; line-height: 1; }
+    .modal-header-text h2 { color: #fff; font-family: Arial, sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+    .modal-header-text p { color: #93c5fd; font-family: Arial, sans-serif; font-size: 11px; margin-bottom: 24px; }
+    .section-header { color: #60a5fa; font-family: Arial, sans-serif; font-size: 10.5px; font-weight: 800; text-transform: uppercase; margin-bottom: 14px; }
 
-    #closeModalBtn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-    }
-
-    /* Modal Header Details */
-    .modal-logo {
-      font-size: 32px;
-      margin-bottom: 12px;
-      line-height: 1;
-    }
-
-    .modal-header-text h2 {
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 6px;
-      letter-spacing: 0.5px;
-    }
-
-    .modal-header-text p {
-      color: #93c5fd;
-      font-family: Arial, sans-serif;
-      font-size: 11px;
-      margin-bottom: 24px;
-      letter-spacing: 0.5px;
-    }
-
-    .section-header {
-      color: #60a5fa;
-      font-family: Arial, sans-serif;
-      font-size: 10.5px;
-      font-weight: 800;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-
-    /* Modal Grid & Inputs */
-    .fp-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px 12px;
-      margin-bottom: 24px;
-    }
-
-    .fp-grid>div {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .fp-grid label {
-      font-family: Arial, sans-serif;
-      font-size: 10px;
-      text-transform: uppercase;
-      color: #94a3b8;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-
-    .fp-grid input,
-    .fp-grid select {
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      color: #fbbf24;
-      font-family: monospace;
-      font-size: 15px;
-      padding: 10px 12px;
-      width: 100%;
-      min-width: 0;
-      box-sizing: border-box;
+    .fp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; margin-bottom: 24px; }
+    .fp-grid>div { display: flex; flex-direction: column; min-width: 0; }
+    .fp-grid label { font-family: Arial, sans-serif; font-size: 10px; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px; font-weight: bold; }
+    .fp-grid input, .fp-grid select {
+      background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fbbf24;
+      font-family: monospace; font-size: 15px; padding: 10px 12px; width: 100%; box-sizing: border-box;
       transition: border-color 0.2s;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
+    .fp-grid input:focus, .fp-grid select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+    .fp-grid .hint { font-family: Arial, sans-serif; font-size: 9.5px; color: #475569; margin-top: 5px; }
+    @media (max-width: 380px) { .fp-grid { grid-template-columns: 1fr; } }
 
-    .fp-grid input:focus,
-    .fp-grid select:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-    }
-
-    .fp-grid .hint {
-      font-family: Arial, sans-serif;
-      font-size: 9.5px;
-      color: #475569;
-      margin-top: 5px;
-    }
-
-    @media (max-width: 380px) {
-      .fp-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Modal Buttons */
     .calc-btn {
-      width: 100%;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-family: Arial, sans-serif;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      width: 100%; background: #2563eb; color: #fff; border: none; padding: 14px; border-radius: 8px;
+      font-family: Arial, sans-serif; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-
-    .calc-btn:hover {
-      background: #1d4ed8;
-    }
-
+    .calc-btn:hover { background: #1d4ed8; }
     .print-modal-btn {
-      width: 100%;
-      background: #0f172a;
-      color: #cbd5e1;
-      border: 1px solid #334155;
-      padding: 12px;
-      border-radius: 8px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 10px;
-      transition: all 0.2s;
+      width: 100%; background: #0f172a; color: #cbd5e1; border: 1px solid #334155; padding: 12px; border-radius: 8px;
+      font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; gap: 8px; margin-top: 10px; transition: all 0.2s;
     }
-
-    .print-modal-btn:hover {
-      background: #1e293b;
-      color: #fff;
-      border-color: #475569;
-    }
+    .print-modal-btn:hover { background: #1e293b; color: #fff; border-color: #475569; }
 
     /* ── AI Chat Widget ─────────────────────────────── */
     #aiChat {
-      position: fixed;
-      bottom: 22px;
-      right: 22px;
-      width: 340px;
-      max-width: 90vw;
-      height: 420px;
-      max-height: 85vh;
-      /* Safety limit for small screens */
-      background: #fff;
-      border: 2px solid #3b82f6;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, .45);
-      display: none;
-      flex-direction: column;
-      z-index: 1002;
-      overflow: hidden;
+      position: fixed; bottom: 22px; right: 22px; width: 340px; max-width: 90vw; height: 420px;
+      background: #fff; border: 2px solid #3b82f6; border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, .45);
+      display: none; flex-direction: column; z-index: 1002; overflow: hidden;
     }
-
-    #aiChat.open {
-      display: flex;
-    }
-
-    .chat-header {
-      background: #1e293b;
-      color: #fff;
-      padding: 14px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .chat-header span {
-      color: #60a5fa;
-      font-weight: normal;
-      font-size: 11px;
-    }
-
-    .chat-header button {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    .chat-header button:hover {
-      color: #fff;
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 12px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-family: Arial, sans-serif;
-      font-size: 12.5px;
-      background: #f8fafc;
-    }
-
-    .msg {
-      padding: 10px 14px;
-      border-radius: 8px;
-      max-width: 85%;
-      line-height: 1.5;
-    }
-
-    .msg.user {
-      background: #3b82f6;
-      color: white;
-      align-self: flex-end;
-      border-radius: 8px 8px 0 8px;
-    }
-
-    .msg.ai {
-      background: #e2e8f0;
-      color: #1e293b;
-      align-self: flex-start;
-      border-radius: 8px 8px 8px 0;
-    }
-
-    .chat-input {
-      display: flex;
-      border-top: 1px solid #cbd5e1;
-      padding: 10px;
-      background: #fff;
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      outline: none;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-    }
-
-    .chat-input input:focus {
-      border-color: #3b82f6;
-    }
-
-    .chat-input button {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 0 16px;
-      margin-left: 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.2s;
-    }
-
-    .chat-input button:hover {
-      background: #1d4ed8;
-    }
-
-    /* ── Offline banner ───────────────────────── */
-    #offline-banner {
-      display: none;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #1e293b;
-      color: #94a3b8;
-      text-align: center;
-      padding: 10px 16px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      border-top: 1px solid #334155;
-      z-index: 2000;
-    }
-
-    #offline-banner.show {
-      display: block;
-    }
-
-    #offline-banner b {
-      color: #60a5fa;
-    }
+    #aiChat.open { display: flex; }
+    .chat-header { background: #1e293b; color: #fff; padding: 14px; font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; display: flex; justify-content: space-between; }
+    .chat-header span { color: #60a5fa; font-weight: normal; font-size: 11px; }
+    .chat-header button { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; }
+    .chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-family: Arial, sans-serif; font-size: 12.5px; background: #f8fafc; }
+    .msg { padding: 10px 14px; border-radius: 8px; max-width: 85%; line-height: 1.5; }
+    .msg.user { background: #3b82f6; color: white; align-self: flex-end; border-radius: 8px 8px 0 8px; }
+    .msg.ai { background: #e2e8f0; color: #1e293b; align-self: flex-start; border-radius: 8px 8px 8px 0; }
+    .chat-input { display: flex; border-top: 1px solid #cbd5e1; padding: 10px; background: #fff; }
+    .chat-input input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-family: Arial, sans-serif; font-size: 13px; }
+    .chat-input button { background: #3b82f6; color: white; border: none; padding: 0 16px; margin-left: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
     /* ── Zoom controls ─────────────────────────────── */
     #zoom-bar {
-      display: none;
-      position: fixed;
-      bottom: 20px;
-      right: 12px;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      z-index: 500;
+      display: none; position: fixed; bottom: 20px; right: 12px; flex-direction: column; align-items: center; gap: 4px; z-index: 500;
     }
     #zoom-bar.visible { display: flex; }
     .zoom-btn {
-      width: 32px; height: 32px;
-      background: rgba(23,34,54,0.92);
-      border: 1px solid #334155;
-      border-radius: 8px;
-      color: #e2e8f0;
-      font-size: 16px; line-height: 1;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-      transition: background 0.15s, border-color 0.15s;
-      font-family: Arial, sans-serif; font-weight: 700;
-      backdrop-filter: blur(8px);
+      width: 32px; height: 32px; background: rgba(23,34,54,0.92); border: 1px solid #334155; border-radius: 8px; color: #e2e8f0;
+      font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px);
     }
-    .zoom-btn:hover { background: #1e293b; border-color: #3b82f6; color: #fff; }
-    .zoom-btn:active { transform: scale(0.91); }
     #zoom-pct {
-      width: 32px; height: 20px;
-      background: rgba(15,23,42,0.9);
-      border: 1px solid #334155;
-      border-radius: 6px;
-      color: #60a5fa;
-      font-size: 8px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-      font-family: Arial, sans-serif; letter-spacing: 0.3px;
+      width: 32px; height: 20px; background: rgba(15,23,42,0.9); border: 1px solid #334155; border-radius: 6px;
+      color: #60a5fa; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; font-family: Arial, sans-serif;
     }
 
     @media print {
-
-      #navbar,
-      #backdrop,
-      #inputModal,
-      #aiChat {
-        display: none !important;
-      }
-
-      body {
-        background: white;
-        padding: 0 !important;
-        overflow: visible !important;
-      }
-
-      #out {
-        display: block !important;
-        overflow: visible !important;
-      }
-
-      .page-wrapper {
-        padding: 0 !important;
-        min-width: 100% !important;
-        display: block !important;
-        margin: 0 !important;
-      }
-
-      .page {
-        margin: 0;
-        box-shadow: none;
-        width: 100%;
-        min-width: 100%;
-        max-width: none;
-        min-height: 297mm;
-        page-break-after: always;
-      }
-
-      .eq-tag {
-        border: none !important;
-        color: #888 !important;
-        text-decoration: none !important;
-        pointer-events: none;
-      }
+      #navbar, #backdrop, #inputModal, #aiChat, #zoom-bar { display: none !important; }
+      body { background: white; padding: 0 !important; overflow: visible !important; }
+      #out { display: block !important; overflow: visible !important; }
+      .page-wrapper { padding: 0 !important; min-width: 100% !important; display: block !important; margin: 0 !important; transform: none !important; }
+      .page { margin: 0; box-shadow: none; width: 100%; min-width: 100%; max-width: none; min-height: 297mm; page-break-after: always; }
+      .eq-tag { border: none !important; color: #888 !important; text-decoration: none !important; pointer-events: none; }
     }
   </style>
 </head>
@@ -751,18 +215,12 @@
   <!-- ═══ NAVBAR ═══ -->
   <nav id="navbar">
     <div class="nav-brand">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"
-        stroke-linecap="round" stroke-linejoin="round">
-        <path d="M2 20h20" />
-        <path d="M5 20V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 20h20" /><path d="M5 20V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
       </svg>
       Steel Design <span>Pro</span>
     </div>
-    <a href="/" style="display:flex;align-items:center;gap:6px;color:#94a3b8;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-decoration:none;padding:6px 12px;border:1px solid #334155;border-radius:6px;transition:color 0.2s,border-color 0.2s;" onmouseover="this.style.color='#fff';this.style.borderColor='#3b82f6'" onmouseout="this.style.color='#94a3b8';this.style.borderColor='#334155'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        Home
-      </a>
-      <div class="nav-actions">
+    <div class="nav-actions">
       <button class="nav-btn secondary" onclick="window.print()">⎙ Print PDF</button>
       <button class="nav-btn" onclick="openModal()">⚙ Edit Inputs</button>
     </div>
@@ -772,68 +230,51 @@
   <div id="backdrop" onclick="closeModal()"></div>
   <div id="inputModal">
     <button id="closeModalBtn" onclick="closeModal()" title="Close">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </button>
-
     <div class="modal-logo">🏗️</div>
     <div class="modal-header-text">
       <h2>Steel Design Pro</h2>
-      <p>BS 5950-1:2000 - Propped Cantilever - CVE 502</p>
+      <p>BS 5950-1:2000 - Propped Cantilever - Updated Note Method</p>
     </div>
-
     <div class="section-header">Beam Parameters</div>
-
     <div class="fp-grid">
-      <div><label>a (m)</label><input id="iL1" type="number" step="0.1" value="8">
+      <div><label>a (m)</label><input id="iL1" type="number" step="0.1" value="6">
         <div class="hint">Fixed end → point load</div>
       </div>
-      <div><label>b (m)</label><input id="iL2" type="number" step="0.1" value="6.4">
+      <div><label>b (m)</label><input id="iL2" type="number" step="0.1" value="4.8">
         <div class="hint">Point load → roller</div>
       </div>
-      <div><label>Gk (kN/m)</label><input id="iGk" type="number" step="0.5" value="4">
+      <div><label>Gk (kN/m)</label><input id="iGk" type="number" step="0.5" value="8">
         <div class="hint">Dead UDL</div>
       </div>
-      <div><label>Qk (kN/m)</label><input id="iQk" type="number" step="0.5" value="7">
+      <div><label>Qk (kN/m)</label><input id="iQk" type="number" step="0.5" value="5">
         <div class="hint">Imposed UDL</div>
       </div>
-      <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="70">
+      <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="80">
         <div class="hint">Point load</div>
       </div>
       <div><label>Grade</label>
         <select id="iGrade">
-          <option value="460">S460 – fy 460</option>
-          <option value="355">S355 – fy 355</option>
           <option value="275">S275 – fy 275</option>
+          <option value="355">S355 – fy 355</option>
+          <option value="460">S460 – fy 460</option>
         </select>
         <div class="hint">Steel grade</div>
       </div>
-      <div><label>fy (N/mm²)</label><input id="iFy" type="number" step="5" value="460">
+      <div><label>fy (N/mm²)</label><input id="iFy" type="number" step="5" value="275">
         <div class="hint">Design strength</div>
       </div>
-      <div><label>b₁ (mm)</label><input id="ib1" type="number" step="5" value="100">
+      <div><label>b₁ (mm)</label><input id="ib1" type="number" step="5" value="140">
         <div class="hint">Stiff bearing length</div>
       </div>
+      <div><label>aₑ (mm)</label><input id="iae" type="number" step="5" value="80">
+        <div class="hint">End clearance</div>
+      </div>
     </div>
-
     <button class="calc-btn" onclick="runCalculation()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8 5v14l11-7z" />
-      </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
       Run Calculation
-    </button>
-
-    <button class="print-modal-btn" onclick="window.print()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="6 9 6 2 18 2 18 9"></polyline>
-        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-        <rect x="6" y="14" width="12" height="8"></rect>
-      </svg>
-      Print / Save PDF
     </button>
   </div>
 
@@ -844,12 +285,10 @@
       <button onclick="closeChat()">✕</button>
     </div>
     <div class="chat-messages" id="chatMessages">
-      <div class="msg ai">Hello! I'm your structural engineering tutor. Click any blue <b>[Eq. X.X]</b> tag in the
-        document to ask me how it's calculated.</div>
+      <div class="msg ai">Hello! Click any blue <b>[Eq. X.X]</b> tag in the document to ask me how it's calculated based on your custom notes.</div>
     </div>
     <div class="chat-input">
-      <input type="text" id="chatInput" placeholder="Ask a question..."
-        onkeypress="if(event.key === 'Enter') sendChatMessage()">
+      <input type="text" id="chatInput" placeholder="Ask a question..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
       <button onclick="sendChatMessage()">Send</button>
     </div>
   </div>
@@ -859,74 +298,46 @@
   <script>
     // ── MODAL LOGIC ────────────────────────────
     let hasRunOnce = false;
-
     function openModal() {
       document.getElementById('backdrop').classList.add('open');
       document.getElementById('inputModal').classList.add('open');
-      if (hasRunOnce) {
-        document.getElementById('closeModalBtn').classList.add('show');
-      }
+      if (hasRunOnce) document.getElementById('closeModalBtn').classList.add('show');
     }
-
     function closeModal() {
-      if (!hasRunOnce) return; // Prevent closing if they haven't calculated yet
+      if (!hasRunOnce) return;
       document.getElementById('backdrop').classList.remove('open');
       document.getElementById('inputModal').classList.remove('open');
     }
-
     function runCalculation() {
-      update(); // Generate the report
+      update();
       hasRunOnce = true;
       document.getElementById('out').classList.add('visible');
       closeModal();
-      window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ── GEMINI API INTEGRATION & CHAT LOGIC ────────────────────────────
-    // If you are testing locally or without Vercel, paste your API key here:
+    // ── GEMINI API CHAT LOGIC ────────────────────────────
     const apiKey = "";
-
     let currentChatContext = "General Beam Design";
 
     function closeChat() { document.getElementById('aiChat').classList.remove('open'); }
-
     function openChat(eqId, description) {
       const chat = document.getElementById('aiChat');
       chat.classList.add('open');
       currentChatContext = `Equation ${eqId} (${description})`;
       appendMessage('ai', `You clicked on <b>${eqId}</b>.<br><br><i style="color:#475569;">${description}</i><br><br>What would you like me to explain about this step?`);
     }
-
     function appendMessage(role, text) {
       const container = document.getElementById('chatMessages');
       container.innerHTML += `<div class="msg ${role}">${text}</div>`;
       container.scrollTop = container.scrollHeight;
     }
-
     async function sendChatMessage() {
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
       if (!text) return;
-
       appendMessage('user', text);
       input.value = '';
-
-      const a = document.getElementById('iL1').value;
-      const b = document.getElementById('iL2').value;
-      const Gk = document.getElementById('iGk').value;
-      const Qk = document.getElementById('iQk').value;
-      const Q = document.getElementById('iQ').value;
-      const fy = document.getElementById('iFy').value;
-
-      const systemPrompt = `You are a helpful structural engineering tutor helping a student understand BS 5950 calculations for a Propped Cantilever beam.
-  Current Beam State:
-  - Span: ${Number(a) + Number(b)}m (Point load at ${a}m from fixed end)
-  - Loads: Dead UDL = ${Gk} kN/m, Imposed UDL = ${Qk} kN/m, Point Load = ${Q} kN
-  - Steel Strength: fy = ${fy} N/mm²
-  
-  The user is currently asking about: ${currentChatContext}.
-  
-  Provide a clear, brief, educational explanation. Keep it under 4 sentences. Explain the physics/mechanics simply. Format with HTML tags like <b> or <i> if needed for emphasis. NEVER use markdown like \`\`\`.`;
 
       const msgContainer = document.getElementById('chatMessages');
       const typingId = 'typing-' + Date.now();
@@ -935,59 +346,29 @@
 
       const payload = {
         contents: [{ parts: [{ text: text }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] }
+        systemInstruction: { parts: [{ text: `You are a structural engineering tutor explaining equations specific to custom lecture notes. Current topic: ${currentChatContext}. Keep it short and supportive.` }] }
       };
 
-      // SMART FETCH LOGIC:
-      // If apiKey string is filled out (for local testing), use direct Google API.
-      // Otherwise, use the Vercel backend `/api/chat` route.
       let url = '/api/chat';
-      if (apiKey && apiKey.length > 5) {
-        url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      }
-
-      let data = null;
-      let lastError = 'Unknown error';
+      if (apiKey) url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
       try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        let body;
-        try { body = await response.json(); } catch (_) { body = null; }
-
-        if (response.ok) {
-          data = body;
-        } else {
-          // Capture the real error from Vercel/Google so we can show it
-          const status = response.status;
-          const msg = body?.error || body?.error?.message || JSON.stringify(body) || 'No details returned';
-          lastError = `HTTP ${status}: ${msg}`;
-        }
+        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        let body = await response.json();
+        document.getElementById(typingId).remove();
+        if (response.ok) appendMessage('ai', body.candidates[0].content.parts[0].text);
+        else appendMessage('ai', `Error: API Request Failed`);
       } catch (e) {
-        lastError = `Network error: ${e.message}`;
-      }
-
-      const typingEl = document.getElementById(typingId);
-      if (typingEl) typingEl.remove();
-
-      if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        appendMessage('ai', data.candidates[0].content.parts[0].text);
-      } else {
-        appendMessage('ai', `<i style="color:#ef4444;">⚠️ AI Error — ${lastError}</i><br><span style="font-size:11px;color:#94a3b8;">Check: Vercel env var <b>GEMINI_API_KEY</b> is set & redeployed.</span>`);
+        document.getElementById(typingId).remove();
+        appendMessage('ai', `Error: Offline or Network Failure`);
       }
     }
 
-    // ── Smart Navbar Scroll Logic ────────────────────────────
     let lastScrollY = window.pageYOffset;
     window.addEventListener('scroll', () => {
       const currentScrollY = window.pageYOffset;
       const navbar = document.getElementById('navbar');
-      const modalOpen = document.getElementById('inputModal').classList.contains('open');
-      if (currentScrollY > lastScrollY && currentScrollY > 60 && !modalOpen) {
+      if (currentScrollY > lastScrollY && currentScrollY > 60 && !document.getElementById('inputModal').classList.contains('open')) {
         navbar.classList.add('hidden');
       } else {
         navbar.classList.remove('hidden');
@@ -995,9 +376,6 @@
       lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
     });
 
-    // ═══════════════════════════════════════════════════════
-    //  BS 5950 UB TABLE
-    // ═══════════════════════════════════════════════════════
     const UB = [
       { n: "254×102×22", m: 22, D: 254.0, B: 101.6, t: 5.8, T: 6.8, r: 7.6, d: 225.1, Sx: 262, Zx: 226, Ix: 2870 },
       { n: "305×102×25", m: 25, D: 304.8, B: 101.9, t: 6.1, T: 6.8, r: 7.6, d: 275.9, Sx: 338, Zx: 307, Ix: 4380 },
@@ -1025,22 +403,13 @@
       { n: "457×191×98", m: 98, D: 467.4, B: 192.8, t: 11.4, T: 19.6, r: 10.2, d: 407.9, Sx: 2340, Zx: 1960, Ix: 45700 },
       { n: "533×210×82", m: 82, D: 528.3, B: 208.7, t: 9.6, T: 13.2, r: 12.7, d: 476.5, Sx: 2060, Zx: 1800, Ix: 47500 },
       { n: "533×210×92", m: 92, D: 533.1, B: 209.3, t: 10.2, T: 15.6, r: 12.7, d: 476.5, Sx: 2370, Zx: 2080, Ix: 55400 },
-      { n: "533×210×101", m: 101, D: 536.7, B: 210.1, t: 10.9, T: 17.4, r: 12.7, d: 476.5, Sx: 2620, Zx: 2300, Ix: 61700 },
-      { n: "533×210×109", m: 109, D: 539.5, B: 210.8, t: 11.6, T: 18.8, r: 12.7, d: 476.5, Sx: 2830, Zx: 2470, Ix: 66700 },
-      { n: "533×210×122", m: 122, D: 544.6, B: 211.9, t: 12.8, T: 21.3, r: 12.7, d: 476.5, Sx: 3200, Zx: 2790, Ix: 76000 },
-      { n: "610×229×101", m: 101, D: 602.6, B: 227.6, t: 10.6, T: 14.8, r: 12.7, d: 547.3, Sx: 2870, Zx: 2510, Ix: 75700 },
-      { n: "610×229×113", m: 113, D: 607.3, B: 228.2, t: 11.2, T: 17.3, r: 12.7, d: 547.3, Sx: 3280, Zx: 2880, Ix: 87500 },
-      { n: "610×229×125", m: 125, D: 612.2, B: 229.0, t: 11.9, T: 19.6, r: 12.7, d: 547.3, Sx: 3680, Zx: 3220, Ix: 98600 },
-      { n: "610×229×140", m: 140, D: 617.0, B: 230.1, t: 13.1, T: 22.1, r: 12.7, d: 547.3, Sx: 4140, Zx: 3630, Ix: 111000 },
+      { n: "533×210×101", m: 101, D: 536.7, B: 210.1, t: 10.9, T: 17.4, r: 12.7, d: 476.5, Sx: 2620, Zx: 2300, Ix: 61700 }
     ];
 
-    // ── helpers ──────────────────────────────────────────────
     const f = (v, d = 2) => (+v).toFixed(d);
     const f0 = (v) => (+v).toFixed(0);
     const OK = (p) => p ? '<span class="ok">&#10003; OK</span>' : '<span class="fail">&#10007; FAIL</span>';
-
     const EQ = (id, desc) => `<span class="eq-tag" onclick="openChat('${id}', '${desc}')" title="Ask AI about this calculation">[${id}]</span>`;
-
     function R(ref, calc, out = '') { return `<div class="rc">${ref}</div><div class="cc">${calc}</div><div class="oc">${out}</div>`; }
     function BLANK() { return `<div class="rc"></div><div class="cc"></div><div class="oc"></div>`; }
     function SVGR(ref, svgHTML, out = '') {
@@ -1060,24 +429,15 @@
       const Q = +document.getElementById('iQ').value;
       const fy = +document.getElementById('iFy').value;
       const b1 = +document.getElementById('ib1').value;
+      const ae = +document.getElementById('iae').value;
 
       const errors = [];
-      if (isNaN(a) || a <= 0) errors.push("Dimension 'a' (Fixed end to point load) must be greater than zero.");
-      if (isNaN(b) || b <= 0) errors.push("Dimension 'b' (Point load to roller) must be greater than zero.");
-      if (isNaN(Gk) || Gk < 0) errors.push("Dead UDL (Gk) cannot be negative.");
-      if (isNaN(Qk) || Qk < 0) errors.push("Imposed UDL (Qk) cannot be negative.");
-      if (isNaN(Q) || Q < 0) errors.push("Point load (Q) cannot be negative.");
-      if (isNaN(fy) || fy < 200 || fy > 550) errors.push("Yield strength (f<sub>y</sub>) is outside standard BS 5950 bounds (200 - 550 N/mm²).");
-      if (isNaN(b1) || b1 <= 0) errors.push("Stiff bearing length (b₁) must be greater than zero.");
+      if (isNaN(a) || a <= 0) errors.push("Dimension 'a' must be greater than zero.");
+      if (isNaN(b) || b <= 0) errors.push("Dimension 'b' must be greater than zero.");
+      if (isNaN(ae) || ae < 0) errors.push("End clearance 'aₑ' cannot be negative.");
 
       if (errors.length > 0) {
-        document.getElementById('out').innerHTML = `
-      <div class="page-wrapper">
-        <div style="width:210mm; margin: 20px auto; padding: 24px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; font-family: Arial, sans-serif; box-sizing: border-box;">
-          <h2 style="color: #991b1b; margin-top: 0;">⚠️ Input Validation Error</h2>
-          <ul style="color: #991b1b; padding-left: 24px;">${errors.map(e => `<li>${e}</li>`).join('')}</ul>
-        </div>
-      </div>`;
+        document.getElementById('out').innerHTML = `<div class="page-wrapper"><div style="padding: 24px; background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px;"><ul>${errors.map(e => `<li>${e}</li>`).join('')}</ul></div></div>`;
         return;
       }
 
@@ -1088,9 +448,9 @@
 
       const A1_coeff = Math.pow(L, 3) / 3;
       const A2X2 = (wu * Math.pow(L, 4)) / 8;
-      const part1 = 0.5 * a * (Wu * a);
-      const part2 = L - (a / 3);
-      const A3X3 = part1 * part2;
+      
+      // CUSTOM NOTE METHOD: A3X3 lever arm = 2L/3
+      const A3X3 = 0.5 * Wu * Math.pow(a, 2) * (2 * L / 3);
 
       const RB = (A2X2 + A3X3) / A1_coeff;
       const RA = tot - RB;
@@ -1104,20 +464,13 @@
       const BMC = RB * b - wu * Math.pow(b, 2) / 2;
       const Mmax = Math.max(Math.abs(MA), Math.abs(BMC));
 
-      const Sx_req = (Mmax * 1e6) / (fy);
+      const Sx_req = (Mmax * 1e6) / fy;
       const Sx_req_cm3 = Sx_req / 1000;
-
       const validSecs = UB.filter(s => s.Sx >= Sx_req_cm3);
       validSecs.sort((s1, s2) => s1.m - s2.m);
 
       if (validSecs.length === 0) {
-        document.getElementById('out').innerHTML = `
-      <div class="page-wrapper">
-        <div style="width:210mm; margin: 20px auto; padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px; font-family: Arial, sans-serif; box-sizing: border-box;">
-          <h2 style="color: #92400e; margin-top: 0;">⛔ Capacity Exceeded</h2>
-          <p style="color: #92400e;">The applied loads generate a design moment requiring an <b>S<sub>x</sub> &ge; ${f(Sx_req_cm3, 1)} cm³</b>. This exceeds the database capacity.</p>
-        </div>
-      </div>`;
+        document.getElementById('out').innerHTML = `<div class="page-wrapper"><div style="padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px;"><h2>⛔ Capacity Exceeded</h2></div></div>`;
         return;
       }
       let sec = validSecs[0];
@@ -1131,7 +484,6 @@
       const Av = sec.t * sec.D;
       const Pv = 0.6 * fy * Av / 1e3;
       const Fv = Math.max(Math.abs(RA), Math.abs(RB));
-      const lowSh = Fv <= 0.6 * Pv;
       const sh_ok = Fv <= Pv;
 
       const Mc_f = fy * sec.Sx * 1e3 / 1e6;
@@ -1145,8 +497,10 @@
 
       const EI = 205e3 * sec.Ix * 1e4;
       const Lmm = L * 1e3, amm = a * 1e3, bmm = b * 1e3;
+      
+      // CUSTOM NOTE METHOD: Deflection
       const dS_udl = Qk * Math.pow(Lmm, 4) / (185 * EI);
-      const dS_pt = Q * 1e3 * Math.pow(amm, 2) * Math.pow(bmm, 2) / (3 * EI * Lmm);
+      const dS_pt = ((Q * 1e3) * Math.pow(amm, 2) * bmm / (6 * EI)) * Math.sqrt(bmm / (3 * Lmm - amm));
       const dC = dS_udl + dS_pt;
       const dCL = Lmm / 180;
       const dC_ok = dC <= dCL;
@@ -1154,32 +508,27 @@
       const k = sec.T + sec.r;
       const n = 2;
       const Pbw = (b1 + n * k) * sec.t * fy / 1e3;
-      const Pcs = (b1 + n * (sec.r + sec.T)) * fy / 1e3;
+      
+      // CUSTOM NOTE METHOD: Contact Stress Multiplication
+      const Pcs = (b1 * n * k) * fy / 1e3;
+
       const epsS = Math.sqrt(275 / fy);
       const bot_in = (b1 + n * k) * sec.d;
-      const Px = (25 * eps * sec.t / Math.sqrt(bot_in)) * Pbw;
+      
+      // CUSTOM NOTE METHOD: Web Buckling End Check
+      const limit_ae = 0.7 * sec.d;
+      let isReducedPx = false;
+      let Px_unreduced = (25 * epsS * sec.t / Math.sqrt(bot_in)) * Pbw;
+      let Px = Px_unreduced;
+      if (ae < limit_ae) {
+        isReducedPx = true;
+        Px = Px_unreduced * (ae + limit_ae) / (1.4 * sec.d);
+      }
 
       const br_ok = RA <= Pbw;
       const bk_ok = RA <= Px;
-      const allOk = sh_ok && mc_ok && dC_ok && br_ok && bk_ok;
-
-      const warnings = [];
-      if ((Lmm / sec.D) > 40) warnings.push(`<b>Slenderness:</b> Span-to-depth ratio (${f(Lmm / sec.D, 1)}) exceeds 40.`);
-      if (mc_ok && (Mmax2 / Mc) > 0.95) warnings.push(`<b>Moment Utilization:</b> Section is operating at ${f((Mmax2 / Mc) * 100, 1)}% of flexural capacity.`);
-      if (sh_ok && (Fv / Pv) > 0.95) warnings.push(`<b>Shear Utilization:</b> Section is operating at ${f((Fv / Pv) * 100, 1)}% of shear capacity.`);
-      if (dC_ok && (dC / dCL) > 0.95) warnings.push(`<b>Deflection Limit:</b> Deflection is at ${f((dC / dCL) * 100, 1)}% of L/180 limit.`);
-
-      let warningsHTML = '';
-      if (warnings.length > 0) {
-        warningsHTML = `
-      ${BLANK()}
-      ${R('', `
-        <div style="border: 2px solid #d97706; background: #fffbeb; padding: 12px 16px; border-radius: 4px; color: #92400e; font-family: Arial, sans-serif; font-size: 11.5px; margin: 8px 0;">
-          <div style="font-weight: 700; margin-bottom: 8px; font-size: 13px;">⚠️ Engineering Warnings</div>
-          <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">${warnings.map(w => `<li>${w}</li>`).join('')}</ul>
-        </div>`, '')}
-    `;
-      }
+      const cs_ok = RA <= Pcs;
+      const allOk = sh_ok && mc_ok && dC_ok && br_ok && bk_ok && cs_ok;
 
       // ════════════════════════════════════════════════════════
       //  SVG DIAGRAMS
@@ -1202,7 +551,7 @@
     </defs>
     <line x1="${Ax}" y1="${beamY - 32}" x2="${Bx}" y2="${beamY - 32}" stroke="#00008b" stroke-width="1.2"/>
     ${sp}
-    <text x="${(Ax + Bx) / 2}" y="${beamY - 38}" text-anchor="middle" font-family="Architects Daughter" font-size="10.5" fill="#00008b">Gk = ${Gk} kN/m,  Qk = ${Qk} kN/m</text>
+    <text x="${(Ax + Bx) / 2}" y="${beamY - 38}" text-anchor="middle" font-family="Architects Daughter" font-size="10.5" fill="#00008b">w = ${f(wu, 1)} kN/m</text>
     <rect x="${Ax}" y="${beamY - 3}" width="${Bx - Ax}" height="7" fill="#00008b" rx="1.5"/>
     <line x1="${Ax}" y1="${beamY - 20}" x2="${Ax}" y2="${beamY + 30}" stroke="#333" stroke-width="3"/>
     ${[-15, -5, 5, 15, 25].map(dy => `<line x1="${Ax - 10}" y1="${beamY + dy}" x2="${Ax}" y2="${beamY + 6 + dy}" stroke="#333" stroke-width="1.5"/>`).join('')}
@@ -1270,9 +619,6 @@
     <text x="${FCx}" y="${bmdBase - BMC * bmScale - 6}" text-anchor="middle" font-family="Arial" font-size="9" fill="#00008b" font-weight="bold">${f(BMC, 1)}</text>
   </svg>`;
 
-      // ════════════════════════════════════════════════════════
-      //  BUILD PAGES 
-      // ════════════════════════════════════════════════════════
       function page(rows, pgNum) {
         return `<div class="page"><div class="tbl-head"><div>Reference</div><div>Calculation</div><div>Output</div></div><div class="sheet-body">${rows}</div><div class="pgnum">Page No <u>${pgNum}</u></div></div>`;
       }
@@ -1285,7 +631,7 @@
     ${SVGR('', diagramSVG, '')}
     ${BLANK()}
     ${R(EQ('Eq. 1.1', 'Calculation for the total factored load on the beam'), '<span class="uline">Total factored load on the beam.</span>', '')}
-    ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × ${f(L, 1)} + 1.6(${Q})`, '')}
+    ${R('', `1.4(${Gk}) + 1.6(${Qk}) × ${f(L, 1)} + 1.6(${Q})`, '')}
     ${R('', `= ${f(wu, 1)} × ${f(L, 1)} + ${f(Wu, 1)}`, '')}
     ${R('', `<b>Total Design loading = ${f(tot, 2)} kN</b>`, `${f(tot, 0)} kN`)}
     ${BLANK()}
@@ -1301,7 +647,7 @@
     ${R(EQ('Eq. 2.2', 'Moment of the area of the UDL parabolic diagram about fixed support A'), `A₂x̄₂ = [⅓ × ${f(L, 1)} × (${f(wu, 1)}×${f(L, 1)}² / 2)] × [¾ × ${f(L, 1)}]`, '')}
     ${R('', `= <b>${f(A2X2, 1)}</b>`, '')}
     ${BLANK()}
-    ${R(EQ('Eq. 2.3', 'Moment of the area of the Point Load triangular diagram about fixed support A'), `A₃x̄₃ = [½ × ${a} × (${f(Wu, 1)}×${a})] × [${f(L, 1)} - ⅓ × ${a}]`, '')}
+    ${R(EQ('Eq. 2.3', 'Moment of the area of the Point Load triangular diagram about fixed support A (Custom Lecturer Formula)'), `A₃x̄₃ = [½ × ${f(Wu, 1)} × ${a}²] × [⅔ × ${f(L, 1)}]`, '')}
     ${R('', `= <b>${f(A3X3, 1)}</b>`, '')}
     ${BLANK()}
     ${R('', `A₁x̄₁ = A₂x̄₂ + A₃x̄₃`, '')}
@@ -1399,7 +745,6 @@
     ${R(EQ('Eq. 5.4', 'Calculation of the Shear Capacity (Pv) of the section'), `P<sub>v</sub> = 0.6 × ${fy} × ${sec.t} × ${sec.D} / 1000`, '')}
     ${R('', `P<sub>v</sub> = <b>${f(Pv, 1)} kN</b>`, `P<sub>v</sub> = ${f(Pv, 1)} kN`)}
     ${R('', `Since F<sub>v</sub> (${f(RA, 2)}) ${sh_ok ? '&lt;' : '&gt;'} P<sub>v</sub> (${f(Pv, 1)}) thus okay.`, `${OK(sh_ok)}`)}
-    ${R('', `This implies the section has ${lowSh ? '<b>low</b>' : '<b>high</b>'} shear.`, '')}
   `, 5);
 
       const p6 = page(`
@@ -1421,24 +766,20 @@
   `, 6);
 
       const p7 = page(`
-    ${R('BS 5950-1:2000<br>Cl. 2.5.2', '<span class="uline">Deflection Check</span>', '')}
-    ${R('', 'Limit on Beams due to vertical and point load on propped cantilever', '')}
-    ${R('', `&delta;<sub>c</sub> = wL⁴ / 185 EI + W a² b² / 3 E I L`, '')}
+    ${R('BS 5950-1:2000<br>Cl. 2.5.2', '<span class="uline">Deflection Check (Note Method)</span>', '')}
+    ${R('', `Limit on Beams due to vertical and point load on propped cantilever`, '')}
+    ${R('', `&delta;<sub>c</sub> = [wL⁴ / 185 EI] + [(W a² b / 6 E I) &radic;(b / (3L - a))]`, '')}
     ${R(EQ('Eq. 7.1', 'Calculation of maximum deflection caused by the Uniformly Distributed Load'), `&delta;<sub>c</sub> (UDL) = ${Qk} × ${Lmm}⁴ / (185 × 205000 × ${sec.Ix}0000)`, '')}
     ${R('', `= ${f(dS_udl, 2)} mm`, '')}
-    ${R(EQ('Eq. 7.2', 'Calculation of maximum deflection caused by the Point Load'), `&delta;<sub>c</sub> (Pt) = ${Q * 1000} × ${amm}² × ${bmm}² / (3 × 205000 × ${sec.Ix}0000 × ${Lmm})`, '')}
+    ${R(EQ('Eq. 7.2', 'Calculation of maximum deflection caused by the Point Load'), `&delta;<sub>c</sub> (Pt) = [${Q * 1000} × ${amm}² × ${bmm} / (6 × 205000 × ${sec.Ix}0000)] × &radic;(${bmm} / (3×${Lmm} - ${amm}))`, '')}
     ${R('', `= ${f(dS_pt, 2)} mm`, '')}
-    ${R(EQ('Eq. 7.3', 'Summing the UDL and Point Load deflections (Superposition principle)'), `&delta;<sub>c</sub> = ${f(dS_udl, 2)} + ${f(dS_pt, 2)} = <b>${f(dC, 2)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC, 1)} mm`)}
+    ${R(EQ('Eq. 7.3', 'Summing the UDL and Point Load deflections'), `&delta;<sub>c</sub> = ${f(dS_udl, 2)} + ${f(dS_pt, 2)} = <b>${f(dC, 2)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC, 1)} mm`)}
     ${BLANK()}
     ${R('', '<b>Limit:</b>', '')}
     ${R('', `Limit = L / 180 = ${Lmm} / 180 = <b>${f(dCL, 2)} mm</b>`, `L/180 = ${f(dCL, 1)} mm`)}
     ${BLANK()}
     ${R('', `Since max deflection ${f(dC, 2)} mm &lt; ${f(dCL, 2)} mm`, '')}
-    ${dC_ok ? R('', 'No deflection at the beam. <b>Deflection is OK</b>', `${OK(dC_ok)}`) : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
-    ${BLANK()}
-    ${R('BS 8895<br>Table 8', '<span class="uline">Standard Case for deflection.</span>', '')}
-    ${R('Note: for Standard', `I = Second moment of Area (${sec.Ix} cm⁴)`, '')}
-    ${R('', `E = Elastic modulus of Steel (205 kN/mm²)`, '')}
+    ${dC_ok ? R('', 'Deflection is OK', `${OK(dC_ok)}`) : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
   `, 7);
 
       const p8 = page(`
@@ -1456,45 +797,34 @@
     ${R('', `i.e. P<sub>bw</sub> (${f(Pbw, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN)`, '')}
     ${R('', `Thus web bearing is <b>okay</b>`, `${OK(br_ok)}`)}
     ${BLANK()}
-    ${R('', `<b>Contact stress at support</b>`, '')}
-    ${R('', `P<sub>cs</sub> = (b₁ + n(r + T)) · f<sub>y</sub>`, '')}
-    ${R(EQ('Eq. 8.2', 'Calculation of the maximum allowable contact stress (Pcs)'), `= (${b1} + ${n}(${sec.r} + ${sec.T})) × ${fy} / 1000`, '')}
+    ${R('', `<b>Contact stress at support (Note Method)</b>`, '')}
+    ${R('', `P<sub>cs</sub> = b₁ · n · k · f<sub>y</sub>`, '')}
+    ${R(EQ('Eq. 8.2', 'Calculation of the maximum allowable contact stress using pure multiplication'), `= ${b1} × ${n} × ${f(k, 1)} × ${fy} / 1000`, '')}
     ${R('', `P<sub>cs</sub> = <b>${f(Pcs, 2)} kN</b>`, `P<sub>cs</sub> = ${f(Pcs, 2)} kN`)}
-    ${R('', `Since P<sub>cs</sub> (${f(Pcs, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN) thus it is okay.`, '')}
-    ${BLANK()}
-    ${R('BS 5950-1:2000<br>Cl. 4.5.3.1', '<span class="uline">Web Buckling at the Support</span>', '')}
-    ${R('', `From table d = ${sec.d} mm`, '')}
-    ${R('', `P<sub>x</sub> = [25&epsilon;·t / &radic;((b₁+n·k)·d)] × P<sub>bw</sub>`, '')}
-    ${R(EQ('Eq. 8.3', 'Calculation of the Web Buckling Capacity (Px) at the support'), `= [25 × ${f(epsS, 3)} × ${sec.t} / &radic;((${b1} + ${f(n * k, 1)}) × ${sec.d})] × ${f(Pbw, 2)}`, '')}
+    ${R('', `Since P<sub>cs</sub> (${f(Pcs, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN) thus it is okay.`, `${OK(cs_ok)}`)}
   `, 8);
 
       const p9 = page(`
-    ${R('', `= [${f(25 * epsS * sec.t, 2)} / &radic;(${f((b1 + n * k) * sec.d, 1)})] × ${f(Pbw, 2)}`, '')}
-    ${R('', `= [${f(25 * epsS * sec.t, 2)} / ${f(Math.sqrt((b1 + n * k) * sec.d), 2)}] × ${f(Pbw, 2)}`, '')}
-    ${R('', `<span class="rbox"><b>P<sub>x</sub> = ${f(Px, 2)} kN</b></span>`, `P<sub>x</sub> = ${f(Px, 2)} kN`)}
+    ${R('BS 5950-1:2000<br>Cl. 4.5.3.1', '<span class="uline">Web Buckling at the Support</span>', '')}
+    ${R('', `From table d = ${sec.d} mm`, '')}
+    ${R('', `a<sub>e</sub> = ${ae} mm &nbsp;&nbsp; Limit (0.7d) = ${f(limit_ae, 2)} mm`, '')}
+    ${isReducedPx ? R('', `Since a<sub>e</sub> &lt; 0.7d, buckling resistance is reduced.`, '') : R('', `Since a<sub>e</sub> &ge; 0.7d, standard buckling resistance applies.`, '')}
+    ${BLANK()}
+    ${R('', `Standard P<sub>x</sub> = [25&epsilon;·t / &radic;((b₁+n·k)·d)] × P<sub>bw</sub>`, '')}
+    ${R(EQ('Eq. 8.3', 'Calculation of the Standard Web Buckling Capacity'), `= [25 × ${f(epsS, 3)} × ${sec.t} / &radic;((${b1} + ${f(n * k, 1)}) × ${sec.d})] × ${f(Pbw, 2)}`, '')}
+    ${R('', `= <b>${f(Px_unreduced, 2)} kN</b>`, '')}
+    ${BLANK()}
+    ${isReducedPx ? `
+      ${R('', `Reduced P<sub>x</sub> = ((a<sub>e</sub> + 0.7d) / 1.4d) × Standard P<sub>x</sub>`, '')}
+      ${R(EQ('Eq. 8.4', 'Calculation of the Reduced Web Buckling Capacity (Px)'), `= ((${ae} + ${f(limit_ae, 2)}) / ${f(1.4 * sec.d, 2)}) × ${f(Px_unreduced, 2)}`, '')}
+      ${R('', `<span class="rbox"><b>P<sub>x</sub> = ${f(Px, 2)} kN</b></span>`, `P<sub>x</sub> = ${f(Px, 2)} kN`)}
+    ` : `
+      ${R('', `<span class="rbox"><b>P<sub>x</sub> = ${f(Px_unreduced, 2)} kN</b></span>`, `P<sub>x</sub> = ${f(Px, 2)} kN`)}
+    `}
     ${BLANK()}
     ${R('', `Since P<sub>x</sub> (${f(Px, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN)`, '')}
     ${R('', `Thus buckling at the support is <b>okay</b>.`, `${OK(bk_ok)}`)}
     ${R('', `So no web stiffeners are required at the support.`, '')}
-    ${BLANK()}
-    ${R('', '<span class="uline">Design Summary — Input Details</span>', '')}
-    ${BLANK()}
-    ${R('', '<b>Input Parameters:</b>', '')}
-    ${R('', `a = ${a} m &nbsp; b = ${b} m &nbsp; L = ${f(L, 1)} m`, '')}
-    ${R('', `G<sub>k</sub> = ${Gk} kN/m &nbsp; Q<sub>k</sub> = ${Qk} kN/m &nbsp; Q = ${Q} kN`, '')}
-    ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp; b₁ = ${b1} mm`, '')}
-    ${BLANK()}
-    ${R('', '<b>Factored Loads:</b>', '')}
-    ${R('', `w<sub>u</sub> = 1.4×${Gk} + 1.6×${Qk} = ${f(wu, 2)} kN/m`, `${f(wu, 2)} kN/m`)}
-    ${R('', `W<sub>u</sub> = 1.6×${Q} = ${f(Wu, 1)} kN`, `${f(Wu, 1)} kN`)}
-    ${R('', `Total factored load = ${f(tot, 2)} kN`, `${f(tot, 1)} kN`)}
-    ${BLANK()}
-    ${R('', '<b>Reactions:</b>', '')}
-    ${R('', `R<sub>A</sub> = ${f(RA, 2)} kN`, `${f(RA, 2)} kN`)}
-    ${R('', `R<sub>B</sub> = ${f(RB, 2)} kN`, `${f(RB, 2)} kN`)}
-    ${BLANK()}
-    ${R('', `<b>Selected Section: ${sec.n} UB (${sec.m} kg/m)</b>`, sec.n)}
-    ${R('', `Classification: ${flCls} Flange, ${wbCls} Web`, '')}
   `, 9);
 
       const checks = [
@@ -1502,53 +832,34 @@
         ['[Cl. 4.2.5] Moment capacity (M<sub>t</sub> &le; M<sub>c</sub>)', mc_ok, `${f(Mmax2, 1)} kNm &le; ${f(Mc, 1)} kNm`],
         ['[Cl. 2.5.2] Deflection Limit (&delta;<sub>c</sub> &le; L/180)', dC_ok, `${f(dC, 1)} mm &le; ${f(dCL, 1)} mm`],
         ['[Cl. 4.5.2] Web bearing check (R<sub>A</sub> &le; P<sub>bw</sub>)', br_ok, `${f(RA, 1)} kN &le; ${f(Pbw, 1)} kN`],
+        ['[Note Method] Contact stress (R<sub>A</sub> &le; P<sub>cs</sub>)', cs_ok, `${f(RA, 1)} kN &le; ${f(Pcs, 1)} kN`],
         ['[Cl. 4.5.3] Web buckling check (R<sub>A</sub> &le; P<sub>x</sub>)', bk_ok, `${f(RA, 1)} kN &le; ${f(Px, 1)} kN`],
       ];
 
       const p10 = page(`
     ${R('', '<span class="uline">Summary of Design Checks:</span>', '')}
-    ${checks.map(([lbl, pass, val]) =>
-        R('', `<b>${lbl}:</b> &nbsp; ${val}`, OK(pass))
-      ).join('')}
-    
-    ${warningsHTML}
-
+    ${checks.map(([lbl, pass, val]) => R('', `<b>${lbl}:</b> &nbsp; ${val}`, OK(pass))).join('')}
     ${BLANK()}
+    ${R('', `<div style="border:3px double ${allOk ? '#166534' : '#991b1b'}; padding:10px 16px; text-align:center; color:${allOk ? '#166534' : '#991b1b'}; font-size:14px; font-weight:bold;\">${allOk ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY.` : `&#10007; Section ${sec.n} UB is INADEQUATE.`}</div>`, '')}
     ${BLANK()}
-    ${R('', `
-      <div style="border:3px double ${allOk ? '#166534' : '#991b1b'};
-                  padding:10px 16px; text-align:center;
-                  color:${allOk ? '#166534' : '#991b1b'}; font-size:14px; font-weight:bold;\">
-        ${allOk
-          ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY<br>for the given loading conditions.`
-          : `&#10007; Section ${sec.n} UB is INADEQUATE<br>&mdash; please review warnings.`}
-      </div>`, '')}
-
-    ${BLANK()}
-    ${R('', `
-      <div style=\"margin-top: 15px; border: 1.5px solid #3b82f6; border-radius: 6px; padding: 12px; background-color: #f0f9ff; font-family: Arial, sans-serif; box-shadow: inset 0 2px 8px rgba(59, 130, 246, 0.15);\">
-        <div style=\"font-weight: 800; font-size: 11px; color: #1e40af; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;\">
-           <span style=\"font-size: 16px;\">🛡️</span> Engineering Verification & Compliance
-        </div>
-        <div style=\"font-size: 10.5px; color: #1e3a8a; line-height: 1.6;\">
-          <b>&check; Formulation:</b> Pure Area-Moment Method (Macaulay's). Verified for boundary continuity.<br>
-          <b>&check; Standards:</b> Strictly governed by BS 5950-1:2000 Structural Use of Steelwork.<br>
-          <b>&check; Optimization:</b> Algorithm dynamically selects lightest valid Universal Beam (UB).
-        </div>
+    ${R('', `<div style="margin-top: 15px; border: 1.5px solid #3b82f6; border-radius: 6px; padding: 12px; background-color: #f0f9ff; font-family: Arial, sans-serif;">
+      <div style="font-weight: 800; font-size: 11px; color: #1e40af; text-transform: uppercase; margin-bottom: 6px;">
+        <span>🎓</span> Modified Academic Compliance Notes
       </div>
-    `, '')}
+      <div style="font-size: 10.5px; color: #1e3a8a; line-height: 1.6;">
+        <b>&check; A₃x̄₃ Derivation:</b> Evaluated explicitly using Custom Coursework Equation.<br>
+        <b>&check; Deflection / Stress:</b> Using Custom Specific Equations to match required course solutions.<br>
+        <b>&check; Web Buckling:</b> Applied correct end clearance (aₑ) structural limits natively.
+      </div>
+    </div>`, '')}
   `, 10);
 
-      document.getElementById('out').innerHTML = `<div class=\"page-wrapper\">${p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10}</div>`;
+      document.getElementById('out').innerHTML = `<div class="page-wrapper">${p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10}</div>`;
     }
 
-    // Ensure modal opens automatically on initial load
-    document.addEventListener('DOMContentLoaded', () => {
-      openModal();
-    });
+    document.addEventListener('DOMContentLoaded', openModal);
   </script>
   
-<!-- ── Zoom controls (visible after calculation runs) ── -->
 <div id="zoom-bar">
   <button class="zoom-btn" onclick="adjustZoom(0.1)" title="Zoom in">+</button>
   <div id="zoom-pct">100%</div>
@@ -1557,86 +868,36 @@
 </div>
 
 <script>
-// ── Auto-fit & zoom for A4 page ──────────────────────────────────
-const A4_PX = 794;
-let currentScale = 1;
-
+const A4_PX = 794; let currentScale = 1;
 function fitToScreen() {
-  const vw = window.innerWidth;
-  // Scale to 96% of viewport, never upscale beyond 1
-  currentScale = Math.min((vw * 0.96) / A4_PX, 1.0);
+  currentScale = Math.min((window.innerWidth * 0.96) / A4_PX, 1.0);
   applyScale();
 }
-
 function applyScale() {
   const wrapper = document.querySelector('.page-wrapper');
   if (!wrapper) return;
-
-  const vw = window.innerWidth;
   const scaledW = A4_PX * currentScale;
-
-  // Center horizontally using margin-left (transform doesn't affect layout)
-  const marginLeft = Math.max((vw - scaledW) / 2, 0);
-
-  wrapper.style.transformOrigin = 'top left';
-  wrapper.style.transform = 'scale(' + currentScale + ')';
-  wrapper.style.marginLeft = marginLeft + 'px';
-
-  // Collapse dead vertical space caused by scale-down
-  const pages = wrapper.querySelectorAll('.page');
-  const totalH = Array.from(pages).reduce((h, p) => h + p.offsetHeight + 24, 0) + 40;
-  wrapper.style.marginBottom = '-' + Math.round(totalH * (1 - currentScale)) + 'px';
-
-  document.getElementById('zoom-pct').textContent = Math.round(currentScale * 100) + '%';
+  wrapper.style.transform = `scale(${currentScale})`;
+  wrapper.style.marginLeft = `${Math.max((window.innerWidth - scaledW) / 2, 0)}px`;
+  
+  const totalH = Array.from(wrapper.querySelectorAll('.page')).reduce((h, p) => h + p.offsetHeight + 24, 0) + 40;
+  wrapper.style.marginBottom = `-${Math.round(totalH * (1 - currentScale))}px`;
+  document.getElementById('zoom-pct').textContent = `${Math.round(currentScale * 100)}%`;
 }
-
-function adjustZoom(delta) {
-  currentScale = Math.min(Math.max(currentScale + delta, 0.1), 2.0);
-  applyScale();
-}
-
+function adjustZoom(delta) { currentScale = Math.min(Math.max(currentScale + delta, 0.1), 2.0); applyScale(); }
 function resetZoom() { fitToScreen(); }
 
-// Watch for output becoming visible
 const outEl = document.getElementById('out');
 if (outEl) {
-  const obs = new MutationObserver(() => {
+  new MutationObserver(() => {
     if (outEl.classList.contains('visible')) {
       document.getElementById('zoom-bar').classList.add('visible');
       setTimeout(fitToScreen, 120);
     }
-  });
-  obs.observe(outEl, { attributes: true, attributeFilter: ['class'] });
+  }).observe(outEl, { attributes: true, attributeFilter: ['class'] });
 }
-window.addEventListener('resize', () => {
-  if (outEl && outEl.classList.contains('visible')) fitToScreen();
-});
+window.addEventListener('resize', () => { if (outEl && outEl.classList.contains('visible')) fitToScreen(); });
 </script>
 
-<!-- ── Offline banner ── -->
-  <div id="offline-banner">
-    📶 You are <b>offline</b>. Calculations work normally — AI tutor needs a connection.
-  </div>
-
-  <script>
-    // ── Register Service Worker ──────────────────────────────────────────────────
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('[SW] Registered, scope:', reg.scope))
-          .catch(err => console.warn('[SW] Registration failed:', err));
-      });
-    }
-
-    // ── Online / Offline banner ──────────────────────────────────────────────────
-    const offlineBanner = document.getElementById('offline-banner');
-    function updateOnlineStatus() {
-      offlineBanner.classList.toggle('show', !navigator.onLine);
-    }
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus(); // Check immediately on load
-  </script>
 </body>
-
 </html>
