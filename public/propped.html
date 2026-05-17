@@ -108,6 +108,75 @@
       color: #fff;
     }
 
+    /* ── Hamburger menu ─────────────────────────────────── */
+    #hamburgerBtn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    #hamburgerBtn:hover { background: rgba(255,255,255,0.08); }
+    #hamburgerBtn span {
+      display: block;
+      width: 24px;
+      height: 2.5px;
+      background: #e2e8f0;
+      border-radius: 2px;
+      transition: transform 0.25s, opacity 0.2s;
+    }
+    #hamburgerBtn.open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+    #hamburgerBtn.open span:nth-child(2) { opacity: 0; }
+    #hamburgerBtn.open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
+
+    #navDropdown {
+      position: fixed;
+      top: 65px;
+      right: 0;
+      width: 220px;
+      background: #0f172a;
+      border: 1px solid #1e3a5f;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 899;
+      display: none;
+      flex-direction: column;
+      padding: 8px 0;
+    }
+    #navDropdown.open { display: flex; }
+
+    .nav-drop-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      color: #cbd5e1;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-drop-item:hover { background: #1e293b; color: #fff; }
+    .nav-drop-item.primary { color: #60a5fa; }
+    .nav-drop-item.primary:hover { color: #93c5fd; }
+    .nav-drop-divider {
+      height: 1px;
+      background: #1e293b;
+      margin: 4px 16px;
+    }
+
     /* ── Dynamic Page & Scroll Wrapper ───────────────────── */
     #out {
       display: none;
@@ -702,6 +771,7 @@
     @media print {
 
       #navbar,
+      #navDropdown,
       #backdrop,
       #inputModal,
       #aiChat {
@@ -758,15 +828,27 @@
       </svg>
       Steel Design <span>Pro</span>
     </div>
-    <a href="/" style="display:flex;align-items:center;gap:6px;color:#94a3b8;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-decoration:none;padding:6px 12px;border:1px solid #334155;border-radius:6px;transition:color 0.2s,border-color 0.2s;" onmouseover="this.style.color='#fff';this.style.borderColor='#3b82f6'" onmouseout="this.style.color='#94a3b8';this.style.borderColor='#334155'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        Home
-      </a>
-      <div class="nav-actions">
-      <button class="nav-btn secondary" onclick="window.print()">⎙ Print PDF</button>
-      <button class="nav-btn" onclick="openModal()">⚙ Edit Inputs</button>
-    </div>
+    <button id="hamburgerBtn" onclick="toggleHamburger()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
+
+  <!-- ═══ NAV DROPDOWN ═══ -->
+  <div id="navDropdown">
+    <a href="/" class="nav-drop-item">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Home
+    </a>
+    <div class="nav-drop-divider"></div>
+    <button class="nav-drop-item primary" onclick="openModal(); toggleHamburger();">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      Edit Inputs
+    </button>
+    <button class="nav-drop-item" onclick="window.print(); toggleHamburger();">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print / Save PDF
+    </button>
+  </div>
 
   <!-- ═══ CENTERED MODAL INPUT FORM ═══ -->
   <div id="backdrop" onclick="closeModal()"></div>
@@ -860,6 +942,23 @@
   <div id="out"></div>
 
   <script>
+    // ── HAMBURGER MENU ────────────────────────────
+    function toggleHamburger() {
+      const btn = document.getElementById('hamburgerBtn');
+      const dd  = document.getElementById('navDropdown');
+      btn.classList.toggle('open');
+      dd.classList.toggle('open');
+    }
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      const btn = document.getElementById('hamburgerBtn');
+      const dd  = document.getElementById('navDropdown');
+      if (!btn.contains(e.target) && !dd.contains(e.target)) {
+        btn.classList.remove('open');
+        dd.classList.remove('open');
+      }
+    });
+
     // ── MODAL LOGIC ────────────────────────────
     let hasRunOnce = false;
 
@@ -1091,7 +1190,7 @@
       const Wu = 1.6 * Q;
       const tot = wu * L + Wu;
 
-      const A1_coeff = Math.pow(L, 3) / 3;
+      const A1_coeff = wu * Math.pow(L, 2) / 3;   // per notes: ½×wu×L × ⅔×L = wu×L²/3
       const A2X2 = (wu * Math.pow(L, 4)) / 8;
       const part1 = 0.5 * a * (Wu * a);
       const part2 = (2 / 3) * L;   // lever arm = 2L/3 (per notes)
@@ -1310,7 +1409,7 @@
   `, 1);
 
       const p2 = page(`
-    ${R(EQ('Eq. 2.1', 'Moment of the area of the RB triangular diagram about fixed support A'), `A₁x̄₁ = [½ × R<sub>B</sub> × ${f(L, 1)} × ${f(L, 1)}] × [⅔ × ${f(L, 1)}]`, '')}
+    ${R(EQ('Eq. 2.1', 'Moment of the area of the RB triangular diagram about fixed support A'), `A₁x̄₁ = [½ × R<sub>B</sub> × ${f(L, 1)} × ${f(wu, 1)}] × [⅔ × ${f(L, 1)}]`, '')}
     ${R('', `= <b>${f(A1_coeff, 2)} R<sub>B</sub></b>`, '')}
     ${BLANK()}
     ${R(EQ('Eq. 2.2', 'Moment of the area of the UDL parabolic diagram about fixed support A'), `A₂x̄₂ = [⅓ × ${f(L, 1)} × (${f(wu, 1)}×${f(L, 1)}² / 2)] × [¾ × ${f(L, 1)}]`, '')}
