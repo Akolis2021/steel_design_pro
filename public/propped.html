@@ -1208,10 +1208,10 @@
       const Wu = 1.6 * Q;
       const tot = wu * L + Wu;
 
-      const A1_coeff = Math.pow(L, 3) / 3;         // [½×RB×L²] × [⅔×L] → coeff of RB = L³/3
+      const A1_coeff = Math.pow(L, 3) / 3;              // [½×RB×L²] × [⅔×L] = RB × L³/3
       const A2X2 = (wu * Math.pow(L, 4)) / 8;
-      const part1 = 0.5 * a * (Wu * a);
-      const part2 = L - (a / 3);                   // centroid of pt-load triangle from B = L − a/3 = ⅔a + b
+      const part1 = 0.5 * a * (Q * a);                  // unfactored Q per Sunko's method
+      const part2 = L - (a / 3);                         // lever arm = ⅔a + b = L − a/3
       const A3X3 = part1 * part2;
 
       const RB_calc = (A2X2 + A3X3) / A1_coeff;
@@ -1439,7 +1439,7 @@
     ${R(EQ('Eq. 2.2', 'Moment of the area of the UDL parabolic diagram about fixed support A'), `A₂x̄₂ = [⅓ × ${f(L, 1)} × (${f(wu, 1)}×${f(L, 1)}² / 2)] × [¾ × ${f(L, 1)}]`, '')}
     ${R('', `= <b>${f(A2X2, 1)}</b>`, '')}
     ${BLANK()}
-    ${R(EQ('Eq. 2.3', 'Moment of the area of the Point Load triangular diagram about fixed support A'), `A₃x̄₃ = [½ × ${a} × (${f(Wu, 1)}×${a})] × [⅔×${a} + ${b}]`, '')}
+    ${R(EQ('Eq. 2.3', 'Moment of the area of the Point Load triangular diagram about fixed support A'), `A₃x̄₃ = [½ × ${a} × (${f(Q, 1)}×${a})] × [⅔×${a} + ${b}]`, '')}
     ${R('', `= <b>${f(A3X3, 1)}</b>`, '')}
     ${BLANK()}
     ${R('', `A₁x̄₁ = A₂x̄₂ + A₃x̄₃`, '')}
