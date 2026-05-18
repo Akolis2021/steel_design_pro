@@ -1276,9 +1276,9 @@
       const Lmm = L * 1e3, amm = a * 1e3, bmm = b * 1e3;
       // UDL term — propped cantilever under imposed UDL
       const dS_udl = Qk * Math.pow(Lmm, 4) / (185 * EI);
-      // Point load term — propped-cantilever specific formula (per notes, using factored Wu)
-      // Formula: Wa²b/EI × √(b/(3L-a))  — no factor of 6, per handwritten notes
-      const dS_pt = Wu * 1e3 * Math.pow(amm, 2) * bmm / EI
+      // Point load term — propped-cantilever specific formula (per notes, using unfactored Q)
+      // Formula: Wa²b/EI × √(b/(3L-a))  — no factor of 6, per handwritten notes; Q unfactored consistent with notes
+      const dS_pt = Q * 1e3 * Math.pow(amm, 2) * bmm / EI
                     * Math.sqrt(bmm / (3 * Lmm - amm));
       const dC = dS_udl + dS_pt;
       const dCL = Lmm / 180;
@@ -1577,7 +1577,7 @@
     ${R('', 'Propped cantilever: combined UDL + eccentric point load', '')}
     ${R('', `&delta;<sub>c</sub> = W·a²·b/(EI) × &radic;(b/(3L&minus;a)) + w·L⁴/(185EI)`, '')}
     ${BLANK()}
-    ${R(EQ('Eq. 7.1', 'Point load deflection — propped-cantilever formula with sqrt factor'), `&delta;<sub>c</sub> (Pt) = ${f(Wu, 1)}×10³ × ${amm}² × ${bmm} / (${f(EI/1e12,4)}×10¹²) × &radic;(${bmm}/(3×${Lmm}&minus;${amm}))`, '')}
+    ${R(EQ('Eq. 7.1', 'Point load deflection — propped-cantilever formula with sqrt factor'), `&delta;<sub>c</sub> (Pt) = ${f(Q, 1)}×10³ × ${amm}² × ${bmm} / (${f(EI/1e12,4)}×10¹²) × &radic;(${bmm}/(3×${Lmm}&minus;${amm}))`, '')}
     ${R('', `= ${f(dS_pt, 2)} mm`, '')}
     ${BLANK()}
     ${R(EQ('Eq. 7.2', 'UDL deflection under imposed load — propped cantilever'), `&delta;<sub>c</sub> (UDL) = ${Qk} × ${Lmm}⁴ / (185 × ${f(EI/1e12,4)}×10¹²)`, '')}
