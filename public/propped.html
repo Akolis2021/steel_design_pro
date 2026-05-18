@@ -861,10 +861,10 @@
     <div style="margin-bottom: 20px;">
       <label style="display: flex; align-items: center; gap: 10px; color: #fff; font-family: Arial, sans-serif; font-size: 13px; cursor: pointer;">
         <input type="checkbox" id="iForcePass" style="width: 18px; height: 18px; cursor: pointer;">
-        <span>Auto-optimize section to pass ALL deflection limits</span>
+        <span>Auto-optimize section to pass ALL design checks</span>
       </label>
       <div style="font-family: Arial, sans-serif; font-size: 11px; color: #94a3b8; margin-left: 28px; margin-top: 4px;">
-        Will automatically select the lightest section that passes deflection (e.g. 533x210x92 UB).
+        Will automatically select the lightest section that passes moment, shear, deflection, bearing, and buckling.
       </div>
     </div>
 
@@ -1153,6 +1153,78 @@
     }
 
     // ═══════════════════════════════════════════════════════
+    //  SECTION MULTI-CRITERIA VALIDATOR
+    // ═══════════════════════════════════════════════════════
+    function checkSectionPasses(s, a, Gk, Qk, Q, fy, b1, ae, rbOverride_local) {
+      const b  = +(a * 0.8).toFixed(3);
+      const L = a + b;
+      const wu = 1.4 * Gk + 1.6 * Qk;
+      const tot = wu * L + Q;
+
+      const A1_coeff = Math.pow(L, 3) / 3;
+      const A2X2 = (wu * Math.pow(L, 4)) / 8;
+      const part1 = 0.5 * a * (Q * a);
+      const part2 = L - (a / 3);
+      const A3X3 = part1 * part2;
+
+      const RB_calc = (A2X2 + A3X3) / A1_coeff;
+      const RB = rbOverride_local !== null ? rbOverride_local : RB_calc;
+      const RA = tot - RB;
+
+      const Fv = Math.max(Math.abs(RA), Math.abs(tot - RA));
+      const py = fy >= 430 ? 460 : fy >= 330 ? 355 : 275;
+
+      // 1. Shear Capacity Check
+      const Av = s.t * s.D;
+      const Pv = 0.6 * py * Av / 1e3;
+      if (Fv > Pv) return false;
+
+      // 2. Bending Moment Check (including self weight)
+      const BMC = RB * b - wu * Math.pow(b, 2) / 2;
+      const Mmax = Math.abs(BMC);
+      const Mc_f = py * s.Sx * 1e3 / 1e6;
+      const Mc_l = 1.2 * py * s.Zx * 1e3 / 1e6;
+      const Mc = Math.min(Mc_f, Mc_l);
+
+      const Gsw = s.m * 9.81 / 1000;
+      const Leff = (2/3) * L;
+      const Msw = 1.4 * Gsw * Leff * Leff * (9 / 128);
+      const Mmax2 = Mmax + Msw;
+      if (Mmax2 > Mc) return false;
+
+      // 3. Deflection Check (Point Load + UDL)
+      const EI = 205e3 * s.Ix * 1e4;
+      const Lmm = L * 1e3, amm = a * 1e3, bmm = b * 1e3;
+      const dS_pt = (Q * 1e3 * Math.pow(amm, 2) * bmm) / (6 * EI) * Math.sqrt(bmm / (3 * Lmm - amm));
+      const dS_udl = (Qk * Math.pow(Lmm, 4)) / (185 * EI);
+      const dC = dS_pt + dS_udl;
+      const dCL = Lmm / 180;
+      if (dC > dCL) return false;
+
+      // 4. Web Bearing Check
+      const k = s.T + s.r;
+      const n = 2;
+      const Pbw = (b1 + n * k) * s.t * py / 1e3;
+      if (RA > Pbw) return false;
+
+      // 5. Contact Stress Check
+      const Pcs = b1 * n * k * py / 1e3;
+      if (RA > Pcs) return false;
+
+      // 6. Web Buckling Check (including ae reduction)
+      const epsS = Math.sqrt(275 / py);
+      const ae_thresh = 0.7 * s.d;
+      const Px_full = (25 * epsS * s.t / Math.sqrt((b1 + n * k) * s.d)) * Pbw;
+      const ae_reduced = ae < ae_thresh;
+      const Px = ae_reduced
+        ? ((ae + 0.7 * s.d) / (1.4 * s.d)) * Px_full
+        : Px_full;
+      if (RA > Px) return false;
+
+      return true;
+    }
+
+    // ═══════════════════════════════════════════════════════
     //  MAIN CALCULATION ENGINE
     // ═══════════════════════════════════════════════════════
     function update() {
@@ -1163,7 +1235,7 @@
       const fy = +document.getElementById('iFy').value;
       const b1 = +document.getElementById('iB1').value;
       const ae = +document.getElementById('iAe').value;
-      const forcePassDeflection = document.getElementById('iForcePass').checked;
+      const forcePassAll = document.getElementById('iForcePass').checked;
 
       const b  = +(a * 0.8).toFixed(3);   // b = 0.8a
       const grade = fy >= 430 ? 'S460' : fy >= 330 ? 'S355' : 'S275';
@@ -1192,7 +1264,7 @@
       const L = a + b;
       const wu = 1.4 * Gk + 1.6 * Qk;
       const Wu = 1.6 * Q;
-      const tot = wu * L + Q; // total nominal vertical equilibrium matches note Page 9
+      const tot = wu * L + Q;
 
       const A1_coeff = Math.pow(L, 3) / 3;
       const A2X2 = (wu * Math.pow(L, 4)) / 8;
@@ -1218,7 +1290,7 @@
       const Sx_req = (Mmax * 1e6) / (py);
       const Sx_req_cm3 = Sx_req / 1000;
 
-      // Filter sections satisfying Sx
+      // Filter sections satisfying basic bending moment
       let validSecs = UB.filter(s => s.Sx >= Sx_req_cm3);
       validSecs.sort((s1, s2) => s1.m - s2.m);
 
@@ -1233,19 +1305,12 @@
         return;
       }
 
-      // If optimization is enabled, find the lightest section that passes EVERYTHING including deflection
+      // If Auto-Optimize is checked, find the first section in the catalog that passes ALL checks
       let sec = validSecs[0];
-      if (forcePassDeflection) {
+      if (forcePassAll) {
         let optimalSec = null;
         for (let s of validSecs) {
-          // Deflection check logic
-          const testEI = 205e3 * s.Ix * 1e4;
-          const testLmm = L * 1e3, testAmm = a * 1e3, testBmm = b * 1e3;
-          const test_dS_pt = (Q * 1e3 * Math.pow(testAmm, 2) * testBmm) / (6 * testEI) * Math.sqrt(testBmm / (3 * testLmm - testAmm));
-          const test_dS_udl = (Qk * Math.pow(testLmm, 4)) / (185 * testEI);
-          const test_dC = test_dS_pt + test_dS_udl;
-          const test_limit = testLmm / 180;
-          if (test_dC <= test_limit) {
+          if (checkSectionPasses(s, a, Gk, Qk, Q, fy, b1, ae, rbOverride)) {
             optimalSec = s;
             break;
           }
@@ -1280,7 +1345,6 @@
       const EI = 205e3 * sec.Ix * 1e4;
       const Lmm = L * 1e3, amm = a * 1e3, bmm = b * 1e3;
       
-      // Deflection formulation with correct factors as shown on Page 7 & Page 3 of sunko PDF
       const dS_pt = (Q * 1e3 * Math.pow(amm, 2) * bmm) / (6 * EI) * Math.sqrt(bmm / (3 * Lmm - amm));
       const dS_udl = (Qk * Math.pow(Lmm, 4)) / (185 * EI);
       const dC = dS_pt + dS_udl;
@@ -1589,9 +1653,9 @@
       ? R('', `Since [${f(dC, 1)} mm] &lt; ${f(dCL, 1)} mm, therefore Deflection is <b>Ok</b>`, `${OK(dC_ok)}`)
       : R('', `
           <div style="border: 2px solid #b91c1c; background: #fef2f2; padding: 10px; border-radius: 6px; margin: 4px 0;">
-            <div style="color: #b91c1c; font-weight: bold; font-family: Arial, sans-serif; font-size: 11px;">❌ DEFLECTION EXCEEDS LIMIT</div>
+            <div style="color: #b91c1c; font-weight: bold; font-family: Arial, sans-serif; font-size: 11px;">❌ LIMIT EXCEEDED</div>
             <div style="font-family: Arial, sans-serif; font-size: 10px; color: #7f1d1d; margin-top: 4px; line-height: 1.4;">
-              Section <b>${sec.n} UB</b> is too flexible. Click below to upgrade to the lightest compliant section.
+              Section <b>${sec.n} UB</b> is inadequate. Click below to upgrade to the lightest section passing ALL design checks.
             </div>
             <button onclick="triggerUpgrade()" style="margin-top: 8px; background: #2563eb; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; font-family: Arial, sans-serif; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(37,99,235,0.4);">
               🎯 Upgrade to Lightest Passing Section
@@ -1643,11 +1707,21 @@
     ${R('', `Since P<sub>x</sub> (${f(Px, 2)} kN) ${bk_ok ? '&gt;' : '&lt;'} R<sub>A</sub> (${f(RA, 2)} kN)`, '')}
     ${bk_ok
       ? R('', `Thus buckling at the support is <b>okay</b>.${ae_reduced ? ' (reduced formula applied)' : ''}`, `${OK(bk_ok)}`)
-      : R('', `<b class="fail">Buckling FAILS — stiffeners required.</b>`, `${OK(bk_ok)}`)}
+      : R('', `
+          <div style="border: 2px solid #b91c1c; background: #fef2f2; padding: 10px; border-radius: 6px; margin: 4px 0;">
+            <div style="color: #b91c1c; font-weight: bold; font-family: Arial, sans-serif; font-size: 11px;">❌ BUCKLING FAILS - STIFFENERS REQUIRED</div>
+            <div style="font-family: Arial, sans-serif; font-size: 10px; color: #7f1d1d; margin-top: 4px; line-height: 1.4;">
+              Web buckling resistance of <b>${f(Px,1)} kN</b> is less than reaction force <b>${f(RA,1)} kN</b>.
+            </div>
+            <button onclick="triggerUpgrade()" style="margin-top: 8px; background: #2563eb; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; font-family: Arial, sans-serif; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(37,99,235,0.4);">
+              🎯 Upgrade to Lightest Passing Section
+            </button>
+          </div>
+        `, `${OK(bk_ok)}`)}
   `, 9);
 
       const p10 = page(`
-    ${R('', '<span class="uline">Design Summary & Optimization Parameters</span>', '')}
+    ${R('', '<span class="uline">Design Summary & Compliance Table</span>', '')}
     ${R('', `Active Section: <b>${sec.n} UB (${sec.m} kg/m)</b>`, sec.n)}
     ${R('', `Classification: ${flCls} Flange, ${wbCls} Web`, '')}
     ${BLANK()}
@@ -1670,7 +1744,7 @@
                   padding:10px 16px; text-align:center;
                   color:${allOk ? '#166534' : '#991b1b'}; font-size:14px; font-weight:bold;\">
         ${allOk
-          ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY<br>for all BS 5950 checks.`
+          ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY<br>for all design conditions.`
           : `&#10007; Section ${sec.n} UB is INADEQUATE<br>&mdash; please review warnings.`}
       </div>`, '')}
   `, 10);
