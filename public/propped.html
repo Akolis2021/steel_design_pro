@@ -870,20 +870,20 @@
     <div class="section-header">Beam Parameters</div>
 
     <div class="fp-grid">
-      <div><label>a (m)</label><input id="iL1" type="number" step="0.1" value="6">
-        <div class="hint">Fixed end → point load &nbsp;|&nbsp; b = 0.8a (auto)</div>
+      <div><label>L (m)</label><input id="iL1" type="number" step="0.1" value="12">
+        <div class="hint">Span to point load &nbsp;|&nbsp; 0.8L computed automatically</div>
       </div>
-      <div><label>Gk (kN/m)</label><input id="iGk" type="number" step="0.5" value="8">
-        <div class="hint">Dead UDL</div>
+      <div><label>g — Dead load (kN/m)</label><input id="iGk" type="number" step="0.5" value="8">
+        <div class="hint">Lecturer's <b>g</b> value (dead UDL)</div>
       </div>
-      <div><label>Qk (kN/m)</label><input id="iQk" type="number" step="0.5" value="5">
-        <div class="hint">Imposed UDL</div>
+      <div><label>q — Imposed load (kN/m)</label><input id="iQk" type="number" step="0.5" value="7">
+        <div class="hint">Lecturer's <b>q</b> value (imposed UDL)</div>
       </div>
-      <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="80">
+      <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="70">
         <div class="hint">Point load at C</div>
       </div>
-      <div style="grid-column:1/-1"><label>fy (N/mm²)</label><input id="iFy" type="number" step="5" value="275">
-        <div class="hint">Design strength — grade assumed: 275 → S275 &nbsp;|&nbsp; 355 → S355 &nbsp;|&nbsp; 460 → S460</div>
+      <div style="grid-column:1/-1"><label>Fy (N/mm²)</label><input id="iFy" type="number" step="5" value="460">
+        <div class="hint">250 → S250 &nbsp;|&nbsp; 275 → S275 &nbsp;|&nbsp; 355 → S355 &nbsp;|&nbsp; 460 → S460 &nbsp;— grade assumed automatically</div>
       </div>
     </div>
 
@@ -1131,6 +1131,24 @@
       { n: "610×229×113", m: 113, D: 607.3, B: 228.2, t: 11.2, T: 17.3, r: 12.7, d: 547.3, Sx: 3280, Zx: 2880, Ix: 87500 },
       { n: "610×229×125", m: 125, D: 612.2, B: 229.0, t: 11.9, T: 19.6, r: 12.7, d: 547.3, Sx: 3680, Zx: 3220, Ix: 98600 },
       { n: "610×229×140", m: 140, D: 617.0, B: 230.1, t: 13.1, T: 22.1, r: 12.7, d: 547.3, Sx: 4140, Zx: 3630, Ix: 111000 },
+      { n: "610×305×149", m: 149, D: 617.2, B: 304.8, t: 11.8, T: 19.7, r: 16.5, d: 540.0, Sx: 4590, Zx: 3990, Ix: 125000 },
+      { n: "610×305×179", m: 179, D: 620.2, B: 307.1, t: 14.1, T: 23.6, r: 16.5, d: 540.0, Sx: 5550, Zx: 4820, Ix: 153000 },
+      { n: "610×305×238", m: 238, D: 635.8, B: 311.4, t: 18.4, T: 31.4, r: 16.5, d: 540.0, Sx: 7490, Zx: 6470, Ix: 209000 },
+      { n: "686×254×125", m: 125, D: 677.9, B: 253.0, t: 11.7, T: 16.2, r: 15.2, d: 615.1, Sx: 3990, Zx: 3480, Ix: 118000 },
+      { n: "686×254×140", m: 140, D: 683.5, B: 253.7, t: 12.4, T: 19.0, r: 15.2, d: 615.1, Sx: 4560, Zx: 3990, Ix: 136000 },
+      { n: "686×254×152", m: 152, D: 687.5, B: 254.5, t: 13.2, T: 21.0, r: 15.2, d: 615.1, Sx: 4990, Zx: 4370, Ix: 150000 },
+      { n: "686×254×170", m: 170, D: 692.9, B: 255.8, t: 14.5, T: 23.7, r: 15.2, d: 615.1, Sx: 5620, Zx: 4910, Ix: 170000 },
+      { n: "762×267×134", m: 134, D: 750.0, B: 264.4, t: 12.0, T: 15.5, r: 16.5, d: 686.0, Sx: 4470, Zx: 3880, Ix: 150000 },
+      { n: "762×267×147", m: 147, D: 754.0, B: 265.2, t: 12.8, T: 17.5, r: 16.5, d: 686.0, Sx: 4960, Zx: 4320, Ix: 169000 },
+      { n: "762×267×173", m: 173, D: 762.2, B: 266.7, t: 14.3, T: 21.6, r: 16.5, d: 686.0, Sx: 5930, Zx: 5160, Ix: 205000 },
+      { n: "762×267×197", m: 197, D: 769.8, B: 268.0, t: 15.6, T: 25.4, r: 16.5, d: 686.0, Sx: 6850, Zx: 5990, Ix: 240000 },
+      { n: "838×292×176", m: 176, D: 834.9, B: 291.7, t: 14.0, T: 18.8, r: 17.8, d: 761.7, Sx: 6810, Zx: 5900, Ix: 246000 },
+      { n: "838×292×194", m: 194, D: 840.7, B: 292.4, t: 14.7, T: 21.7, r: 17.8, d: 761.7, Sx: 7640, Zx: 6650, Ix: 279000 },
+      { n: "838×292×226", m: 226, D: 850.9, B: 293.8, t: 16.1, T: 26.8, r: 17.8, d: 761.7, Sx: 9160, Zx: 8030, Ix: 340000 },
+      { n: "914×305×201", m: 201, D: 903.0, B: 303.3, t: 15.2, T: 20.2, r: 19.1, d: 824.4, Sx: 8490, Zx: 7380, Ix: 325000 },
+      { n: "914×305×224", m: 224, D: 910.4, B: 304.1, t: 15.9, T: 23.9, r: 19.1, d: 824.4, Sx: 9630, Zx: 8380, Ix: 376000 },
+      { n: "914×305×253", m: 253, D: 918.4, B: 305.5, t: 17.3, T: 27.9, r: 19.1, d: 824.4, Sx: 10900, Zx: 9540, Ix: 436000 },
+      { n: "914×305×289", m: 289, D: 926.6, B: 307.7, t: 19.5, T: 32.0, r: 19.1, d: 824.4, Sx: 12600, Zx: 11000, Ix: 504000 },
     ];
 
     // ── helpers ──────────────────────────────────────────────
@@ -1161,8 +1179,8 @@
       // Auto-computed assumptions
       const b  = +(a * 0.8).toFixed(3);   // b = 0.8a
       const b1 = 100;                       // standard stiff bearing length (mm)
-      // Grade from fy
-      const grade = fy >= 430 ? 'S460' : fy >= 330 ? 'S355' : 'S275';
+      // Grade assumed from fy
+      const grade = fy >= 430 ? 'S460' : fy >= 330 ? 'S355' : fy >= 260 ? 'S275' : fy >= 240 ? 'S250' : 'Custom';
 
       const errors = [];
       if (isNaN(a) || a <= 0) errors.push("Dimension 'a' must be greater than zero.");
@@ -1394,9 +1412,9 @@
 
       const p1 = page(`
     ${R('BS 5950-1:2000', '<span class="uline">Parameters given.</span>', '')}
-    ${R('', `a = ${f(a, 1)} m &nbsp;&nbsp; b = 0.8a = ${f(b, 2)} m &nbsp;&nbsp; L = ${f(L, 2)} m`, '')}
-    ${R('', `Gk = ${Gk} kN/m &nbsp;&nbsp; Qk = ${Qk} kN/m &nbsp;&nbsp; Q = ${Q} kN`, '')}
-    ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp;&nbsp; Grade: ${grade}`, '')}
+    ${R('', `L = ${f(a, 1)} m &nbsp;&nbsp; 0.8L = ${f(b, 2)} m &nbsp;&nbsp; Total span = ${f(L, 2)} m`, '')}
+    ${R('', `g = ${Gk} kN/m (dead) &nbsp;&nbsp; q = ${Qk} kN/m (imposed) &nbsp;&nbsp; Q = ${Q} kN`, '')}
+    ${R('', `F<sub>y</sub> = ${fy} N/mm² &nbsp;&nbsp; Grade: ${grade}`, '')}
     ${BLANK()}
     ${SVGR('', diagramSVG, '')}
     ${BLANK()}
