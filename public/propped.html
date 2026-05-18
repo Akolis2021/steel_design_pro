@@ -873,13 +873,13 @@
       <div><label>L (m)</label><input id="iL1" type="number" step="0.1" value="12">
         <div class="hint">Span to point load &nbsp;|&nbsp; 0.8L computed automatically</div>
       </div>
-      <div><label>g — Dead load (kN/m)</label><input id="iGk" type="number" step="0.5" value="8">
+      <div><label>g — Dead load (kN/m)</label><input id="iGk" type="number" step="0.5" value="4">
         <div class="hint">Lecturer's <b>g</b> value (dead UDL)</div>
       </div>
-      <div><label>q — Imposed load (kN/m)</label><input id="iQk" type="number" step="0.5" value="7">
+      <div><label>q — Imposed load (kN/m)</label><input id="iQk" type="number" step="0.5" value="4">
         <div class="hint">Lecturer's <b>q</b> value (imposed UDL)</div>
       </div>
-      <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="70">
+      <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="90">
         <div class="hint">Point load at C</div>
       </div>
       <div style="grid-column:1/-1"><label>Fy (N/mm²)</label><input id="iFy" type="number" step="5" value="460">
@@ -1206,11 +1206,12 @@
       const L = a + b;
       const wu = 1.4 * Gk + 1.6 * Qk;
       const Wu = 1.6 * Q;
-      const tot = wu * L + Wu;
+      const tot = wu * L + Q;   // notes use unfactored Q in vertical equilibrium (consistent with area-moment method)
 
       const A1_coeff = Math.pow(L, 3) / 3;              // [½×RB×L²] × [⅔×L] = RB × L³/3
       const A2X2 = (wu * Math.pow(L, 4)) / 8;
-      const part1 = 0.5 * a * (Q * a);                  // unfactored Q per Sunko's method
+      // A3X3: unfactored Q — lecturer's area-moment method uses Q directly in M/EI diagram
+      const part1 = 0.5 * a * (Q * a);                  // half × a × Q×a (unfactored point load)
       const part2 = L - (a / 3);                         // lever arm = ⅔a + b = L − a/3
       const A3X3 = part1 * part2;
 
@@ -1223,10 +1224,10 @@
 
       const SFA = RA;
       const SFCb = RA - wu * a;
-      const SFCa = SFCb - Wu;
+      const SFCa = SFCb - Q;   // unfactored Q — consistent with lecturer's method
       const SFBl = SFCa - wu * b;
 
-      const MA = RB * L - wu * Math.pow(L, 2) / 2 - Wu * a;
+      const MA = -(RB * L - wu * Math.pow(L, 2) / 2 - Q * a);  // unfactored Q, sign: hogging negative
       const BMC = RB * b - wu * Math.pow(b, 2) / 2;
       const Mmax = Math.max(Math.abs(MA), Math.abs(BMC));
 
@@ -1387,7 +1388,7 @@
       let bmdPtsStr = `40,90 `; const bmScale = Mmax > 0 ? 60 / Mmax : 1; const bmdBase = 90;
       for (let i = 0; i <= 50; i++) {
         let xB = L - ((i / 50) * L);
-        let mx = RB * xB - wu * Math.pow(xB, 2) / 2; if (xB > b) mx -= Wu * (xB - b);
+        let mx = RB * xB - wu * Math.pow(xB, 2) / 2; if (xB > b) mx -= Q * (xB - b);
         bmdPtsStr += `${40 + (i / 50) * 320},${bmdBase - mx * bmScale} `;
       }
       bmdPtsStr += `360,90`;
@@ -1424,7 +1425,7 @@
     ${BLANK()}
     ${R(EQ('Eq. 1.1', 'Calculation for the total factored load on the beam'), '<span class="uline">Total factored load on the beam.</span>', '')}
     ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × ${f(L, 2)} + 1.6(${Q})`, '')}
-    ${R('', `= ${f(wu, 2)} × ${f(L, 2)} + ${f(Wu, 1)}`, '')}
+    ${R('', `= ${f(wu, 2)} × ${f(L, 2)} + ${f(Q, 1)}`, '')}
     ${R('', `<b>Total Design loading = ${f(tot, 2)} kN</b>`, `${f(tot, 0)} kN`)}
     ${BLANK()}
     ${R('', 'The beam section is statically indeterminate.', '')}
@@ -1447,7 +1448,7 @@
     ${R(EQ('Eq. 2.4', 'Solving for Reaction RB using the Area-Moment theorem'), `R<sub>B</sub> = ${f(A2X2 + A3X3, 1)} / ${f(A1_coeff, 2)}`, '')}
     ${R('', `<span class="rbox"><b>R<sub>B</sub> (calc) = ${f(RB_calc, 2)} kN</b></span>${rbAdjusted ? ` &nbsp;→&nbsp; <span class="rbox" style="border-color:#d97706;color:#92400e;"><b>R<sub>B</sub> (adjusted) = ${f(RB, 2)} kN</b></span>` : ''}`, `R<sub>B</sub> = ${f(RB, 2)} kN`)}
     ${BLANK()}
-    ${R(EQ('Eq. 2.5', 'Solving for Reaction RA using sum of vertical forces'), `R<sub>A</sub> = (${f(wu, 1)} × ${f(L, 1)}) + (${f(Wu, 1)}) - ${f(RB, 2)}`, '')}
+    ${R(EQ('Eq. 2.5', 'Solving for Reaction RA using sum of vertical forces'), `R<sub>A</sub> = (${f(wu, 1)} × ${f(L, 1)}) + (${f(Q, 1)}) - ${f(RB, 2)}`, '')}
     ${R('', `<span class="rbox"><b>R<sub>A</sub> = ${f(RA, 2)} kN</b></span>`, `R<sub>A</sub> = ${f(RA, 2)} kN`)}
     ${BLANK()}
     ${R('', '<span class="uline">SF (Shear force)</span>', '')}
@@ -1467,7 +1468,7 @@
   `, 2);
 
       const p3 = page(`
-    ${R(EQ('Eq. 3.1', 'Shear Force at point C immediately after the point load acts'), `SF @ C (after) = ${f(SFCb, 2)} − ${f(Wu, 1)} = ${f(SFCa, 2)} kN`, '')}
+    ${R(EQ('Eq. 3.1', 'Shear Force at point C immediately after the point load acts'), `SF @ C (after) = ${f(SFCb, 2)} − ${f(Q, 1)} = ${f(SFCa, 2)} kN`, '')}
     ${R(EQ('Eq. 3.2', 'Shear Force at point B (Roller Support)'), `SF @ B = ${f(SFCa, 2)} − (${f(wu, 1)}×${b}) = ${f(SFBl, 2)} kN ≈ -R<sub>B</sub>`, '')}
     ${BLANK()}
     ${R('', '<span class="uline">Shear Force Diagram</span>', '')}
@@ -1475,7 +1476,7 @@
     ${BLANK()}
     ${R('', '<span class="uline">Bending Moment</span>', '')}
     ${R('', `&Sigma; M<sub>A</sub> = 0`, '')}
-    ${R(EQ('Eq. 3.3', 'Calculation of Bending Moment at Fixed Support A'), `${f(RB, 2)}(${f(L, 1)}) - ${f(wu, 1)}(${f(L, 1)}² / 2) - ${f(Wu, 1)}(${a}) + M<sub>A</sub> = 0`, '')}
+    ${R(EQ('Eq. 3.3', 'Calculation of Bending Moment at Fixed Support A'), `${f(RB, 2)}(${f(L, 1)}) - ${f(wu, 1)}(${f(L, 1)}² / 2) - ${f(Q, 1)}(${a}) + M<sub>A</sub> = 0`, '')}
     ${R('', `<span class="rbox"><b>M<sub>A</sub> = ${f(MA, 2)} kNm</b></span>`, `M<sub>A</sub> = ${f(MA, 2)} kNm`)}
     ${BLANK()}
     ${R(EQ('Eq. 3.4', 'Calculation of Bending Moment at Point C'), `M<sub>C</sub> = ${f(RB, 2)}(${b}) - ${f(wu, 1)}(${b}² / 2)`, '')}
