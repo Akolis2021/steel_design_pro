@@ -870,37 +870,20 @@
     <div class="section-header">Beam Parameters</div>
 
     <div class="fp-grid">
-      <div><label>a (m)</label><input id="iL1" type="number" step="0.1" value="8">
-        <div class="hint">Fixed end → point load</div>
+      <div><label>a (m)</label><input id="iL1" type="number" step="0.1" value="6">
+        <div class="hint">Fixed end → point load &nbsp;|&nbsp; b = 0.8a (auto)</div>
       </div>
-      <div><label>b (m)</label><input id="iL2" type="number" step="0.1" value="6.4">
-        <div class="hint">Point load → roller</div>
-      </div>
-      <div><label>Gk (kN/m)</label><input id="iGk" type="number" step="0.5" value="4">
+      <div><label>Gk (kN/m)</label><input id="iGk" type="number" step="0.5" value="8">
         <div class="hint">Dead UDL</div>
       </div>
-      <div><label>Qk (kN/m)</label><input id="iQk" type="number" step="0.5" value="7">
+      <div><label>Qk (kN/m)</label><input id="iQk" type="number" step="0.5" value="5">
         <div class="hint">Imposed UDL</div>
       </div>
-      <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="70">
-        <div class="hint">Point load</div>
+      <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="80">
+        <div class="hint">Point load at C</div>
       </div>
-      <div><label>Grade</label>
-        <select id="iGrade">
-          <option value="460">S460 – fy 460</option>
-          <option value="355">S355 – fy 355</option>
-          <option value="275">S275 – fy 275</option>
-        </select>
-        <div class="hint">Steel grade</div>
-      </div>
-      <div><label>fy (N/mm²)</label><input id="iFy" type="number" step="5" value="460">
-        <div class="hint">Design strength</div>
-      </div>
-      <div><label>b₁ (mm)</label><input id="ib1" type="number" step="5" value="100">
-        <div class="hint">Stiff bearing length</div>
-      </div>
-      <div><label>aₑ (mm)</label><input id="iae" type="number" step="5" value="80">
-        <div class="hint">End dist. to stiff bearing</div>
+      <div style="grid-column:1/-1"><label>fy (N/mm²)</label><input id="iFy" type="number" step="5" value="275">
+        <div class="hint">Design strength — grade assumed: 275 → S275 &nbsp;|&nbsp; 355 → S355 &nbsp;|&nbsp; 460 → S460</div>
       </div>
     </div>
 
@@ -977,11 +960,25 @@
     }
 
     function runCalculation() {
-      update(); // Generate the report
+      rbOverride = null;          // reset any manual RB adjustment on fresh calc
+      update();
       hasRunOnce = true;
       document.getElementById('out').classList.add('visible');
       closeModal();
-      window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── RB adjustment state ────────────────────────────
+    let rbOverride = null;
+
+    function adjustRB(minRB) {
+      rbOverride = minRB + 0.5;   // just enough above minimum to guarantee sign change
+      update();
+    }
+
+    function resetRB() {
+      rbOverride = null;
+      update();
     }
 
     // ── GEMINI API INTEGRATION & CHAT LOGIC ────────────────────────────
@@ -1014,7 +1011,7 @@
       input.value = '';
 
       const a = document.getElementById('iL1').value;
-      const b = document.getElementById('iL2').value;
+      const b = (parseFloat(a) * 0.8).toFixed(2);
       const Gk = document.getElementById('iGk').value;
       const Qk = document.getElementById('iQk').value;
       const Q = document.getElementById('iQ').value;
@@ -1155,24 +1152,24 @@
     //  MAIN CALCULATION ENGINE
     // ═══════════════════════════════════════════════════════
     function update() {
-      const a = +document.getElementById('iL1').value;
-      const b = +document.getElementById('iL2').value;
+      const a  = +document.getElementById('iL1').value;
       const Gk = +document.getElementById('iGk').value;
       const Qk = +document.getElementById('iQk').value;
-      const Q = +document.getElementById('iQ').value;
+      const Q  = +document.getElementById('iQ').value;
       const fy = +document.getElementById('iFy').value;
-      const b1 = +document.getElementById('ib1').value;
+
+      // Auto-computed assumptions
+      const b  = +(a * 0.8).toFixed(3);   // b = 0.8a
+      const b1 = 100;                       // standard stiff bearing length (mm)
+      // Grade from fy
+      const grade = fy >= 430 ? 'S460' : fy >= 330 ? 'S355' : 'S275';
 
       const errors = [];
-      if (isNaN(a) || a <= 0) errors.push("Dimension 'a' (Fixed end to point load) must be greater than zero.");
-      if (isNaN(b) || b <= 0) errors.push("Dimension 'b' (Point load to roller) must be greater than zero.");
+      if (isNaN(a) || a <= 0) errors.push("Dimension 'a' must be greater than zero.");
       if (isNaN(Gk) || Gk < 0) errors.push("Dead UDL (Gk) cannot be negative.");
       if (isNaN(Qk) || Qk < 0) errors.push("Imposed UDL (Qk) cannot be negative.");
-      if (isNaN(Q) || Q < 0) errors.push("Point load (Q) cannot be negative.");
-      if (isNaN(fy) || fy < 200 || fy > 550) errors.push("Yield strength (f<sub>y</sub>) is outside standard BS 5950 bounds (200 - 550 N/mm²).");
-      if (isNaN(b1) || b1 <= 0) errors.push("Stiff bearing length (b₁) must be greater than zero.");
-      const ae = +document.getElementById('iae').value;
-      if (isNaN(ae) || ae < 0) errors.push("End distance to stiff bearing (aₑ) cannot be negative.");
+      if (isNaN(Q)  || Q  < 0) errors.push("Point load (Q) cannot be negative.");
+      if (isNaN(fy) || fy < 200 || fy > 550) errors.push("f<sub>y</sub> is outside standard BS 5950 bounds (200–550 N/mm²).");
 
       if (errors.length > 0) {
         document.getElementById('out').innerHTML = `
@@ -1196,7 +1193,11 @@
       const part2 = (2 / 3) * L;   // lever arm = 2L/3 (per notes)
       const A3X3 = part1 * part2;
 
-      const RB = (A2X2 + A3X3) / A1_coeff;
+      const RB_calc = (A2X2 + A3X3) / A1_coeff;
+      // Minimum RB required for SF to change sign at C: RB > wu×b
+      const RB_min_sign = wu * b;
+      const rbAdjusted = rbOverride !== null;
+      const RB = rbAdjusted ? rbOverride : RB_calc;
       const RA = tot - RB;
 
       const SFA = RA;
@@ -1247,7 +1248,7 @@
       const Mmax2 = Math.abs(MA) + Msw;
       const mc_ok = Mmax2 <= Mc;
 
-      const ae_val = ae;  // already read above
+      const ae_val = b1;  // ae assumed = b1 (stiff bearing length, end support condition)
       const EI = 205e3 * sec.Ix * 1e4;
       const Lmm = L * 1e3, amm = a * 1e3, bmm = b * 1e3;
       // UDL term — propped cantilever under imposed UDL
@@ -1393,14 +1394,15 @@
 
       const p1 = page(`
     ${R('BS 5950-1:2000', '<span class="uline">Parameters given.</span>', '')}
-    ${R('', `L = ${f(L, 1)} m&nbsp;&nbsp;&nbsp; Q = ${Q} kN`, '')}
-    ${R('', `Gk = ${Gk} kN/m&nbsp;&nbsp;&nbsp; Qk = ${Qk} kN/m`, '')}
+    ${R('', `a = ${f(a, 1)} m &nbsp;&nbsp; b = 0.8a = ${f(b, 2)} m &nbsp;&nbsp; L = ${f(L, 2)} m`, '')}
+    ${R('', `Gk = ${Gk} kN/m &nbsp;&nbsp; Qk = ${Qk} kN/m &nbsp;&nbsp; Q = ${Q} kN`, '')}
+    ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp;&nbsp; Grade: ${grade}`, '')}
     ${BLANK()}
     ${SVGR('', diagramSVG, '')}
     ${BLANK()}
     ${R(EQ('Eq. 1.1', 'Calculation for the total factored load on the beam'), '<span class="uline">Total factored load on the beam.</span>', '')}
-    ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × ${f(L, 1)} + 1.6(${Q})`, '')}
-    ${R('', `= ${f(wu, 1)} × ${f(L, 1)} + ${f(Wu, 1)}`, '')}
+    ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × ${f(L, 2)} + 1.6(${Q})`, '')}
+    ${R('', `= ${f(wu, 2)} × ${f(L, 2)} + ${f(Wu, 1)}`, '')}
     ${R('', `<b>Total Design loading = ${f(tot, 2)} kN</b>`, `${f(tot, 0)} kN`)}
     ${BLANK()}
     ${R('', 'The beam section is statically indeterminate.', '')}
@@ -1421,7 +1423,7 @@
     ${R('', `A₁x̄₁ = A₂x̄₂ + A₃x̄₃`, '')}
     ${R('', `${f(A1_coeff, 2)} R<sub>B</sub> = ${f(A2X2, 1)} + ${f(A3X3, 1)}`, '')}
     ${R(EQ('Eq. 2.4', 'Solving for Reaction RB using the Area-Moment theorem'), `R<sub>B</sub> = ${f(A2X2 + A3X3, 1)} / ${f(A1_coeff, 2)}`, '')}
-    ${R('', `<span class="rbox"><b>R<sub>B</sub> = ${f(RB, 2)} kN</b></span>`, `R<sub>B</sub> = ${f(RB, 2)} kN`)}
+    ${R('', `<span class="rbox"><b>R<sub>B</sub> (calc) = ${f(RB_calc, 2)} kN</b></span>${rbAdjusted ? ` &nbsp;→&nbsp; <span class="rbox" style="border-color:#d97706;color:#92400e;"><b>R<sub>B</sub> (adjusted) = ${f(RB, 2)} kN</b></span>` : ''}`, `R<sub>B</sub> = ${f(RB, 2)} kN`)}
     ${BLANK()}
     ${R(EQ('Eq. 2.5', 'Solving for Reaction RA using sum of vertical forces'), `R<sub>A</sub> = (${f(wu, 1)} × ${f(L, 1)}) + (${f(Wu, 1)}) - ${f(RB, 2)}`, '')}
     ${R('', `<span class="rbox"><b>R<sub>A</sub> = ${f(RA, 2)} kN</b></span>`, `R<sub>A</sub> = ${f(RA, 2)} kN`)}
@@ -1429,7 +1431,17 @@
     ${R('', '<span class="uline">SF (Shear force)</span>', '')}
     ${R('', `SF @ A = R<sub>A</sub> = ${f(SFA, 2)} kN`, `${f(SFA, 2)} kN`)}
     ${R(EQ('Eq. 2.6', 'Shear Force at point C just before the point load acts'), `SF @ C (before) = ${f(SFA, 2)} − (${f(wu, 1)}×${a}) = ${f(SFCb, 2)} kN`, '')}
-    ${(SFCb >= 0 && SFCa <= 0) ? R('', `SF changes sign at C ✓ — max +ve moment is at C`, '') : R('', `⚠ SF does not change sign at C — actual max moment may be elsewhere`, '')}
+    ${(SFCb >= 0 && SFCa <= 0)
+      ? R('', `<span class="ok">✓ SF changes sign at C — max sagging moment is at C</span>${rbAdjusted ? ` &nbsp;<span style="font-size:10px;color:#92400e;font-family:Arial,sans-serif;">[R<sub>B</sub> adjusted from ${f(RB_calc,2)} → ${f(RB,2)} kN] &nbsp;<button onclick="resetRB()" style="font-size:10px;padding:1px 6px;cursor:pointer;border:1px solid #334155;border-radius:4px;background:#1e293b;color:#94a3b8;">Reset to calculated</button></span>` : ''}`, '')
+      : R('', `<span class="fail">⚠ SF does not change sign at C</span> &nbsp;
+          <div style="display:inline-flex;align-items:center;gap:8px;margin-top:4px;">
+            <button onclick="adjustRB(${f(RB_min_sign, 4)})"
+              style="background:#2563eb;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-family:Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.4);">
+              ↑ Adjust R<sub>B</sub> to force sign change at C
+            </button>
+            <span style="font-family:Arial,sans-serif;font-size:10px;color:#64748b;">(sets R<sub>B</sub> = ${f(RB_min_sign + 0.5, 2)} kN)</span>
+          </div>`, '')
+    }
   `, 2);
 
       const p3 = page(`
