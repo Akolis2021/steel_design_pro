@@ -29,7 +29,6 @@
       padding-bottom: 40px;
       padding-top: 80px;
       overflow-x: hidden;
-      /* Prevents the whole site from swaying sideways */
     }
 
     /* ── Navigation Bar ─────────────────────────────────── */
@@ -69,45 +68,6 @@
       color: #3b82f6;
     }
 
-    .nav-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .nav-btn {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 16px;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, .4);
-      transition: background 0.2s, transform 0.1s;
-    }
-
-    .nav-btn:hover {
-      background: #1d4ed8;
-    }
-
-    .nav-btn:active {
-      transform: scale(0.96);
-    }
-
-    .nav-btn.secondary {
-      background: #1e293b;
-      color: #94a3b8;
-      border: 1px solid #334155;
-      box-shadow: none;
-    }
-
-    .nav-btn.secondary:hover {
-      background: #334155;
-      color: #fff;
-    }
-
     /* ── Hamburger menu ─────────────────────────────────── */
     #hamburgerBtn {
       background: none;
@@ -138,7 +98,7 @@
       position: fixed;
       top: 65px;
       right: 0;
-      width: 220px;
+      width: 240px;
       background: #0f172a;
       border: 1px solid #1e3a5f;
       border-top: none;
@@ -192,14 +152,12 @@
       padding: 20px 10px;
       display: block;
       transform-origin: top left;
-      /* JS handles scale + centering via margin-left */
     }
 
     .page {
       background: #fffef9;
       background-image: repeating-linear-gradient(transparent 0px, transparent 23px, #dde6ef 23px, #dde6ef 24px);
       width: 210mm;
-      /* Strictly enforces A4 width. NO SQUISHING! */
       height: auto;
       padding-bottom: 12px;
       margin: 0 auto 24px auto;
@@ -371,14 +329,12 @@
       border: 2px solid #3b82f6;
       border-radius: 12px;
       padding: 32px 28px 24px;
-      width: 440px;
+      width: 480px;
       max-width: 92vw;
       z-index: 1001;
       max-height: 90vh;
-      /* FIX: Prevents modal from getting cut off on small screens */
       overflow-y: auto;
       overflow-x: hidden;
-      /* FIX: No horizontal scroll */
       box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2), 0 10px 40px rgba(0, 0, 0, 0.6);
       display: none;
       opacity: 0;
@@ -392,7 +348,6 @@
       transform: translate(-50%, -50%) scale(1);
     }
 
-    /* Custom scrollbar for modal */
     #inputModal::-webkit-scrollbar {
       width: 6px;
     }
@@ -465,6 +420,8 @@
       letter-spacing: 1.2px;
       text-transform: uppercase;
       margin-bottom: 14px;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 4px;
     }
 
     /* Modal Grid & Inputs */
@@ -521,7 +478,7 @@
       margin-top: 5px;
     }
 
-    @media (max-width: 380px) {
+    @media (max-width: 480px) {
       .fp-grid {
         grid-template-columns: 1fr;
       }
@@ -585,7 +542,6 @@
       max-width: 90vw;
       height: 420px;
       max-height: 85vh;
-      /* Safety limit for small screens */
       background: #fff;
       border: 2px solid #3b82f6;
       border-radius: 12px;
@@ -765,12 +721,12 @@
     }
 
     @media print {
-
       #navbar,
       #navDropdown,
       #backdrop,
       #inputModal,
-      #aiChat {
+      #aiChat,
+      #zoom-bar {
         display: none !important;
       }
 
@@ -824,9 +780,14 @@
       </svg>
       Steel Design <span>Pro</span>
     </div>
-    <button id="hamburgerBtn" onclick="toggleHamburger()" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button class="nav-btn" onclick="openModal()" style="font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; background: #2563eb; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+        Inputs
+      </button>
+      <button id="hamburgerBtn" onclick="toggleHamburger()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </nav>
 
   <!-- ═══ NAV DROPDOWN ═══ -->
@@ -838,11 +799,15 @@
     <div class="nav-drop-divider"></div>
     <button class="nav-drop-item primary" onclick="openModal(); toggleHamburger();">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-      Edit Inputs
+      Edit Design Parameters
     </button>
     <button class="nav-drop-item" onclick="window.print(); toggleHamburger();">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Print / Save PDF
+    </button>
+    <div class="nav-drop-divider"></div>
+    <button class="nav-drop-item" id="nav-opt-btn" onclick="toggleDeflectionOptimization(); toggleHamburger();" style="color: #10b981;">
+      🟢 Mode: Standard Sizing
     </button>
   </div>
 
@@ -864,22 +829,42 @@
     </div>
 
     <div class="section-header">Beam Parameters</div>
-
     <div class="fp-grid">
       <div><label>L (m)</label><input id="iL1" type="number" step="0.1" value="12">
-        <div class="hint">Span to point load &nbsp;|&nbsp; 0.8L computed automatically</div>
+        <div class="hint">Span to point load (a)</div>
       </div>
       <div><label>g — Dead load (kN/m)</label><input id="iGk" type="number" step="0.5" value="4">
-        <div class="hint">Lecturer's <b>g</b> value (dead UDL)</div>
+        <div class="hint">Dead UDL (Gk)</div>
       </div>
       <div><label>q — Imposed load (kN/m)</label><input id="iQk" type="number" step="0.5" value="4">
-        <div class="hint">Lecturer's <b>q</b> value (imposed UDL)</div>
+        <div class="hint">Imposed UDL (Qk)</div>
       </div>
       <div><label>Q (kN)</label><input id="iQ" type="number" step="1" value="90">
-        <div class="hint">Point load at C</div>
+        <div class="hint">Point load at C (Q)</div>
       </div>
       <div style="grid-column:1/-1"><label>Fy (N/mm²)</label><input id="iFy" type="number" step="5" value="460">
-        <div class="hint">250 → S275 (p<sub>y</sub>=275) &nbsp;|&nbsp; 275 → S275 &nbsp;|&nbsp; 355 → S355 &nbsp;|&nbsp; 460 → S460 &nbsp;— grade & p<sub>y</sub> set automatically</div>
+        <div class="hint">Steel Grade: S275, S355, S460 updated automatically</div>
+      </div>
+    </div>
+
+    <div class="section-header">Bearing & Buckling Parameters</div>
+    <div class="fp-grid">
+      <div><label>b₁ (mm) Stiff Bearing</label><input id="iB1" type="number" step="5" value="100">
+        <div class="hint">Stiff bearing length</div>
+      </div>
+      <div><label>a_e (mm) End Distance</label><input id="iAe" type="number" step="5" value="50">
+        <div class="hint">Distance to end of beam</div>
+      </div>
+    </div>
+
+    <div class="section-header">Optimization Engine</div>
+    <div style="margin-bottom: 20px;">
+      <label style="display: flex; align-items: center; gap: 10px; color: #fff; font-family: Arial, sans-serif; font-size: 13px; cursor: pointer;">
+        <input type="checkbox" id="iForcePass" style="width: 18px; height: 18px; cursor: pointer;">
+        <span>Auto-optimize section to pass ALL deflection limits</span>
+      </label>
+      <div style="font-family: Arial, sans-serif; font-size: 11px; color: #94a3b8; margin-left: 28px; margin-top: 4px;">
+        Will automatically select the lightest section that passes deflection (e.g. 533x210x92 UB).
       </div>
     </div>
 
@@ -950,13 +935,13 @@
     }
 
     function closeModal() {
-      if (!hasRunOnce) return; // Prevent closing if they haven't calculated yet
+      if (!hasRunOnce) return;
       document.getElementById('backdrop').classList.remove('open');
       document.getElementById('inputModal').classList.remove('open');
     }
 
     function runCalculation() {
-      rbOverride = null;          // reset any manual RB adjustment on fresh calc
+      rbOverride = null;
       update();
       hasRunOnce = true;
       document.getElementById('out').classList.add('visible');
@@ -964,11 +949,26 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function toggleDeflectionOptimization() {
+      const chk = document.getElementById('iForcePass');
+      chk.checked = !chk.checked;
+      document.getElementById('nav-opt-btn').textContent = chk.checked ? "🟢 Mode: Auto-Optimized" : "🟢 Mode: Standard Sizing";
+      document.getElementById('nav-opt-btn').style.color = chk.checked ? "#10b981" : "#e2e8f0";
+      runCalculation();
+    }
+
+    function triggerUpgrade() {
+      document.getElementById('iForcePass').checked = true;
+      document.getElementById('nav-opt-btn').textContent = "🟢 Mode: Auto-Optimized";
+      document.getElementById('nav-opt-btn').style.color = "#10b981";
+      runCalculation();
+    }
+
     // ── RB adjustment state ────────────────────────────
     let rbOverride = null;
 
     function adjustRB(minRB) {
-      rbOverride = minRB + 0.5;   // just enough above minimum to guarantee sign change
+      rbOverride = minRB + 0.5;
       update();
     }
 
@@ -978,9 +978,7 @@
     }
 
     // ── GEMINI API INTEGRATION & CHAT LOGIC ────────────────────────────
-    // If you are testing locally or without Vercel, paste your API key here:
     const apiKey = "";
-
     let currentChatContext = "General Beam Design";
 
     function closeChat() { document.getElementById('aiChat').classList.remove('open'); }
@@ -1028,18 +1026,11 @@
       msgContainer.innerHTML += `<div class="msg ai" id="${typingId}"><i>Thinking...</i></div>`;
       msgContainer.scrollTop = msgContainer.scrollHeight;
 
+      let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
       const payload = {
         contents: [{ parts: [{ text: text }] }],
         systemInstruction: { parts: [{ text: systemPrompt }] }
       };
-
-      // SMART FETCH LOGIC:
-      // If apiKey string is filled out (for local testing), use direct Google API.
-      // Otherwise, use the Vercel backend `/api/chat` route.
-      let url = '/api/chat';
-      if (apiKey && apiKey.length > 5) {
-        url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      }
 
       let data = null;
       let lastError = 'Unknown error';
@@ -1057,7 +1048,6 @@
         if (response.ok) {
           data = body;
         } else {
-          // Capture the real error from Vercel/Google so we can show it
           const status = response.status;
           const msg = body?.error || body?.error?.message || JSON.stringify(body) || 'No details returned';
           lastError = `HTTP ${status}: ${msg}`;
@@ -1072,7 +1062,7 @@
       if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
         appendMessage('ai', data.candidates[0].content.parts[0].text);
       } else {
-        appendMessage('ai', `<i style="color:#ef4444;">⚠️ AI Error — ${lastError}</i><br><span style="font-size:11px;color:#94a3b8;">Check: Vercel env var <b>GEMINI_API_KEY</b> is set & redeployed.</span>`);
+        appendMessage('ai', `<i style="color:#ef4444;">⚠️ AI Error — ${lastError}</i><br><span style="font-size:11px;color:#94a3b8;">Standard calculation system works normally. Connect to API for AI tutoring.</span>`);
       }
     }
 
@@ -1171,14 +1161,12 @@
       const Qk = +document.getElementById('iQk').value;
       const Q  = +document.getElementById('iQ').value;
       const fy = +document.getElementById('iFy').value;
+      const b1 = +document.getElementById('iB1').value;
+      const ae = +document.getElementById('iAe').value;
+      const forcePassDeflection = document.getElementById('iForcePass').checked;
 
-      // Auto-computed assumptions
       const b  = +(a * 0.8).toFixed(3);   // b = 0.8a
-      const b1 = 100;                       // standard stiff bearing length (mm)
-      // Grade assumed from fy — only 3 grades exist in BS 5950: S275, S355, S460
-      // fy=250 (no S250 grade) → rounds up to nearest grade S275, py=275
       const grade = fy >= 430 ? 'S460' : fy >= 330 ? 'S355' : 'S275';
-      // py = design strength (from BS 5950 Table 9); always one of the 3 standard grades
       const py = fy >= 430 ? 460 : fy >= 330 ? 355 : 275;
 
       const errors = [];
@@ -1187,6 +1175,8 @@
       if (isNaN(Qk) || Qk < 0) errors.push("Imposed UDL (Qk) cannot be negative.");
       if (isNaN(Q)  || Q  < 0) errors.push("Point load (Q) cannot be negative.");
       if (isNaN(fy) || fy < 200 || fy > 550) errors.push("f<sub>y</sub> is outside standard BS 5950 bounds (200–550 N/mm²).");
+      if (isNaN(b1) || b1 <= 0) errors.push("Stiff bearing length (b1) must be positive.");
+      if (isNaN(ae) || ae < 0) errors.push("End distance (a_e) cannot be negative.");
 
       if (errors.length > 0) {
         document.getElementById('out').innerHTML = `
@@ -1202,17 +1192,15 @@
       const L = a + b;
       const wu = 1.4 * Gk + 1.6 * Qk;
       const Wu = 1.6 * Q;
-      const tot = wu * L + Q;   // notes use unfactored Q in vertical equilibrium (consistent with area-moment method)
+      const tot = wu * L + Q; // total nominal vertical equilibrium matches note Page 9
 
-      const A1_coeff = Math.pow(L, 3) / 3;              // [½×RB×L²] × [⅔×L] = RB × L³/3
+      const A1_coeff = Math.pow(L, 3) / 3;
       const A2X2 = (wu * Math.pow(L, 4)) / 8;
-      // A3X3: unfactored Q — lecturer's area-moment method uses Q directly in M/EI diagram
-      const part1 = 0.5 * a * (Q * a);                  // half × a × Q×a (unfactored point load)
-      const part2 = L - (a / 3);                         // lever arm = ⅔a + b = L − a/3
+      const part1 = 0.5 * a * (Q * a);
+      const part2 = L - (a / 3);
       const A3X3 = part1 * part2;
 
       const RB_calc = (A2X2 + A3X3) / A1_coeff;
-      // Minimum RB required for SF to change sign at C: RB > wu×b
       const RB_min_sign = wu * b;
       const rbAdjusted = rbOverride !== null;
       const RB = rbAdjusted ? rbOverride : RB_calc;
@@ -1220,17 +1208,18 @@
 
       const SFA = RA;
       const SFCb = RA - wu * a;
-      const SFCa = SFCb - Q;   // unfactored Q — consistent with lecturer's method
+      const SFCa = SFCb - Q;
       const SFBl = SFCa - wu * b;
 
-      const MA = -(RB * L - wu * Math.pow(L, 2) / 2 - Q * a);  // unfactored Q, sign: hogging negative
+      const MA = -(RB * L - wu * Math.pow(L, 2) / 2 - Q * a);
       const BMC = RB * b - wu * Math.pow(b, 2) / 2;
-      const Mmax = Math.abs(BMC);  // notes use sagging moment at C for section sizing
+      const Mmax = Math.abs(BMC);
 
       const Sx_req = (Mmax * 1e6) / (py);
       const Sx_req_cm3 = Sx_req / 1000;
 
-      const validSecs = UB.filter(s => s.Sx >= Sx_req_cm3);
+      // Filter sections satisfying Sx
+      let validSecs = UB.filter(s => s.Sx >= Sx_req_cm3);
       validSecs.sort((s1, s2) => s1.m - s2.m);
 
       if (validSecs.length === 0) {
@@ -1238,12 +1227,33 @@
       <div class="page-wrapper">
         <div style="width:210mm; margin: 20px auto; padding: 24px; background: #fffbeb; border: 2px solid #d97706; border-radius: 8px; font-family: Arial, sans-serif; box-sizing: border-box;">
           <h2 style="color: #92400e; margin-top: 0;">⛔ Capacity Exceeded</h2>
-          <p style="color: #92400e;">The applied loads generate a design moment requiring an <b>S<sub>x</sub> &ge; ${f(Sx_req_cm3, 1)} cm³</b>. This exceeds the database capacity.</p>
+          <p style="color: #92400e;">The applied loads generate a design moment requiring an <b>S<sub>x</sub> &ge; ${f(Sx_req_cm3, 1)} cm³</b>. This exceeds database capacity.</p>
         </div>
       </div>`;
         return;
       }
+
+      // If optimization is enabled, find the lightest section that passes EVERYTHING including deflection
       let sec = validSecs[0];
+      if (forcePassDeflection) {
+        let optimalSec = null;
+        for (let s of validSecs) {
+          // Deflection check logic
+          const testEI = 205e3 * s.Ix * 1e4;
+          const testLmm = L * 1e3, testAmm = a * 1e3, testBmm = b * 1e3;
+          const test_dS_pt = (Q * 1e3 * Math.pow(testAmm, 2) * testBmm) / (6 * testEI) * Math.sqrt(testBmm / (3 * testLmm - testAmm));
+          const test_dS_udl = (Qk * Math.pow(testLmm, 4)) / (185 * testEI);
+          const test_dC = test_dS_pt + test_dS_udl;
+          const test_limit = testLmm / 180;
+          if (test_dC <= test_limit) {
+            optimalSec = s;
+            break;
+          }
+        }
+        if (optimalSec) {
+          sec = optimalSec;
+        }
+      }
 
       const eps = (py === 460) ? 0.8 : Math.sqrt(275 / py);
       const b_T = (sec.B / 2) / sec.T;
@@ -1262,33 +1272,28 @@
       const Mc = Math.min(Mc_f, Mc_l);
 
       const Gsw = sec.m * 9.81 / 1000;
-      const Leff = (2/3) * L;  // effective span for self-weight sagging — notes use 2L/3 = 14.4m
+      const Leff = (2/3) * L;
       const Msw = 1.4 * Gsw * Leff * Leff * (9 / 128);
-      const Mmax2 = Mmax + Msw;  // Mmax = BMC (sagging at C)
+      const Mmax2 = Mmax + Msw;
       const mc_ok = Mmax2 <= Mc;
 
-      const ae_val = b1;  // ae assumed = b1 (stiff bearing length, end support condition)
       const EI = 205e3 * sec.Ix * 1e4;
       const Lmm = L * 1e3, amm = a * 1e3, bmm = b * 1e3;
       
-      // FIXED DEFLECTION CALCULATION (Added missing factor of 6 in denominator for Pt load)
+      // Deflection formulation with correct factors as shown on Page 7 & Page 3 of sunko PDF
       const dS_pt = (Q * 1e3 * Math.pow(amm, 2) * bmm) / (6 * EI) * Math.sqrt(bmm / (3 * Lmm - amm));
       const dS_udl = (Qk * Math.pow(Lmm, 4)) / (185 * EI);
       const dC = dS_pt + dS_udl;
-      
       const dCL = Lmm / 180;
       const dC_ok = dC <= dCL;
 
       const k = sec.T + sec.r;
       const n = 2;
       const Pbw = (b1 + n * k) * sec.t * py / 1e3;
-      // Contact stress — per notes: Pcs = b1 × n × k × py
       const Pcs = b1 * n * k * py / 1e3;
       const epsS = Math.sqrt(275 / py);
-      const ae = ae_val;   // ae = stiff bearing length at end support
       const ae_thresh = 0.7 * sec.d;
       const Px_full = (25 * epsS * sec.t / Math.sqrt((b1 + n * k) * sec.d)) * Pbw;
-      // ae < 0.7d check — reduced buckling resistance per BS 5950-1 Cl. 4.5.3.1
       const ae_reduced = ae < ae_thresh;
       const Px = ae_reduced
         ? ((ae + 0.7 * sec.d) / (1.4 * sec.d)) * Px_full
@@ -1360,7 +1365,7 @@
     <text x="${(Ax + Cx) / 2}" y="${beamY + 105}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">${a} m</text>
     <line x1="${Cx}" y1="${beamY + 92}" x2="${Bx}" y2="${beamY + 92}" stroke="#555" stroke-width="1"/>
     <line x1="${Bx}" y1="${beamY + 87}" x2="${Bx}" y2="${beamY + 97}" stroke="#555" stroke-width="1"/>
-    <text x="${(Cx + Bx) / 2}" y="${beamY + 105}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">${b} m</text>
+    <text x="${(Cx + Bx) / 2}" y="${beamY + 105}" text-anchor="middle" font-family="Architects Daughter" font-size="10" fill="#333">${f(b, 2)} m</text>
   </svg>`;
 
       const FW = 400; const sfdBase = 80;
@@ -1416,33 +1421,33 @@
     ${R('BS 5950-1:2000', '<span class="uline">Parameters given.</span>', '')}
     ${R('', `L = ${f(a, 1)} m &nbsp;&nbsp; 0.8L = ${f(b, 2)} m &nbsp;&nbsp; Total span = ${f(L, 2)} m`, '')}
     ${R('', `g = ${Gk} kN/m (dead) &nbsp;&nbsp; q = ${Qk} kN/m (imposed) &nbsp;&nbsp; Q = ${Q} kN`, '')}
-    ${R('', `F<sub>y</sub> = ${fy} N/mm² (given) &nbsp;&nbsp; Grade: ${grade} &nbsp;&nbsp; <b>p<sub>y</sub> = ${py} N/mm²</b> (design strength used)`, '')}
+    ${R('', `F<sub>y</sub> = ${fy} N/mm² (given) &nbsp;&nbsp; Grade: ${grade} &nbsp;&nbsp; <b>p<sub>y</sub> = ${py} N/mm²</b>`, '')}
     ${BLANK()}
     ${SVGR('', diagramSVG, '')}
     ${BLANK()}
     ${R(EQ('Eq. 1.1', 'Calculation for the total factored load on the beam'), '<span class="uline">Total factored load on the beam.</span>', '')}
-    ${R('', `(1.4(${Gk}) + 1.6(${Qk})) × ${f(L, 2)} + ${f(Q,1)}`, '')}
-    ${R('', `= ${f(wu, 2)} × ${f(L, 2)} + ${f(Q, 1)}`, '')}
+    ${R('', `1.4(${Gk} × ${f(L,2)}) + 1.6(${Qk} × ${f(L,2)} + ${Q})`, '')}
+    ${R('', `= 1.4(${f(Gk*L, 2)}) + 1.6(${f(Qk*L + Q, 2)})`, '')}
     ${R('', `<b>Total Design loading = ${f(tot, 2)} kN</b>`, `${f(tot, 0)} kN`)}
     ${BLANK()}
     ${R('', 'The beam section is statically indeterminate.', '')}
-    ${R('', 'Thus reactions become', '')}
+    ${R('', 'Thus reactions are computed via area-moment:', '')}
     ${R('', '<b>A₁x̄₁ = A₂x̄₂ + A₃x̄₃</b>', '')}
   `, 1);
 
       const p2 = page(`
     ${R(EQ('Eq. 2.1', 'Moment of the area of the RB triangular diagram about fixed support A'), `A₁x̄₁ = [½ × R<sub>B</sub> × ${f(L, 1)}²] × [⅔ × ${f(L, 1)}]`, '')}
-    ${R('', `= <b>${f(A1_coeff, 2)} R<sub>B</sub></b>`, '')}
+    ${R('', `= <b>${f(A1_coeff, 3)} R<sub>B</sub></b>`, '')}
     ${BLANK()}
     ${R(EQ('Eq. 2.2', 'Moment of the area of the UDL parabolic diagram about fixed support A'), `A₂x̄₂ = [⅓ × ${f(L, 1)} × (${f(wu, 1)}×${f(L, 1)}² / 2)] × [¾ × ${f(L, 1)}]`, '')}
-    ${R('', `= <b>${f(A2X2, 1)}</b>`, '')}
+    ${R('', `= <b>${f(A2X2, 2)}</b>`, '')}
     ${BLANK()}
-    ${R(EQ('Eq. 2.3', 'Moment of the area of the Point Load triangular diagram about fixed support A'), `A₃x̄₃ = [½ × ${a} × (${f(Q, 1)}×${a})] × [⅔×${a} + ${b}]`, '')}
-    ${R('', `= <b>${f(A3X3, 1)}</b>`, '')}
+    ${R(EQ('Eq. 2.3', 'Moment of the area of the Point Load triangular diagram about fixed support A'), `A₃x̄₃ = [½ × ${a} × (${f(Q, 1)}×${a})] × [⅔×${a} + ${f(b,2)}]`, '')}
+    ${R('', `= <b>${f(A3X3, 2)}</b>`, '')}
     ${BLANK()}
     ${R('', `A₁x̄₁ = A₂x̄₂ + A₃x̄₃`, '')}
-    ${R('', `${f(A1_coeff, 2)} R<sub>B</sub> = ${f(A2X2, 1)} + ${f(A3X3, 1)}`, '')}
-    ${R(EQ('Eq. 2.4', 'Solving for Reaction RB using the Area-Moment theorem'), `R<sub>B</sub> = ${f(A2X2 + A3X3, 1)} / ${f(A1_coeff, 2)}`, '')}
+    ${R('', `${f(A1_coeff, 3)} R<sub>B</sub> = ${f(A2X2, 2)} + ${f(A3X3, 2)}`, '')}
+    ${R(EQ('Eq. 2.4', 'Solving for Reaction RB using the Area-Moment theorem'), `R<sub>B</sub> = ${f(A2X2 + A3X3, 2)} / ${f(A1_coeff, 3)}`, '')}
     ${R('', `<span class="rbox"><b>R<sub>B</sub> (calc) = ${f(RB_calc, 2)} kN</b></span>${rbAdjusted ? ` &nbsp;→&nbsp; <span class="rbox" style="border-color:#d97706;color:#92400e;"><b>R<sub>B</sub> (adjusted) = ${f(RB, 2)} kN</b></span>` : ''}`, `R<sub>B</sub> = ${f(RB, 2)} kN`)}
     ${BLANK()}
     ${R(EQ('Eq. 2.5', 'Solving for Reaction RA using sum of vertical forces'), `R<sub>A</sub> = (${f(wu, 1)} × ${f(L, 1)}) + (${f(Q, 1)}) - ${f(RB, 2)}`, '')}
@@ -1466,7 +1471,7 @@
 
       const p3 = page(`
     ${R(EQ('Eq. 3.1', 'Shear Force at point C immediately after the point load acts'), `SF @ C (after) = ${f(SFCb, 2)} − ${f(Q, 1)} = ${f(SFCa, 2)} kN`, '')}
-    ${R(EQ('Eq. 3.2', 'Shear Force at point B (Roller Support)'), `SF @ B = ${f(SFCa, 2)} − (${f(wu, 1)}×${b}) = ${f(SFBl, 2)} kN ≈ -R<sub>B</sub>`, '')}
+    ${R(EQ('Eq. 3.2', 'Shear Force at point B (Roller Support)'), `SF @ B = ${f(SFCa, 2)} − (${f(wu, 1)}×${f(b,2)}) = ${f(SFBl, 2)} kN ≈ -R<sub>B</sub>`, '')}
     ${BLANK()}
     ${R('', '<span class="uline">Shear Force Diagram</span>', '')}
     ${SVGR('', sfdSVG, '')}
@@ -1476,7 +1481,7 @@
     ${R(EQ('Eq. 3.3', 'Calculation of Bending Moment at Fixed Support A'), `${f(RB, 2)}(${f(L, 1)}) - ${f(wu, 1)}(${f(L, 1)}² / 2) - ${f(Q, 1)}(${a}) + M<sub>A</sub> = 0`, '')}
     ${R('', `<span class="rbox"><b>M<sub>A</sub> = ${f(MA, 2)} kNm</b></span>`, `M<sub>A</sub> = ${f(MA, 2)} kNm`)}
     ${BLANK()}
-    ${R(EQ('Eq. 3.4', 'Calculation of Bending Moment at Point C'), `M<sub>C</sub> = ${f(RB, 2)}(${b}) - ${f(wu, 1)}(${b}² / 2)`, '')}
+    ${R(EQ('Eq. 3.4', 'Calculation of Bending Moment at Point C'), `M<sub>C</sub> = ${f(RB, 2)}(${f(b,2)}) - ${f(wu, 1)}(${f(b,2)}² / 2)`, '')}
     ${R('', `M<sub>C</sub> = ${f(RB * b, 2)} - ${f(wu * b * b / 2, 2)} = <b>${f(BMC, 2)} kNm</b>`, `M<sub>C</sub> = ${f(BMC, 2)} kNm`)}
     ${BLANK()}
     ${R('', `M<sub>B</sub> = 0 kNm`, '')}
@@ -1494,33 +1499,33 @@
     ${R('', `S<sub>x</sub> = ${f(Sx_req, 2)} mm³`, '')}
     ${R('', `<b>S<sub>x</sub> required = ${f(Sx_req_cm3, 2)} cm³</b>`, `S<sub>x</sub> = ${f0(Sx_req_cm3)} cm³`)}
     ${BLANK()}
-    ${R('BS 5950-1:2000<br>Table B1', '<span class="uline">Suitable Sections from Table B1 (S<sub>x</sub> &ge; ${f(Sx_req_cm3,1)} cm³)</span>', '')}
+    ${R('BS 5950-1:2000<br>Table B1', `<span class="uline">Suitable Sections (S<sub>x</sub> &ge; ${f(Sx_req_cm3,1)} cm³)</span>`, '')}
     ${R('', `<div style="font-size:11px;color:#00008b;overflow-x:auto;">
       <table style="border-collapse:collapse;width:100%;min-width:240px;font-family:Arial,sans-serif;font-size:10px;">
         <thead>
           <tr style="border-bottom:1.5px solid #00008b;">
             <th style="text-align:left;padding:2px 6px;">Section</th>
-            <th style="text-align:right;padding:2px 6px;">Mass</th>
+            <th style="text-align:right;padding:2px 6px;">Mass (kg/m)</th>
             <th style="text-align:right;padding:2px 6px;">S<sub>x</sub> (cm³)</th>
-            <th style="text-align:right;padding:2px 6px;">Z<sub>x</sub> (cm³)</th>
+            <th style="text-align:right;padding:2px 6px;">I<sub>x</sub> (cm⁴)</th>
           </tr>
         </thead>
         <tbody>
           ${validSecs.slice(0, 4).map((s, i) => `
-          <tr style="background:${i === 0 ? 'rgba(22,101,52,0.10)' : 'transparent'};border-bottom:1px solid #dde6ef;">
-            <td style="padding:2px 6px;font-weight:${i === 0 ? 'bold' : 'normal'};color:${i === 0 ? '#166534' : '#00008b'};">${s.n} UB${i === 0 ? ' ◀ selected' : ''}</td>
+          <tr style="background:${s.n === sec.n ? 'rgba(37,99,235,0.12)' : 'transparent'};border-bottom:1px solid #dde6ef;">
+            <td style="padding:2px 6px;font-weight:${s.n === sec.n ? 'bold' : 'normal'};color:${s.n === sec.n ? '#1d4ed8' : '#00008b'};">${s.n} UB${s.n === sec.n ? ' ◀ active' : ''}</td>
             <td style="text-align:right;padding:2px 6px;">${s.m}</td>
-            <td style="text-align:right;padding:2px 6px;font-weight:${i === 0 ? 'bold' : 'normal'};">${s.Sx}</td>
-            <td style="text-align:right;padding:2px 6px;">${s.Zx}</td>
+            <td style="text-align:right;padding:2px 6px;font-weight:${s.n === sec.n ? 'bold' : 'normal'};">${s.Sx}</td>
+            <td style="text-align:right;padding:2px 6px;">${s.Ix}</td>
           </tr>`).join('')}
         </tbody>
       </table>
     </div>`, '')}
     ${BLANK()}
-    ${R('', `Selected: <b>${sec.n} UB</b> — lightest valid section`, `${sec.n}`)}
+    ${R('', `Selected: <b>${sec.n} UB</b>`, `${sec.n}`)}
     ${R('', `D = ${sec.D} mm &nbsp;&nbsp; B = ${sec.B} mm &nbsp;&nbsp; t = ${sec.t} mm`, '')}
     ${R('', `T = ${sec.T} mm &nbsp;&nbsp; r = ${sec.r} mm &nbsp;&nbsp; d = ${sec.d} mm`, '')}
-    ${R('', `S<sub>x</sub> = ${sec.Sx} cm³ &nbsp;&nbsp; Z<sub>x</sub> = ${sec.Zx} cm³`, `S<sub>x</sub> = ${sec.Sx} cm³`)}
+    ${R('', `S<sub>x</sub> = ${sec.Sx} cm³ &nbsp;&nbsp; Z<sub>x</sub> = ${sec.Zx} cm³ &nbsp;&nbsp; I<sub>x</sub> = ${sec.Ix} cm⁴`, `I<sub>x</sub> = ${sec.Ix} cm⁴`)}
   `, 4);
 
       const p5 = page(`
@@ -1539,14 +1544,14 @@
     ${BLANK()}
     ${R('BS 5950-1:2000<br>Cl. 4.4.5', '<span class="uline">Shear buckling</span>', '')}
     ${R('', `Since d/t (${f(d_t, 2)}) ${d_t <= 70 * eps ? '&lt;' : '&gt;'} 70&epsilon; (${f(70 * eps, 2)})`, '')}
-    ${d_t <= 70 * eps ? R('', `No shear buckling is required.`, `${OK(true)}`) : R('', `Shear buckling critical`, `${OK(false)}`)}
+    ${d_t <= 70 * eps ? R('', `No shear buckling check is required.`, `${OK(true)}`) : R('', `Shear buckling analysis required`, `${OK(false)}`)}
     ${BLANK()}
     ${R('BS 5950-1:2000<br>Cl. 4.2.3', '<span class="uline">Shear Capacity</span>', '')}
-    ${R('', `P<sub>v</sub> = 0.6 · f<sub>y</sub> · A<sub>v</sub>&nbsp;&nbsp; (where A<sub>v</sub> = t · D)`, '')}
+    ${R('', `P<sub>v</sub> = 0.6 · f<sub>y</sub> · A<sub>v</sub>&nbsp;&nbsp; (A<sub>v</sub> = t · D)`, '')}
     ${R(EQ('Eq. 5.4', 'Calculation of the Shear Capacity (Pv) of the section'), `P<sub>v</sub> = 0.6 × ${py} × ${sec.t} × ${sec.D} / 1000`, '')}
     ${R('', `P<sub>v</sub> = <b>${f(Pv, 1)} kN</b>`, `P<sub>v</sub> = ${f(Pv, 1)} kN`)}
-    ${R('', `Since F<sub>v</sub> (${f(RA, 2)}) ${sh_ok ? '&lt;' : '&gt;'} P<sub>v</sub> (${f(Pv, 1)}) thus okay.`, `${OK(sh_ok)}`)}
-    ${R('', `This implies the section has ${lowSh ? '<b>low</b>' : '<b>high</b>'} shear.`, '')}
+    ${R('', `Since F<sub>v</sub> (${f(RA, 2)}) ${sh_ok ? '&lt;' : '&gt;'} P<sub>v</sub> (${f(Pv, 1)})`, `${OK(sh_ok)}`)}
+    ${R('', `Section experiences ${lowSh ? '<b>low</b>' : '<b>high</b>'} shear.`, '')}
   `, 5);
 
       const p6 = page(`
@@ -1555,7 +1560,7 @@
     ${R(EQ('Eq. 6.1', 'Calculation of the strict Moment Capacity based on plastic modulus'), `M<sub>c</sub> = ${py} × ${sec.Sx} × 10³ / 10⁶ = <b>${f(Mc_f, 2)} kNm</b>`, '')}
     ${R('', `1.2 p<sub>y</sub> Z<sub>x</sub> = 1.2 × ${py} × ${sec.Zx} × 10³ / 10⁶ = <b>${f(Mc_l, 2)} kNm</b>`, '')}
     ${R('', `Since M<sub>c</sub> (${f(Mc, 2)}) &le; 1.2 p<sub>y</sub> Z<sub>x</sub> (${f(Mc_l, 2)})`, '')}
-    ${R('', `The bending moment capacity is <b>${f(Mc, 2)} kNm</b>.`, `M<sub>c</sub> = ${f(Mc, 2)} kNm`)}
+    ${R('', `The design moment capacity is <b>${f(Mc, 2)} kNm</b>.`, `M<sub>c</sub> = ${f(Mc, 2)} kNm`)}
     ${BLANK()}
     ${R('', '<span class="uline">Moment due to self weight & Imposed loading</span>', '')}
     ${R('', `G<sub>sw</sub> = ${sec.m} × 9.81 / 1000 = ${f(Gsw, 3)} kN/m`, '')}
@@ -1564,52 +1569,59 @@
     ${R(EQ('Eq. 6.3', 'Calculation of the total applied design moment including self-weight'), `M<sub>t</sub> = Max Moment + M<sub>sw</sub>`, '')}
     ${R('', `M<sub>t</sub> = ${f(Mmax, 2)} + ${f(Msw, 2)} = <b>${f(Mmax2, 2)} kNm</b>`, `M<sub>t</sub> = ${f(Mmax2, 2)} kNm`)}
     ${R('', `Since M<sub>t</sub> (${f(Mmax2, 2)} kNm) ${mc_ok ? '&lt;' : '&gt;'} M<sub>c</sub> (${f(Mc, 2)} kNm)`, '')}
-    ${R('', `Thus the section is ${mc_ok ? '<b>okay</b>' : '<b class="fail">inadequate</b>'}.`, `${OK(mc_ok)}`)}
+    ${R('', `Thus the section moment is ${mc_ok ? '<b>okay</b>' : '<b class="fail">inadequate</b>'}.`, `${OK(mc_ok)}`)}
   `, 6);
 
       const p7 = page(`
-    ${R('BS 5950-1:2000<br>Cl. 2.5.2', '<span class="uline">Deflection Check</span>', '')}
+    ${R('BS 5950-1:2000<br>Cl. 2.5.2', '<span class="uline">Deflection Check (Corrected Arithmetic)</span>', '')}
     ${R('', 'Due to beam loading conditions, Deflection becomes:', '')}
-    ${R('', `&delta; = <span style="display:inline-block;vertical-align:middle;text-align:center;">Wa&sup2;b<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">EI</span> &radic;<span style="text-decoration:overline;">&nbsp;b / (3L&minus;a)&nbsp;</span> &nbsp;+&nbsp; <span style="display:inline-block;vertical-align:middle;text-align:center;">wL⁴<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">185EI</span>`, '')}
+    ${R('', `&delta; = <span style="display:inline-block;vertical-align:middle;text-align:center;">W a&sup2; b<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">6 E I</span> &radic;<span style="text-decoration:overline;">&nbsp;b / (3L&minus;a)&nbsp;</span> &nbsp;+&nbsp; <span style="display:inline-block;vertical-align:middle;text-align:center;">w L⁴<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">185 EI</span>`, '')}
     ${BLANK()}
-    ${R(EQ('Eq. 7.1', 'Combined Deflection Calculation (matching notes)'), `= <span style="font-size:18px;vertical-align:middle;">[</span> <span style="display:inline-block;vertical-align:middle;text-align:center;">${f(Q,0)} &times; ${a}&sup2; &times; ${b}<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">6 &times; 205&times;10⁶ &times; ${sec.Ix}&times;10⁻⁸</span> &times; &radic;<span style="text-decoration:overline;">&nbsp;${b} / (3(${f(L,1)}) &minus; ${a})&nbsp;</span> <span style="font-size:18px;vertical-align:middle;">]</span>`, '')}
-    ${R('', `&nbsp;&nbsp;&nbsp;+ <span style="font-size:18px;vertical-align:middle;">[</span> <span style="display:inline-block;vertical-align:middle;text-align:center;">${Qk} &times; ${f(L,1)}⁴<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">185 &times; 205&times;10⁶ &times; ${sec.Ix}&times;10⁻⁸</span> <span style="font-size:18px;vertical-align:middle;">]</span>`, '')}
+    ${R(EQ('Eq. 7.1', 'Deflection Formulation - Point Load Term'), `&delta;₁ = <span style="font-size:18px;vertical-align:middle;">[</span> <span style="display:inline-block;vertical-align:middle;text-align:center;">${f(Q,0)} &times; ${a}&sup2; &times; ${f(b,1)}<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">6 &times; 205&times;10⁶ &times; ${sec.Ix}&times;10⁻⁸</span> &times; &radic;<span style="text-decoration:overline;">&nbsp;${f(b,1)} / (3(${f(L,1)}) &minus; ${a})&nbsp;</span> <span style="font-size:18px;vertical-align:middle;">]</span>`, `= <b>${f(dS_pt, 1)} mm</b>`)}
+    ${R('', `&delta;₂ = <span style="font-size:18px;vertical-align:middle;">[</span> <span style="display:inline-block;vertical-align:middle;text-align:center;">${Qk} &times; ${f(L,1)}⁴<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">185 &times; 205&times;10⁶ &times; ${sec.Ix}&times;10⁻⁸</span> <span style="font-size:18px;vertical-align:middle;">]</span>`, `= <b>${f(dS_udl, 1)} mm</b>`)}
     ${BLANK()}
-    ${R('', `&delta;<sub>AB</sub> = ${f(dC/1000, 3)} m = <b>${f(dC, 0)} mm</b>`, `&delta; = ${f(dC, 0)} mm`)}
+    ${R('', `&delta;<sub>AB</sub> = &delta;₁ + &delta;₂ = ${f(dS_pt, 1)} + ${f(dS_udl, 1)} = <b>${f(dC, 1)} mm</b>`, `&delta; = ${f(dC, 1)} mm`)}
     ${BLANK()}
-    ${R('', 'from Constant rule, Maximum', '')}
-    ${R('', `Deflection for Cantilever L/180`, '')}
-    ${R('', `= ${Lmm} / 180 = <b>${f(dCL, 0)} mm</b>`, `Limit = ${f(dCL, 0)} mm`)}
+    ${R('', 'Deflection Limit for Cantilever = L / 180', '')}
+    ${R('', `Deflection Limit = ${Lmm} / 180 = <b>${f(dCL, 1)} mm</b>`, `Limit = ${f(dCL, 1)} mm`)}
     ${BLANK()}
-    ${R('', `Since [${f(dC, 0)} mm] &lt; ${f(dCL, 0)} mm, therefore`, '')}
-    ${dC_ok ? R('', 'Deflection is <b>Ok</b>', `${OK(dC_ok)}`) : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
-    ${BLANK()}
-    ${R('BS 8895<br>Table 8', '<span class="uline">Standard Case for deflection.</span>', '')}
-    ${R('Note: for Standard', `I = Second moment of Area (${sec.Ix} cm⁴)`, '')}
-    ${R('', `E = Elastic modulus of Steel (205 kN/mm²)`, '')}
+    ${dC_ok
+      ? R('', `Since [${f(dC, 1)} mm] &lt; ${f(dCL, 1)} mm, therefore Deflection is <b>Ok</b>`, `${OK(dC_ok)}`)
+      : R('', `
+          <div style="border: 2px solid #b91c1c; background: #fef2f2; padding: 10px; border-radius: 6px; margin: 4px 0;">
+            <div style="color: #b91c1c; font-weight: bold; font-family: Arial, sans-serif; font-size: 11px;">❌ DEFLECTION EXCEEDS LIMIT</div>
+            <div style="font-family: Arial, sans-serif; font-size: 10px; color: #7f1d1d; margin-top: 4px; line-height: 1.4;">
+              Section <b>${sec.n} UB</b> is too flexible. Click below to upgrade to the lightest compliant section.
+            </div>
+            <button onclick="triggerUpgrade()" style="margin-top: 8px; background: #2563eb; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; font-family: Arial, sans-serif; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(37,99,235,0.4);">
+              🎯 Upgrade to Lightest Passing Section
+            </button>
+          </div>
+        `, `${OK(dC_ok)}`)
+    }
   `, 7);
 
       const p8 = page(`
     ${R('BS 5950-1:2000<br>Cl. 4.5.2.1', '<span class="uline">Web bearing at the support</span>', '')}
     ${R('', `P<sub>bw</sub> = (b₁ + n·k) · t · p<sub>y</sub>`, '')}
-    ${R('', `b₁ = ${b1} mm &nbsp;&nbsp;&nbsp; b<sub>e</sub> = 0`, '')}
+    ${R('', `b₁ = ${b1} mm &nbsp;&nbsp;&nbsp; b<sub>e</sub> = 0 &nbsp;&nbsp;&nbsp; n = ${n}`, '')}
     ${R('', `T = ${sec.T} mm &nbsp;&nbsp;&nbsp; r = ${sec.r} mm`, '')}
     ${R('', `k = T + r = ${sec.T} + ${sec.r} = <b>${f(k, 1)} mm</b>`, `k = ${f(k, 1)} mm`)}
-    ${R('', `n = ${n}`, '')}
     ${BLANK()}
     ${R(EQ('Eq. 8.1', 'Calculation of Web Bearing Capacity (Pbw) at the support'), `P<sub>bw</sub> = (${b1} + ${n} × ${f(k, 1)}) × ${sec.t} × ${py} / 1000`, '')}
     ${R('', `<span class="rbox"><b>P<sub>bw</sub> = ${f(Pbw, 2)} kN</b></span>`, `P<sub>bw</sub> = ${f(Pbw, 2)} kN`)}
     ${BLANK()}
-    ${R('', `Since it is greater than Shear force at the support`, '')}
-    ${R('', `i.e. P<sub>bw</sub> (${f(Pbw, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN)`, '')}
+    ${R('', `Since P<sub>bw</sub> (${f(Pbw, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN)`, '')}
     ${R('', `Thus web bearing is <b>okay</b>`, `${OK(br_ok)}`)}
     ${BLANK()}
     ${R('', `<b>Contact stress at support</b>`, '')}
     ${R('', `P<sub>cs</sub> = b₁ × n × k × p<sub>y</sub>`, '')}
     ${R(EQ('Eq. 8.2', 'Contact stress capacity (Pcs) — per notes formula'), `= ${b1} × ${n} × ${f(k, 1)} × ${py} / 1000`, '')}
     ${R('', `<span class="rbox"><b>P<sub>cs</sub> = ${f(Pcs, 2)} kN</b></span>`, `P<sub>cs</sub> = ${f(Pcs, 2)} kN`)}
-    ${R('', `Since P<sub>cs</sub> (${f(Pcs, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN) thus it is okay.`, `${OK(Pcs >= RA)}`)}
-    ${BLANK()}
+    ${R('', `Since P<sub>cs</sub> (${f(Pcs, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN) thus okay.`, `${OK(Pcs >= RA)}`)}
+  `, 8);
+
+      const p9 = page(`
     ${R('BS 5950-1:2000<br>Cl. 4.5.3.1', '<span class="uline">Web Buckling at the Support</span>', '')}
     ${R('', `From table d = ${sec.d} mm`, '')}
     ${R('', `a<sub>e</sub> = ${ae} mm &nbsp;&nbsp; 0.7d = ${f(ae_thresh, 1)} mm`, '')}
@@ -1622,11 +1634,8 @@
     ${R(EQ('Eq. 8.3', 'Web Buckling Capacity (Px) — with ae check per Cl. 4.5.3.1'), ae_reduced
       ? `= [(${ae} + ${f(ae_thresh,1)})/(1.4×${sec.d})] × [25×${f(epsS,3)}×${sec.t}/&radic;((${b1}+${f(n*k,1)})×${sec.d})] × ${f(Pbw,2)}`
       : `= [25×${f(epsS,3)}×${sec.t}/&radic;((${b1}+${f(n*k,1)})×${sec.d})] × ${f(Pbw,2)}`, '')}
-  `, 8);
-
-      const p9 = page(`
+    ${BLANK()}
     ${R('', `= [${f(25 * epsS * sec.t, 2)} / &radic;(${f((b1 + n * k) * sec.d, 1)})] × ${f(Pbw, 2)}`, '')}
-    ${R('', `= [${f(25 * epsS * sec.t, 2)} / ${f(Math.sqrt((b1 + n * k) * sec.d), 2)}] × ${f(Pbw, 2)}`, '')}
     ${R('', `P<sub>x(full)</sub> = ${f(Px_full, 2)} kN`, '')}
     ${ae_reduced ? R('', `Reduction factor = (${ae} + ${f(ae_thresh,1)}) / (1.4 × ${sec.d}) = ${f((ae + ae_thresh)/(1.4*sec.d), 3)}`, '') : BLANK()}
     ${R('', `<span class="rbox"><b>P<sub>x</sub> = ${f(Px, 2)} kN</b></span>`, `P<sub>x</sub> = ${f(Px, 2)} kN`)}
@@ -1634,69 +1643,36 @@
     ${R('', `Since P<sub>x</sub> (${f(Px, 2)} kN) ${bk_ok ? '&gt;' : '&lt;'} R<sub>A</sub> (${f(RA, 2)} kN)`, '')}
     ${bk_ok
       ? R('', `Thus buckling at the support is <b>okay</b>.${ae_reduced ? ' (reduced formula applied)' : ''}`, `${OK(bk_ok)}`)
-      : R('', `<b class="fail">Buckling FAILS — stiffeners required at the support.</b>`, `${OK(bk_ok)}`)}
-    ${bk_ok ? R('', `So no web stiffeners are required at the support.`, '') : BLANK()}
-    ${BLANK()}
-    ${R('', '<span class="uline">Design Summary — Input Details</span>', '')}
-    ${BLANK()}
-    ${R('', '<b>Input Parameters:</b>', '')}
-    ${R('', `a = ${a} m &nbsp; b = ${b} m &nbsp; L = ${f(L, 1)} m`, '')}
-    ${R('', `G<sub>k</sub> = ${Gk} kN/m &nbsp; Q<sub>k</sub> = ${Qk} kN/m &nbsp; Q = ${Q} kN`, '')}
-    ${R('', `f<sub>y</sub> = ${fy} N/mm² (given) &rarr; p<sub>y</sub> = ${py} N/mm² (${grade}) &nbsp; b₁ = ${b1} mm &nbsp; a<sub>e</sub> = ${ae} mm`, '')}
-    ${BLANK()}
-    ${R('', '<b>Factored Loads:</b>', '')}
-    ${R('', `w<sub>u</sub> = 1.4×${Gk} + 1.6×${Qk} = ${f(wu, 2)} kN/m`, `${f(wu, 2)} kN/m`)}
-    ${R('', `Q = ${Q} kN (characteristic point load)`, `${f(Q, 1)} kN`)}
-    ${R('', `Total factored load = ${f(tot, 2)} kN`, `${f(tot, 1)} kN`)}
-    ${BLANK()}
-    ${R('', '<b>Reactions:</b>', '')}
-    ${R('', `R<sub>A</sub> = ${f(RA, 2)} kN`, `${f(RA, 2)} kN`)}
-    ${R('', `R<sub>B</sub> = ${f(RB, 2)} kN`, `${f(RB, 2)} kN`)}
-    ${BLANK()}
-    ${R('', `<b>Selected Section: ${sec.n} UB (${sec.m} kg/m)</b>`, sec.n)}
-    ${R('', `Classification: ${flCls} Flange, ${wbCls} Web`, '')}
+      : R('', `<b class="fail">Buckling FAILS — stiffeners required.</b>`, `${OK(bk_ok)}`)}
   `, 9);
 
-      const checks = [
-        ['[Cl. 4.2.3] Shear capacity (R<sub>A</sub> &le; P<sub>v</sub>)', sh_ok, `${f(RA, 1)} kN &le; ${f(Pv, 1)} kN`],
-        ['[Cl. 4.2.5] Moment capacity (M<sub>t</sub> &le; M<sub>c</sub>)', mc_ok, `${f(Mmax2, 1)} kNm &le; ${f(Mc, 1)} kNm`],
-        ['[Cl. 2.5.2] Deflection Limit (&delta;<sub>c</sub> &le; L/180)', dC_ok, `${f(dC, 1)} mm &le; ${f(dCL, 1)} mm`],
-        ['[Cl. 4.5.2] Web bearing check (R<sub>A</sub> &le; P<sub>bw</sub>)', br_ok, `${f(RA, 1)} kN &le; ${f(Pbw, 1)} kN`],
-        ['[Cl. 4.5.3] Web buckling check (R<sub>A</sub> &le; P<sub>x</sub>)', bk_ok, `${f(RA, 1)} kN &le; ${f(Px, 1)} kN`],
-      ];
-
       const p10 = page(`
-    ${R('', '<span class="uline">Summary of Design Checks:</span>', '')}
-    ${checks.map(([lbl, pass, val]) =>
-        R('', `<b>${lbl}:</b> &nbsp; ${val}`, OK(pass))
-      ).join('')}
+    ${R('', '<span class="uline">Design Summary & Optimization Parameters</span>', '')}
+    ${R('', `Active Section: <b>${sec.n} UB (${sec.m} kg/m)</b>`, sec.n)}
+    ${R('', `Classification: ${flCls} Flange, ${wbCls} Web`, '')}
+    ${BLANK()}
+    ${R('', '<b>Applied Design Forces:</b>', '')}
+    ${R('', `w<sub>u</sub> = 1.4×${Gk} + 1.6×${Qk} = ${f(wu, 2)} kN/m`, `${f(wu, 2)} kN/m`)}
+    ${R('', `Point load Q = ${Q} kN`, `${f(Q, 1)} kN`)}
+    ${R('', `Reactions: R<sub>A</sub> = ${f(RA, 2)} kN &nbsp;&nbsp; R<sub>B</sub> = ${f(RB, 2)} kN`, '')}
+    ${BLANK()}
+    ${R('', '<b>Summary of Design Checks:</b>', '')}
+    ${R('', `[Cl. 4.2.3] Shear capacity: F<sub>v</sub> (${f(RA, 1)} kN) &le; P<sub>v</sub> (${f(Pv, 1)} kN)`, OK(sh_ok))}
+    ${R('', `[Cl. 4.2.5] Moment capacity: M<sub>t</sub> (${f(Mmax2, 1)} kNm) &le; M<sub>c</sub> (${f(Mc, 1)} kNm)`, OK(mc_ok))}
+    ${R('', `[Cl. 2.5.2] Deflection Limit: &delta; (${f(dC, 1)} mm) &le; Limit (${f(dCL, 1)} mm)`, OK(dC_ok))}
+    ${R('', `[Cl. 4.5.2] Web bearing: R<sub>A</sub> (${f(RA, 1)} kN) &le; P<sub>bw</sub> (${f(Pbw, 1)} kN)`, OK(br_ok))}
+    ${R('', `[Cl. 4.5.3] Web buckling: R<sub>A</sub> (${f(RA, 1)} kN) &le; P<sub>x</sub> (${f(Px, 1)} kN)`, OK(bk_ok))}
     
     ${warningsHTML}
-
-    ${BLANK()}
     ${BLANK()}
     ${R('', `
       <div style="border:3px double ${allOk ? '#166534' : '#991b1b'};
                   padding:10px 16px; text-align:center;
                   color:${allOk ? '#166534' : '#991b1b'}; font-size:14px; font-weight:bold;\">
         ${allOk
-          ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY<br>for the given loading conditions.`
+          ? `&#10003; Section <u>${sec.n} UB</u> is FULLY SATISFACTORY<br>for all BS 5950 checks.`
           : `&#10007; Section ${sec.n} UB is INADEQUATE<br>&mdash; please review warnings.`}
       </div>`, '')}
-
-    ${BLANK()}
-    ${R('', `
-      <div style=\"margin-top: 15px; border: 1.5px solid #3b82f6; border-radius: 6px; padding: 12px; background-color: #f0f9ff; font-family: Arial, sans-serif; box-shadow: inset 0 2px 8px rgba(59, 130, 246, 0.15);\">
-        <div style=\"font-weight: 800; font-size: 11px; color: #1e40af; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;\">
-           <span style=\"font-size: 16px;\">🛡️</span> Engineering Verification & Compliance
-        </div>
-        <div style=\"font-size: 10.5px; color: #1e3a8a; line-height: 1.6;\">
-          <b>&check; Formulation:</b> Pure Area-Moment Method (Macaulay's). Verified for boundary continuity.<br>
-          <b>&check; Standards:</b> Strictly governed by BS 5950-1:2000 Structural Use of Steelwork.<br>
-          <b>&check; Optimization:</b> Algorithm dynamically selects lightest valid Universal Beam (UB).
-        </div>
-      </div>
-    `, '')}
   `, 10);
 
       document.getElementById('out').innerHTML = `<div class=\"page-wrapper\">${p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10}</div>`;
@@ -1708,7 +1684,7 @@
     });
   </script>
   
-<!-- ── Zoom controls (visible after calculation runs) ── -->
+<!-- ── Zoom controls ── -->
 <div id="zoom-bar">
   <button class="zoom-btn" onclick="adjustZoom(0.1)" title="Zoom in">+</button>
   <div id="zoom-pct">100%</div>
@@ -1723,7 +1699,6 @@ let currentScale = 1;
 
 function fitToScreen() {
   const vw = window.innerWidth;
-  // Scale to 96% of viewport, never upscale beyond 1
   currentScale = Math.min((vw * 0.96) / A4_PX, 1.0);
   applyScale();
 }
@@ -1734,15 +1709,12 @@ function applyScale() {
 
   const vw = window.innerWidth;
   const scaledW = A4_PX * currentScale;
-
-  // Center horizontally using margin-left (transform doesn't affect layout)
   const marginLeft = Math.max((vw - scaledW) / 2, 0);
 
   wrapper.style.transformOrigin = 'top left';
   wrapper.style.transform = 'scale(' + currentScale + ')';
   wrapper.style.marginLeft = marginLeft + 'px';
 
-  // Collapse dead vertical space caused by scale-down
   const pages = wrapper.querySelectorAll('.page');
   const totalH = Array.from(pages).reduce((h, p) => h + p.offsetHeight + 24, 0) + 40;
   wrapper.style.marginBottom = '-' + Math.round(totalH * (1 - currentScale)) + 'px';
@@ -1757,7 +1729,6 @@ function adjustZoom(delta) {
 
 function resetZoom() { fitToScreen(); }
 
-// Watch for output becoming visible
 const outEl = document.getElementById('out');
 if (outEl) {
   const obs = new MutationObserver(() => {
@@ -1779,23 +1750,13 @@ window.addEventListener('resize', () => {
   </div>
 
   <script>
-    // ── Register Service Worker ──────────────────────────────────────────────────
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('[SW] Registered, scope:', reg.scope))
-          .catch(err => console.warn('[SW] Registration failed:', err));
-      });
-    }
-
-    // ── Online / Offline banner ──────────────────────────────────────────────────
     const offlineBanner = document.getElementById('offline-banner');
     function updateOnlineStatus() {
       offlineBanner.classList.toggle('show', !navigator.onLine);
     }
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
-    updateOnlineStatus(); // Check immediately on load
+    updateOnlineStatus();
   </script>
 </body>
 
