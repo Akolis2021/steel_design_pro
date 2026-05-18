@@ -883,7 +883,7 @@
         <div class="hint">Point load at C</div>
       </div>
       <div style="grid-column:1/-1"><label>Fy (N/mm²)</label><input id="iFy" type="number" step="5" value="460">
-        <div class="hint">250 → S250 &nbsp;|&nbsp; 275 → S275 &nbsp;|&nbsp; 355 → S355 &nbsp;|&nbsp; 460 → S460 &nbsp;— grade assumed automatically</div>
+        <div class="hint">250 → S275 (p<sub>y</sub>=275) &nbsp;|&nbsp; 275 → S275 &nbsp;|&nbsp; 355 → S355 &nbsp;|&nbsp; 460 → S460 &nbsp;— grade & p<sub>y</sub> set automatically</div>
       </div>
     </div>
 
@@ -1179,8 +1179,11 @@
       // Auto-computed assumptions
       const b  = +(a * 0.8).toFixed(3);   // b = 0.8a
       const b1 = 100;                       // standard stiff bearing length (mm)
-      // Grade assumed from fy
-      const grade = fy >= 430 ? 'S460' : fy >= 330 ? 'S355' : fy >= 260 ? 'S275' : fy >= 240 ? 'S250' : 'Custom';
+      // Grade assumed from fy — only 3 grades exist in BS 5950: S275, S355, S460
+      // fy=250 (no S250 grade) → rounds up to nearest grade S275, py=275
+      const grade = fy >= 430 ? 'S460' : fy >= 330 ? 'S355' : 'S275';
+      // py = design strength (from BS 5950 Table 9); always one of the 3 standard grades
+      const py = fy >= 430 ? 460 : fy >= 330 ? 355 : 275;
 
       const errors = [];
       if (isNaN(a) || a <= 0) errors.push("Dimension 'a' must be greater than zero.");
@@ -1227,7 +1230,7 @@
       const BMC = RB * b - wu * Math.pow(b, 2) / 2;
       const Mmax = Math.max(Math.abs(MA), Math.abs(BMC));
 
-      const Sx_req = (Mmax * 1e6) / (fy);
+      const Sx_req = (Mmax * 1e6) / (py);
       const Sx_req_cm3 = Sx_req / 1000;
 
       const validSecs = UB.filter(s => s.Sx >= Sx_req_cm3);
@@ -1245,20 +1248,20 @@
       }
       let sec = validSecs[0];
 
-      const eps = (fy === 460) ? 0.8 : Math.sqrt(275 / fy);
+      const eps = (py === 460) ? 0.8 : Math.sqrt(275 / py);
       const b_T = (sec.B / 2) / sec.T;
       const d_t = sec.d / sec.t;
       const flCls = b_T <= 9 * eps ? 'Plastic' : b_T <= 10 * eps ? 'Compact' : b_T <= 15 * eps ? 'Semi-compact' : 'Slender';
       const wbCls = d_t <= 80 * eps ? 'Plastic' : d_t <= 100 * eps ? 'Compact' : 'Semi-compact';
 
       const Av = sec.t * sec.D;
-      const Pv = 0.6 * fy * Av / 1e3;
+      const Pv = 0.6 * py * Av / 1e3;
       const Fv = Math.max(Math.abs(RA), Math.abs(RB));
       const lowSh = Fv <= 0.6 * Pv;
       const sh_ok = Fv <= Pv;
 
-      const Mc_f = fy * sec.Sx * 1e3 / 1e6;
-      const Mc_l = 1.2 * fy * sec.Zx * 1e3 / 1e6;
+      const Mc_f = py * sec.Sx * 1e3 / 1e6;
+      const Mc_l = 1.2 * py * sec.Zx * 1e3 / 1e6;
       const Mc = Math.min(Mc_f, Mc_l);
 
       const Gsw = sec.m * 9.81 / 1000;
@@ -1280,10 +1283,11 @@
 
       const k = sec.T + sec.r;
       const n = 2;
-      const Pbw = (b1 + n * k) * sec.t * fy / 1e3;
-      // Contact stress — per notes: Pcs = b1 × n × k × fy
-      const Pcs = b1 * n * k * fy / 1e3;
-      const epsS = Math.sqrt(275 / fy);
+      const Pbw = (b1 + n * k) * sec.t * py / 1e3;
+      // Contact stress — per notes: Pcs = b1 × n × k × py
+      const Pcs = b1 * n * k * py / 1e3;
+      const epsS = Math.sqrt(275 / py);
+      const ae = ae_val;   // ae = stiff bearing length at end support
       const ae_thresh = 0.7 * sec.d;
       const Px_full = (25 * epsS * sec.t / Math.sqrt((b1 + n * k) * sec.d)) * Pbw;
       // ae < 0.7d check — reduced buckling resistance per BS 5950-1 Cl. 4.5.3.1
@@ -1414,7 +1418,7 @@
     ${R('BS 5950-1:2000', '<span class="uline">Parameters given.</span>', '')}
     ${R('', `L = ${f(a, 1)} m &nbsp;&nbsp; 0.8L = ${f(b, 2)} m &nbsp;&nbsp; Total span = ${f(L, 2)} m`, '')}
     ${R('', `g = ${Gk} kN/m (dead) &nbsp;&nbsp; q = ${Qk} kN/m (imposed) &nbsp;&nbsp; Q = ${Q} kN`, '')}
-    ${R('', `F<sub>y</sub> = ${fy} N/mm² &nbsp;&nbsp; Grade: ${grade}`, '')}
+    ${R('', `F<sub>y</sub> = ${fy} N/mm² (given) &nbsp;&nbsp; Grade: ${grade} &nbsp;&nbsp; <b>p<sub>y</sub> = ${py} N/mm²</b> (design strength used)`, '')}
     ${BLANK()}
     ${SVGR('', diagramSVG, '')}
     ${BLANK()}
@@ -1485,10 +1489,10 @@
     ${SVGR('', bmdSVG, '')}
     ${BLANK()}
     ${R('', '<span class="uline">Initial Section Selection</span>', '')}
-    ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp;&nbsp;&nbsp; Take f<sub>y</sub> = ${fy} N/mm²`, '')}
+    ${R('', `f<sub>y</sub> = ${fy} N/mm² (given) &nbsp;&rarr;&nbsp; p<sub>y</sub> = ${py} N/mm² (${grade} design strength)`, '')}
     ${R('', `Design Moment M<sub>max</sub> = ${f(Mmax, 2)} kNm`, '')}
-    ${R('', `S<sub>x</sub> = M<sub>max</sub> × 10⁶ / f<sub>y</sub>`, '')}
-    ${R(EQ('Eq. 4.1', 'Calculating Required Plastic Modulus (Sx) for initial sizing'), `S<sub>x</sub> = ${f(Mmax, 2)} × 10⁶ / ${fy}`, '')}
+    ${R('', `S<sub>x</sub> = M<sub>max</sub> × 10⁶ / p<sub>y</sub>`, '')}
+    ${R(EQ('Eq. 4.1', 'Calculating Required Plastic Modulus (Sx) for initial sizing'), `S<sub>x</sub> = ${f(Mmax, 2)} × 10⁶ / ${py}`, '')}
     ${R('', `S<sub>x</sub> = ${f(Sx_req, 2)} mm³`, '')}
     ${R('', `<b>S<sub>x</sub> required = ${f(Sx_req_cm3, 2)} cm³</b>`, `S<sub>x</sub> = ${f0(Sx_req_cm3)} cm³`)}
     ${BLANK()}
@@ -1523,8 +1527,8 @@
 
       const p5 = page(`
     ${R('BS 5950-1:2000<br>Table 11<br>Cl. 3.5.2', '<span class="uline">Strength Classification.</span>', '')}
-    ${R('', `Since T (${sec.T}mm) ≤ 16mm, thus f<sub>y</sub> = ${fy} N/mm²`, `f<sub>y</sub> = ${fy}`)}
-    ${R(EQ('Eq. 5.1', 'Calculation of the epsilon modification factor'), `&epsilon; = &radic;(275/f<sub>y</sub>) = &radic;(275/${fy}) = <b>${f(eps, 3)}</b>`, `&epsilon; = ${f(eps, 3)}`)}
+    ${R('', `Since T (${sec.T}mm) ≤ 16mm &nbsp;&rarr;&nbsp; p<sub>y</sub> = ${py} N/mm² (${grade})`, `p<sub>y</sub> = ${py}`)}
+    ${R(EQ('Eq. 5.1', 'Calculation of the epsilon modification factor'), `&epsilon; = &radic;(275/p<sub>y</sub>) = &radic;(275/${py}) = <b>${f(eps, 3)}</b>`, `&epsilon; = ${f(eps, 3)}`)}
     ${BLANK()}
     ${R('', '<span class="uline">Section Classification.</span>', '')}
     ${R(EQ('Eq. 5.2', 'Checking the flange outstand-to-thickness ratio for classification'), `b/T = ${f(sec.B / 2, 2)} / ${sec.T} = <b>${f(b_T, 2)}</b>`, `b/T = ${f(b_T, 2)}`)}
@@ -1541,7 +1545,7 @@
     ${BLANK()}
     ${R('BS 5950-1:2000<br>Cl. 4.2.3', '<span class="uline">Shear Capacity</span>', '')}
     ${R('', `P<sub>v</sub> = 0.6 · f<sub>y</sub> · A<sub>v</sub>&nbsp;&nbsp; (where A<sub>v</sub> = t · D)`, '')}
-    ${R(EQ('Eq. 5.4', 'Calculation of the Shear Capacity (Pv) of the section'), `P<sub>v</sub> = 0.6 × ${fy} × ${sec.t} × ${sec.D} / 1000`, '')}
+    ${R(EQ('Eq. 5.4', 'Calculation of the Shear Capacity (Pv) of the section'), `P<sub>v</sub> = 0.6 × ${py} × ${sec.t} × ${sec.D} / 1000`, '')}
     ${R('', `P<sub>v</sub> = <b>${f(Pv, 1)} kN</b>`, `P<sub>v</sub> = ${f(Pv, 1)} kN`)}
     ${R('', `Since F<sub>v</sub> (${f(RA, 2)}) ${sh_ok ? '&lt;' : '&gt;'} P<sub>v</sub> (${f(Pv, 1)}) thus okay.`, `${OK(sh_ok)}`)}
     ${R('', `This implies the section has ${lowSh ? '<b>low</b>' : '<b>high</b>'} shear.`, '')}
@@ -1549,10 +1553,10 @@
 
       const p6 = page(`
     ${R('BS 5950-1:2000<br>Cl. 4.2.5', '<span class="uline">Bending Moment Capacity</span>', '')}
-    ${R('', `Moment Capacity M<sub>c</sub> = f<sub>y</sub> S<sub>x</sub> &le; 1.2 f<sub>y</sub> Z<sub>x</sub>`, '')}
-    ${R(EQ('Eq. 6.1', 'Calculation of the strict Moment Capacity based on plastic modulus'), `M<sub>c</sub> = ${fy} × ${sec.Sx} × 10³ / 10⁶ = <b>${f(Mc_f, 2)} kNm</b>`, '')}
-    ${R('', `1.2 f<sub>y</sub> Z<sub>x</sub> = 1.2 × ${fy} × ${sec.Zx} × 10³ / 10⁶ = <b>${f(Mc_l, 2)} kNm</b>`, '')}
-    ${R('', `Since M<sub>c</sub> (${f(Mc, 2)}) &le; 1.2 f<sub>y</sub> Z<sub>x</sub> (${f(Mc_l, 2)})`, '')}
+    ${R('', `Moment Capacity M<sub>c</sub> = p<sub>y</sub> S<sub>x</sub> &le; 1.2 p<sub>y</sub> Z<sub>x</sub>`, '')}
+    ${R(EQ('Eq. 6.1', 'Calculation of the strict Moment Capacity based on plastic modulus'), `M<sub>c</sub> = ${py} × ${sec.Sx} × 10³ / 10⁶ = <b>${f(Mc_f, 2)} kNm</b>`, '')}
+    ${R('', `1.2 p<sub>y</sub> Z<sub>x</sub> = 1.2 × ${py} × ${sec.Zx} × 10³ / 10⁶ = <b>${f(Mc_l, 2)} kNm</b>`, '')}
+    ${R('', `Since M<sub>c</sub> (${f(Mc, 2)}) &le; 1.2 p<sub>y</sub> Z<sub>x</sub> (${f(Mc_l, 2)})`, '')}
     ${R('', `The bending moment capacity is <b>${f(Mc, 2)} kNm</b>.`, `M<sub>c</sub> = ${f(Mc, 2)} kNm`)}
     ${BLANK()}
     ${R('', '<span class="uline">Moment due to self weight & Imposed loading</span>', '')}
@@ -1591,13 +1595,13 @@
 
       const p8 = page(`
     ${R('BS 5950-1:2000<br>Cl. 4.5.2.1', '<span class="uline">Web bearing at the support</span>', '')}
-    ${R('', `P<sub>bw</sub> = (b₁ + n·k) · t · f<sub>y</sub>`, '')}
+    ${R('', `P<sub>bw</sub> = (b₁ + n·k) · t · p<sub>y</sub>`, '')}
     ${R('', `b₁ = ${b1} mm &nbsp;&nbsp;&nbsp; b<sub>e</sub> = 0`, '')}
     ${R('', `T = ${sec.T} mm &nbsp;&nbsp;&nbsp; r = ${sec.r} mm`, '')}
     ${R('', `k = T + r = ${sec.T} + ${sec.r} = <b>${f(k, 1)} mm</b>`, `k = ${f(k, 1)} mm`)}
     ${R('', `n = ${n}`, '')}
     ${BLANK()}
-    ${R(EQ('Eq. 8.1', 'Calculation of Web Bearing Capacity (Pbw) at the support'), `P<sub>bw</sub> = (${b1} + ${n} × ${f(k, 1)}) × ${sec.t} × ${fy} / 1000`, '')}
+    ${R(EQ('Eq. 8.1', 'Calculation of Web Bearing Capacity (Pbw) at the support'), `P<sub>bw</sub> = (${b1} + ${n} × ${f(k, 1)}) × ${sec.t} × ${py} / 1000`, '')}
     ${R('', `<span class="rbox"><b>P<sub>bw</sub> = ${f(Pbw, 2)} kN</b></span>`, `P<sub>bw</sub> = ${f(Pbw, 2)} kN`)}
     ${BLANK()}
     ${R('', `Since it is greater than Shear force at the support`, '')}
@@ -1605,8 +1609,8 @@
     ${R('', `Thus web bearing is <b>okay</b>`, `${OK(br_ok)}`)}
     ${BLANK()}
     ${R('', `<b>Contact stress at support</b>`, '')}
-    ${R('', `P<sub>cs</sub> = b₁ × n × k × f<sub>y</sub>`, '')}
-    ${R(EQ('Eq. 8.2', 'Contact stress capacity (Pcs) — per notes formula'), `= ${b1} × ${n} × ${f(k, 1)} × ${fy} / 1000`, '')}
+    ${R('', `P<sub>cs</sub> = b₁ × n × k × p<sub>y</sub>`, '')}
+    ${R(EQ('Eq. 8.2', 'Contact stress capacity (Pcs) — per notes formula'), `= ${b1} × ${n} × ${f(k, 1)} × ${py} / 1000`, '')}
     ${R('', `<span class="rbox"><b>P<sub>cs</sub> = ${f(Pcs, 2)} kN</b></span>`, `P<sub>cs</sub> = ${f(Pcs, 2)} kN`)}
     ${R('', `Since P<sub>cs</sub> (${f(Pcs, 2)} kN) &gt; R<sub>A</sub> (${f(RA, 2)} kN) thus it is okay.`, `${OK(Pcs >= RA)}`)}
     ${BLANK()}
@@ -1642,7 +1646,7 @@
     ${R('', '<b>Input Parameters:</b>', '')}
     ${R('', `a = ${a} m &nbsp; b = ${b} m &nbsp; L = ${f(L, 1)} m`, '')}
     ${R('', `G<sub>k</sub> = ${Gk} kN/m &nbsp; Q<sub>k</sub> = ${Qk} kN/m &nbsp; Q = ${Q} kN`, '')}
-    ${R('', `f<sub>y</sub> = ${fy} N/mm² &nbsp; b₁ = ${b1} mm &nbsp; a<sub>e</sub> = ${ae} mm`, '')}
+    ${R('', `f<sub>y</sub> = ${fy} N/mm² (given) &rarr; p<sub>y</sub> = ${py} N/mm² (${grade}) &nbsp; b₁ = ${b1} mm &nbsp; a<sub>e</sub> = ${ae} mm`, '')}
     ${BLANK()}
     ${R('', '<b>Factored Loads:</b>', '')}
     ${R('', `w<sub>u</sub> = 1.4×${Gk} + 1.6×${Qk} = ${f(wu, 2)} kN/m`, `${f(wu, 2)} kN/m`)}
