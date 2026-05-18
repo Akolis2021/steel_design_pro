@@ -187,6 +187,10 @@
       display: block;
     }
 
+    #out.visible {
+      display: block;
+    }
+
     .page-wrapper {
       width: 794px; /* A4 at 96dpi */
       padding: 20px 10px;
@@ -1270,12 +1274,13 @@
       const ae_val = b1;  // ae assumed = b1 (stiff bearing length, end support condition)
       const EI = 205e3 * sec.Ix * 1e4;
       const Lmm = L * 1e3, amm = a * 1e3, bmm = b * 1e3;
-      
-      // FIXED DEFLECTION CALCULATION (Added missing factor of 6 in denominator for Pt load)
-      const dS_pt = (Q * 1e3 * Math.pow(amm, 2) * bmm) / (6 * EI) * Math.sqrt(bmm / (3 * Lmm - amm));
-      const dS_udl = (Qk * Math.pow(Lmm, 4)) / (185 * EI);
-      const dC = dS_pt + dS_udl;
-      
+      // UDL term — propped cantilever under imposed UDL
+      const dS_udl = Qk * Math.pow(Lmm, 4) / (185 * EI);
+      // Point load term — propped-cantilever specific formula (per notes, using unfactored Q)
+      // Formula: Wa²b/EI × √(b/(3L-a))  — no factor of 6, per handwritten notes; Q unfactored consistent with notes
+      const dS_pt = Q * 1e3 * Math.pow(amm, 2) * bmm / EI
+                    * Math.sqrt(bmm / (3 * Lmm - amm));
+      const dC = dS_udl + dS_pt;
       const dCL = Lmm / 180;
       const dC_ok = dC <= dCL;
 
@@ -1569,20 +1574,22 @@
 
       const p7 = page(`
     ${R('BS 5950-1:2000<br>Cl. 2.5.2', '<span class="uline">Deflection Check</span>', '')}
-    ${R('', 'Due to beam loading conditions, Deflection becomes:', '')}
-    ${R('', `&delta; = <span style="display:inline-block;vertical-align:middle;text-align:center;">Wa&sup2;b<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">EI</span> &radic;<span style="text-decoration:overline;">&nbsp;b / (3L&minus;a)&nbsp;</span> &nbsp;+&nbsp; <span style="display:inline-block;vertical-align:middle;text-align:center;">wL⁴<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">185EI</span>`, '')}
+    ${R('', 'Propped cantilever: combined UDL + eccentric point load', '')}
+    ${R('', `&delta;<sub>c</sub> = W·a²·b/(EI) × &radic;(b/(3L&minus;a)) + w·L⁴/(185EI)`, '')}
     ${BLANK()}
-    ${R(EQ('Eq. 7.1', 'Combined Deflection Calculation (matching notes)'), `= <span style="font-size:18px;vertical-align:middle;">[</span> <span style="display:inline-block;vertical-align:middle;text-align:center;">${f(Q,0)} &times; ${a}&sup2; &times; ${b}<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">6 &times; 205&times;10⁶ &times; ${sec.Ix}&times;10⁻⁸</span> &times; &radic;<span style="text-decoration:overline;">&nbsp;${b} / (3(${f(L,1)}) &minus; ${a})&nbsp;</span> <span style="font-size:18px;vertical-align:middle;">]</span>`, '')}
-    ${R('', `&nbsp;&nbsp;&nbsp;+ <span style="font-size:18px;vertical-align:middle;">[</span> <span style="display:inline-block;vertical-align:middle;text-align:center;">${Qk} &times; ${f(L,1)}⁴<hr style="border:0;border-top:1px solid #00008b;margin:2px 0;">185 &times; 205&times;10⁶ &times; ${sec.Ix}&times;10⁻⁸</span> <span style="font-size:18px;vertical-align:middle;">]</span>`, '')}
+    ${R(EQ('Eq. 7.1', 'Point load deflection — propped-cantilever formula with sqrt factor'), `&delta;<sub>c</sub> (Pt) = ${f(Q, 1)}×10³ × ${amm}² × ${bmm} / (${f(EI/1e12,4)}×10¹²) × &radic;(${bmm}/(3×${Lmm}&minus;${amm}))`, '')}
+    ${R('', `= ${f(dS_pt, 2)} mm`, '')}
     ${BLANK()}
-    ${R('', `&delta;<sub>AB</sub> = ${f(dC/1000, 3)} m = <b>${f(dC, 0)} mm</b>`, `&delta; = ${f(dC, 0)} mm`)}
+    ${R(EQ('Eq. 7.2', 'UDL deflection under imposed load — propped cantilever'), `&delta;<sub>c</sub> (UDL) = ${Qk} × ${Lmm}⁴ / (185 × ${f(EI/1e12,4)}×10¹²)`, '')}
+    ${R('', `= ${f(dS_udl, 2)} mm`, '')}
     ${BLANK()}
-    ${R('', 'from Constant rule, Maximum', '')}
-    ${R('', `Deflection for Cantilever L/180`, '')}
-    ${R('', `= ${Lmm} / 180 = <b>${f(dCL, 0)} mm</b>`, `Limit = ${f(dCL, 0)} mm`)}
+    ${R(EQ('Eq. 7.3', 'Total deflection by superposition'), `&delta;<sub>c</sub> = ${f(dS_pt, 2)} + ${f(dS_udl, 2)} = <b>${f(dC, 2)} mm</b>`, `&delta;<sub>c</sub> = ${f(dC, 1)} mm`)}
     ${BLANK()}
-    ${R('', `Since [${f(dC, 0)} mm] &lt; ${f(dCL, 0)} mm, therefore`, '')}
-    ${dC_ok ? R('', 'Deflection is <b>Ok</b>', `${OK(dC_ok)}`) : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
+    ${R('', '<b>Limit:</b>', '')}
+    ${R('', `Limit = L / 180 = ${Lmm} / 180 = <b>${f(dCL, 2)} mm</b>`, `L/180 = ${f(dCL, 1)} mm`)}
+    ${BLANK()}
+    ${R('', `Since max deflection ${f(dC, 2)} mm &lt; ${f(dCL, 2)} mm`, '')}
+    ${dC_ok ? R('', 'No deflection at the beam. <b>Deflection is OK</b>', `${OK(dC_ok)}`) : R('', '<b class="fail">Deflection EXCEEDS limit</b>', `${OK(dC_ok)}`)}
     ${BLANK()}
     ${R('BS 8895<br>Table 8', '<span class="uline">Standard Case for deflection.</span>', '')}
     ${R('Note: for Standard', `I = Second moment of Area (${sec.Ix} cm⁴)`, '')}
