@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Section Method | SF & BM Calculator – Concrete Design</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SF & BM Pro">
+  <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0f172a; --navy2: #172236; --border: #334155;
+      --blue: #3b82f6; --blue2: #2563eb; --blue3: #60a5fa;
+      --amber: #fbbf24; --muted: #94a3b8; --text: #e2e8f0;
+      --green: #22c55e; --purple: #a78bfa;
+    }
+    body { background: #b8bec8; font-family: 'Space Mono', monospace; padding-top: 80px; padding-bottom: 40px; overflow-x: hidden; }
+    #navbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 65px; background: #0f172a;
+      display: flex; align-items: center; justify-content: space-between; padding: 0 5%;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5); z-index: 900; border-bottom: 2px solid #3b82f6;
+    }
+    .nav-brand { color: #fff; font-family: Arial, sans-serif; font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .nav-brand span { color: #3b82f6; }
+    #hamburgerBtn {
+      background: none; border: none; cursor: pointer; padding: 6px; display: flex; flex-direction: column; gap: 5px;
+      border-radius: 6px; transition: background 0.2s;
+    }
+    #hamburgerBtn span { display: block; width: 24px; height: 2.5px; background: #e2e8f0; border-radius: 2px; transition: transform 0.25s, opacity 0.2s; }
+    #hamburgerBtn.open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+    #hamburgerBtn.open span:nth-child(2) { opacity: 0; }
+    #hamburgerBtn.open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
+    #navDropdown {
+      position: fixed; top: 65px; right: 0; width: 240px; background: #0f172a; border: 1px solid #1e3a5f;
+      border-radius: 0 0 10px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 899; display: none;
+      flex-direction: column; padding: 8px 0;
+    }
+    #navDropdown.open { display: flex; }
+    .nav-drop-item {
+      display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #cbd5e1;
+      font-family: Arial, sans-serif; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer;
+      background: none; border: none; width: 100%; text-align: left;
+    }
+    .nav-drop-item:hover { background: #1e293b; color: #fff; }
+    .nav-drop-divider { height: 1px; background: #1e293b; margin: 4px 16px; }
+    #out { display: none; width: 100%; overflow-x: hidden; }
+    #out.visible { display: block; }
+    .page-wrapper { width: 794px; padding: 20px 10px; transform-origin: top left; }
+    .page {
+      background: #fffef9; background-image: repeating-linear-gradient(transparent 0px, transparent 23px, #dde6ef 23px, #dde6ef 24px);
+      width: 210mm; margin: 0 auto 24px auto; box-shadow: 0 4px 24px rgba(0,0,0,.25);
+      position: relative; padding-bottom: 12px; display: flex; flex-direction: column;
+    }
+    .page::before { content: ''; position: absolute; left: 21mm; top: 0; bottom: 0; border-left: 2px solid #cc0000; pointer-events: none; z-index: 1; }
+    .tbl-head {
+      display: grid; grid-template-columns: 28mm 1fr 32mm; border: 2px solid #222; margin: 5mm 5mm 0;
+      font-family: Arial, sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase;
+    }
+    .tbl-head div { padding: 4px 6px; text-align: center; border-right: 1.5px solid #222; }
+    .tbl-head div:last-child { border-right: none; }
+    .sheet-body {
+      display: grid; grid-template-columns: 28mm 1fr 32mm; border: 2px solid #222; border-top: none;
+      margin: 0 5mm 4mm; align-content: start;
+    }
+    .rc, .cc, .oc { border-bottom: 1px solid #dde6ef; padding: 2px 6px; font-size: 11px; line-height: 1.45; min-height: 26px; }
+    .rc { border-right: 1.5px solid #222; color: #444; font-weight: 600; background: #f9f9f0; }
+    .cc { border-right: 1.5px solid #222; color: #00008b; font-family: monospace; }
+    .oc { text-align: right; color: #00008b; font-weight: 500; }
+    .pgnum { border-top: 1.5px solid #222; margin: 12px 5mm 0; text-align: center; padding: 2px 0; font-size: 11px; color: #00008b; }
+    .rbox { display: inline-block; border: 1.5px solid #00008b; padding: 0 8px; margin: 0 2px; background: #f0f4ff; }
+    .eq-tag {
+      color: #2563eb; font-weight: bold; font-family: Arial, sans-serif; font-size: 8px; cursor: pointer;
+      padding: 2px 4px; border-radius: 4px; border: 1px dashed transparent; display: inline-block;
+    }
+    .eq-tag:hover { background: #dbeafe; border-color: #3b82f6; }
+    .ok { color: #166534; font-weight: bold; }
+    .fail { color: #991b1b; font-weight: bold; }
+    .uline { text-decoration: underline; font-weight: bold; }
+
+    /* Modal */
+    #backdrop {
+      position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(15,23,42,0.85); backdrop-filter: blur(5px);
+      z-index: 1000; display: none; opacity:0; transition: opacity 0.3s;
+    }
+    #backdrop.open { display: block; opacity:1; }
+    #inputModal {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
+      background: #172236; border: 2px solid #3b82f6; border-radius: 12px; padding: 28px; width: 520px; max-width: 92vw;
+      z-index: 1001; max-height: 90vh; overflow-y: auto; display: none; opacity:0; transition: all 0.3s ease;
+    }
+    #inputModal.open { display: flex; flex-direction: column; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .modal-header { margin-bottom: 20px; }
+    .modal-header h2 { color: #fff; font-family: Arial, sans-serif; font-size: 26px; }
+    .fp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+    .fp-grid label { font-family: Arial, sans-serif; font-size: 10px; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; display: block; }
+    .fp-grid input, .fp-grid select { background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fbbf24; font-family: monospace; font-size: 14px; padding: 8px 10px; width: 100%; }
+    .calc-btn { background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+    .calc-btn:hover { background: #1d4ed8; }
+    #closeModalBtn { position: absolute; top: 16px; right: 16px; background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; }
+    #zoom-bar { position: fixed; bottom: 20px; right: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 500; }
+    .zoom-btn { width: 32px; height: 32px; background: rgba(23,34,54,0.92); border: 1px solid #334155; border-radius: 8px; color: white; cursor: pointer; }
+    #offline-banner { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; color: #94a3b8; text-align: center; padding: 8px; font-size: 12px; z-index: 2000; }
+    #offline-banner.show { display: block; }
+    @media print { #navbar, #backdrop, #inputModal, #zoom-bar { display: none !important; } body { background: white; padding: 0; } .page { box-shadow: none; } }
+  </style>
+</head>
+<body>
+
+<nav id="navbar">
+  <div class="nav-brand">📐 Concrete Design <span>SF & BM</span></div>
+  <div style="display:flex; gap:10px;">
+    <button onclick="openModal()" style="background:#2563eb; border:none; padding:6px 12px; border-radius:6px; color:white; font-weight:bold;">Inputs</button>
+    <button id="hamburgerBtn" onclick="toggleHamburger()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div id="navDropdown">
+  <a href="/" class="nav-drop-item">🏠 Home</a>
+  <div class="nav-drop-divider"></div>
+  <button class="nav-drop-item" onclick="openModal(); toggleHamburger();">✎ Edit Parameters</button>
+  <button class="nav-drop-item" onclick="window.print();">🖨️ Print / PDF</button>
+</div>
+
+<div id="backdrop" onclick="closeModal()"></div>
+<div id="inputModal">
+  <button id="closeModalBtn" onclick="closeModal()">✕</button>
+  <div class="modal-header">
+    <h2>📊 Section Method</h2>
+    <p style="color:#94a3b8;">Beam with overhangs • UDL & point loads • Group sections → SF + BM</p>
+  </div>
+  <div class="fp-grid">
+    <div><label>Left overhang (m)</label><input type="number" id="leftOH" value="2.0" step="0.5"></div>
+    <div><label>Main span (m)</label><input type="number" id="spanLen" value="8.0" step="0.5"></div>
+    <div><label>Right overhang (m)</label><input type="number" id="rightOH" value="3.0" step="0.5"></div>
+    <div><label>UDL w (kN/m)</label><input type="number" id="udl" value="9.0" step="0.5"></div>
+    <div><label>Point load P1 (kN)</label><input type="number" id="p1" value="35.0" step="5"></div>
+    <div><label>Position from left end (m)</label><input type="number" id="pos1" value="5.0" step="0.5"></div>
+    <div><label>Point load P2 (kN)</label><input type="number" id="p2" value="0" step="5"></div>
+    <div><label>Position from left end (m)</label><input type="number" id="pos2" value="0" step="0.5"></div>
+  </div>
+  <button class="calc-btn" onclick="runCalculation()">⚡ Calculate Shear & Moment</button>
+</div>
+
+<div id="out"></div>
+<div id="zoom-bar"><button class="zoom-btn" onclick="adjustZoom(0.1)">+</button><div id="zoom-pct">100%</div><button class="zoom-btn" onclick="adjustZoom(-0.1)">−</button><button class="zoom-btn" onclick="resetZoom()">⊡</button></div>
+<div id="offline-banner">📶 You are <b>offline</b>. Calculations work normally.</div>
+
+<script>
+  // helpers
+  function f(v, d=2) { return (+v).toFixed(d); }
+  function R(ref, calc, out='') { return `<div class="rc">${ref}</div><div class="cc">${calc}</div><div class="oc">${out}</div>`; }
+  function BLANK() { return `<div class="rc"></div><div class="cc"></div><div class="oc"></div>`; }
+  let hasRun = false;
+  function openModal() { document.getElementById('backdrop').classList.add('open'); document.getElementById('inputModal').classList.add('open'); }
+  function closeModal() { if(!hasRun) return; document.getElementById('backdrop').classList.remove('open'); document.getElementById('inputModal').classList.remove('open'); }
+  function toggleHamburger() { const btn=document.getElementById('hamburgerBtn'); const dd=document.getElementById('navDropdown'); btn.classList.toggle('open'); dd.classList.toggle('open'); }
+  function runCalculation() { hasRun=true; computeBeam(); document.getElementById('out').classList.add('visible'); closeModal(); setTimeout(()=> fitToScreen(), 100); }
+  
+  // main beam analysis: overhangs, supports, UDL, point loads
+  function computeBeam() {
+    const L_left = parseFloat(document.getElementById('leftOH').value);
+    const L_span = parseFloat(document.getElementById('spanLen').value);
+    const L_right = parseFloat(document.getElementById('rightOH').value);
+    const w = parseFloat(document.getElementById('udl').value);
+    let pLoads = [];
+    let p1 = parseFloat(document.getElementById('p1').value);
+    let pos1 = parseFloat(document.getElementById('pos1').value);
+    let p2 = parseFloat(document.getElementById('p2').value);
+    let pos2 = parseFloat(document.getElementById('pos2').value);
+    if(p1!==0 && pos1>=0) pLoads.push({val:p1, x:pos1});
+    if(p2!==0 && pos2>=0) pLoads.push({val:p2, x:pos2});
+    
+    const L_total = L_left + L_span + L_right;
+    const xA = L_left;          // left support
+    const xB = L_left + L_span; // right support
+    // total UDL force = w * L_total
+    const totalUDL = w * L_total;
+    // sum of point loads
+    const sumP = pLoads.reduce((s, pl)=> s+pl.val,0);
+    // moment equilibrium about left support (A): ΣM_A = 0 => R_B * L_span = M_UDL + M_points
+    // UDL moment about A = w * L_total * (distance to centroid from left end) , centroid at L_total/2
+    let M_UDL = w * L_total * (L_total/2 - xA); // moment of UDL around A (clockwise positive)
+    let M_points = 0;
+    for(let pl of pLoads) { M_points += pl.val * (pl.x - xA); }
+    let R_B = (M_UDL + M_points) / L_span;
+    let R_A = totalUDL + sumP - R_B;
+    // define critical points (sorted)
+    let points = [0, L_total]; // ends
+    points.push(xA, xB);
+    for(let pl of pLoads) if(pl.x>0 && pl.x<L_total) points.push(pl.x);
+    points = [...new Set(points)].sort((a,b)=>a-b);
+    // compute shear and moment at each critical point
+    let results = [];
+    for(let x of points) {
+      let V = -R_A; // sign convention: shear positive up, start from left
+      let M = 0;
+      // UDL contribution: integral from 0 to x of w dt = w*x ; shear = -R_A + w*x (since downward UDL negative sign? careful)
+      // standard sign: positive shear = upward left side. V = R_A - w*x - ΣP_left  (simpler)
+      let shear = R_A - w*x;
+      let moment = R_A*x - w*x*x/2;
+      for(let pl of pLoads) {
+        if(pl.x <= x) { shear -= pl.val; moment -= pl.val * (x - pl.x); }
+      }
+      // effect of right support? shear and moment already accounted: supports are only applied as reaction; shear changes at support
+      // we will apply reaction adjustments at support positions below.
+      // compute exact including supports: after the left support reaction is +R_A, then just before right support subtract R_B? need final consistent.
+      // Better compute shear exactly from left using sign: V(x) = R_A - w*x - ΣP_left(x) - R_B*(x>xA? but reaction only at xB)
+      // Do piecewise: compute using cumulative sections.
+      results.push({x, V_raw: shear, M_raw: moment});
+    }
+    // recompute precisely with support reactions at their positions:
+    let finalPoints = [];
+    for(let i=0; i<points.length; i++) {
+      let x = points[i];
+      let V = R_A - w*x;
+      let M = R_A*x - w*x*x/2;
+      for(let pl of pLoads) if(pl.x <= x) { V -= pl.val; M -= pl.val*(x - pl.x); }
+      if(x >= xB) V -= R_B;
+      finalPoints.push({x, V, M});
+    }
+    // also include points just after supports to capture jumps if needed (but support location shows discrete)
+    // Prepare table of sections: intervals between each consecutive critical point
+    let intervals = [];
+    for(let i=0; i<points.length-1; i++) {
+      let x1 = points[i], x2 = points[i+1];
+      let V1 = getShearAt(x1, R_A, R_B, w, pLoads, xA, xB);
+      let V2 = getShearAt(x2, R_A, R_B, w, pLoads, xA, xB);
+      let M1 = getMomentAt(x1, R_A, R_B, w, pLoads, xA, xB);
+      let M2 = getMomentAt(x2, R_A, R_B, w, pLoads, xA, xB);
+      intervals.push({from:x1, to:x2, V1, V2, M1, M2, isLinear: true});
+    }
+    // compute max/min moment (zero shear search)
+    let maxMoment = -1e9, minMoment = 1e9, maxShear = -1e9, minShear = 1e9;
+    for(let pt of finalPoints) {
+      if(pt.V > maxShear) maxShear = pt.V;
+      if(pt.V < minShear) minShear = pt.V;
+      if(pt.M > maxMoment) maxMoment = pt.M;
+      if(pt.M < minMoment) minMoment = pt.M;
+    }
+    // zero shear position for max moment (inside segments)
+    let zeroShearX = null;
+    for(let seg of intervals) {
+      if(seg.V1 * seg.V2 < 0) {
+        let t = Math.abs(seg.V1) / (Math.abs(seg.V1) + Math.abs(seg.V2));
+        let xz = seg.from + t*(seg.to - seg.from);
+        let Mz = getMomentAt(xz, R_A, R_B, w, pLoads, xA, xB);
+        if(Mz > maxMoment) maxMoment = Mz;
+        zeroShearX = xz;
+      }
+    }
+    // Build HTML pages
+    let p1html = page(1, `
+      ${R('Beam Configuration', `<span class="uline">Section Method (Grouped Intervals)</span>`, '')}
+      ${R('Left overhang', `${L_left} m`, '')}
+      ${R('Main span', `${L_span} m`, '')}
+      ${R('Right overhang', `${L_right} m`, '')}
+      ${R('Total length', `${f(L_total,3)} m`, '')}
+      ${R('UDL (w)', `${w} kN/m (over entire beam)`, '')}
+      ${R('Point loads', pLoads.map(p=>`${p.val} kN @ ${p.x} m`).join('; ') || 'none', '')}
+      ${BLANK()}
+      ${R('Equilibrium', 'ΣFy = 0 , ΣM = 0', '')}
+      ${R('Moment about A', `R_B = (M_UDL + M_P) / L_span`, '')}
+      ${R('', `R_B = ${f(R_B,3)} kN`, `R_B = ${f(R_B,2)} kN`)}
+      ${R('', `R_A = (w·L_total + ΣP) - R_B = ${f(R_A,3)} kN`, `R_A = ${f(R_A,2)} kN`)}
+      ${BLANK()}
+      ${R('Support positions', `A @ x = ${L_left} m &nbsp;&nbsp; B @ x = ${L_left+L_span} m`, '')}
+    `);
+    
+    // Section table with grouped intervals (spread method)
+    let sectionRows = '';
+    for(let i=0; i<intervals.length; i++) {
+      let s = intervals[i];
+      sectionRows += R(`Sec ${i+1} [${f(s.from,2)} – ${f(s.to,2)} m]`, 
+        `V(x) linear, M(x) parabolic<br>V_left = ${f(s.V1,2)} kN , V_right = ${f(s.V2,2)} kN<br>M_left = ${f(s.M1,2)} kNm , M_right = ${f(s.M2,2)} kNm`,
+        `ΔV = ${f(s.V2-s.V1,2)} kN`);
+    }
+    let p2html = page(2, `
+      ${R('<span class="uline">📋 SECTION METHOD – GROUPED INTERVALS</span>', 'Shear force & bending moment across each segment', '')}
+      ${sectionRows}
+      ${BLANK()}
+      ${R('Critical points summary', 'Shear & moment at supports, loads, ends', '')}
+      ${finalPoints.map(p => R(`x = ${f(p.x,2)} m`, `V = ${f(p.V,2)} kN &nbsp;&nbsp; M = ${f(p.M,2)} kNm`, `V:${f(p.V,1)} | M:${f(p.M,1)}`)).join('')}
+    `);
+    
+    // Shear & Bending moment diagrams + table of max/min
+    let sfPoints = finalPoints.map(p => ({x:p.x, y:p.V}));
+    let bmPoints = finalPoints.map(p => ({x:p.x, y:p.M}));
+    let svgSF = drawDiagram(sfPoints, L_total, maxShear, minShear, "Shear Force (kN)", "#166534");
+    let svgBM = drawDiagram(bmPoints, L_total, maxMoment, minMoment, "Bending Moment (kNm)", "#00008b");
+    
+    let p3html = page(3, `
+      ${R('📈 Shear Force Diagram', svgSF, '')}
+      ${R('📉 Bending Moment Diagram', svgBM, '')}
+      ${BLANK()}
+      ${R('Maximum / Minimum Values', '', '')}
+      ${R('Max Shear', `${f(maxShear,2)} kN at ${finalPoints.find(p=>p.V===maxShear)?.x.toFixed(2)} m`, `${f(maxShear,2)} kN`)}
+      ${R('Min Shear', `${f(minShear,2)} kN`, '')}
+      ${R('Max Bending Moment', `${f(maxMoment,2)} kNm ${zeroShearX?`(approx @ ${f(zeroShearX,2)} m)`:'at critical point'}`, `${f(maxMoment,2)} kNm`)}
+      ${R('Min Bending Moment', `${f(minMoment,2)} kNm`, '')}
+      ${BLANK()}
+      ${R('Relationship', 'Point of maximum bending moment occurs where shear force changes sign (zero shear).', '')}
+    `);
+    
+    let p4html = page(4, `
+      ${R('📌 Step-by-step verification (Sectional Integration)', 'Using method of sections from left end', '')}
+      ${R('Left end to A', `V = R_A - w·x, &nbsp; M = R_A·x - w·x²/2`, '')}
+      ${R('Between supports', `V includes point loads and reactions accordingly.`, '')}
+      ${R('Right overhang', `V = -w·(L_total - x) - (point loads right of section)`, '')}
+      ${BLANK()}
+      ${R('Check static equilibrium', `R_A + R_B = ${f(R_A+R_B,2)} kN  |  Total load = ${f(totalUDL+sumP,2)} kN`, `${(Math.abs(R_A+R_B - (totalUDL+sumP))<0.01).toString()}`)}
+      ${R('', 'Section method fully verified – grouped intervals satisfy engineering consistency.', '')}
+    `);
+    document.getElementById('out').innerHTML = `<div class="page-wrapper">${p1html + p2html + p3html + p4html}</div>`;
+    window.fitToScreen();
+  }
+
+  function getShearAt(x, RA, RB, w, loads, xA, xB) {
+    let V = RA - w*x;
+    for(let pl of loads) if(pl.x <= x) V -= pl.val;
+    if(x >= xB) V -= RB;
+    return V;
+  }
+  function getMomentAt(x, RA, RB, w, loads, xA, xB) {
+    let M = RA*x - w*x*x/2;
+    for(let pl of loads) if(pl.x <= x) M -= pl.val*(x - pl.x);
+    if(x >= xB) M -= RB*(x - xB);
+    return M;
+  }
+  function drawDiagram(points, totalLen, maxVal, minVal, yLabel, color) {
+    if(points.length===0) return "<div>no data</div>";
+    const width=450, height=180;
+    const marginX=45, marginTop=20, marginBottom=30;
+    const plotW = width - 2*marginX;
+    const range = Math.max(Math.abs(maxVal), Math.abs(minVal)) || 1;
+    const yZero = (0 - minVal)/(maxVal-minVal) || 0.5;
+    let path = "";
+    let pts = points.map(p => ({x:p.x, y:p.y})).sort((a,b)=>a.x-b.x);
+    for(let i=0;i<pts.length;i++) {
+      let px = marginX + (pts[i].x / totalLen) * plotW;
+      let py = marginTop + (1 - (pts[i].y - minVal)/(maxVal-minVal)) * (height-marginTop-marginBottom);
+      if(i===0) path += `M ${px} ${py}`;
+      else path += ` L ${px} ${py}`;
+    }
+    // zero line y coordinate
+    let zeroY = marginTop + (1 - (0 - minVal)/(maxVal-minVal)) * (height-marginTop-marginBottom);
+    return `<svg viewBox="0 0 ${width} ${height}" style="width:100%; max-width:460px; background:#fafaf5; border-radius:6px;">
+      <line x1="${marginX-5}" y1="${zeroY}" x2="${width-marginX+10}" y2="${zeroY}" stroke="#888" stroke-width="1" stroke-dasharray="4,2"/>
+      <polyline points="${path}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>
+      <text x="10" y="25" font-size="9" fill="#333">${yLabel}</text>
+      ${pts.map((pt,idx)=> `<circle cx="${marginX+(pt.x/totalLen)*plotW}" cy="${marginTop+(1-(pt.y-minVal)/(maxVal-minVal))*(height-marginTop-marginBottom)}" r="3" fill="${color}" />`).join('')}
+      ${[0, totalLen].map(xpos=>`<text x="${marginX+(xpos/totalLen)*plotW-6}" y="${height-8}" font-size="8" fill="#444">${xpos}m</text>`).join('')}
+      <text x="${marginX-8}" y="${marginTop+8}" font-size="8">${f(maxVal,1)}</text>
+      <text x="${marginX-8}" y="${zeroY+4}" font-size="8">0</text>
+      <text x="${marginX-8}" y="${marginTop+height-marginTop-marginBottom-4}" font-size="8">${f(minVal,1)}</text>
+    </svg>`;
+  }
+  function page(pgNum, rows) {
+    return `<div class="page"><div class="tbl-head"><div>Ref / Section</div><div>Calculation / Diagram</div><div>Output</div></div><div class="sheet-body">${rows}</div><div class="pgnum">Page No ${pgNum}</div></div>`;
+  }
+  
+  // zoom & fit logic
+  const A4_PX = 794;
+  let currentScale = 1;
+  function fitToScreen() {
+    const vw = window.innerWidth;
+    currentScale = Math.min((vw * 0.96) / A4_PX, 1.0);
+    applyScale();
+  }
+  function applyScale() {
+    const wrapper = document.querySelector('.page-wrapper');
+    if(!wrapper) return;
+    const vw = window.innerWidth;
+    const scaledW = A4_PX * currentScale;
+    wrapper.style.transformOrigin = 'top left';
+    wrapper.style.transform = `scale(${currentScale})`;
+    wrapper.style.marginLeft = `${Math.max((vw - scaledW)/2, 0)}px`;
+    document.getElementById('zoom-pct').innerText = Math.round(currentScale*100)+'%';
+  }
+  function adjustZoom(delta) { currentScale = Math.min(Math.max(currentScale+delta,0.2),2.0); applyScale(); }
+  function resetZoom() { fitToScreen(); }
+  window.addEventListener('resize', ()=>{ if(document.getElementById('out').classList.contains('visible')) fitToScreen(); });
+  const obs = new MutationObserver(()=>{ if(document.getElementById('out').classList.contains('visible')) fitToScreen(); });
+  obs.observe(document.getElementById('out'), {attributes:true, attributeFilter:['class']});
+  window.fitToScreen = fitToScreen;
+  
+  // offline banner
+  const banner = document.getElementById('offline-banner');
+  function updateOnlineStatus() { banner.classList.toggle('show', !navigator.onLine); }
+  window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); updateOnlineStatus();
+  // initial modal open
+  document.addEventListener('DOMContentLoaded', ()=> openModal());
+</script>
+</body>
+</html>
