@@ -4,98 +4,486 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Beam Calculation Sheet</title>
+
 <style>
-body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-h1 { color: #0b3d91; }
-label { display:block; margin-top:10px; }
-input { width: 100px; padding:4px; margin-left:5px; }
-button { margin-top: 15px; padding: 8px 12px; }
-.step { background: #fff; padding: 10px; margin-top: 10px; border-left: 4px solid #0b3d91; }
-.step pre { margin:0; white-space: pre-wrap; }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:Arial, sans-serif;
+    background:#f4f4f4;
+    padding:20px;
+    color:#222;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+h1{
+    margin-bottom:20px;
+    color:#0b3d91;
+}
+
+.input-section{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+.input-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:15px;
+}
+
+label{
+    display:block;
+    font-size:14px;
+    margin-bottom:5px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:5px;
+}
+
+button{
+    margin-top:20px;
+    padding:12px 20px;
+    border:none;
+    background:#0b3d91;
+    color:white;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+button:hover{
+    background:#072c69;
+}
+
+.step{
+    background:white;
+    padding:15px;
+    border-left:5px solid #0b3d91;
+    margin-bottom:15px;
+    border-radius:5px;
+}
+
+.step h3{
+    margin-bottom:10px;
+    color:#0b3d91;
+}
+
+pre{
+    white-space:pre-wrap;
+    line-height:1.6;
+}
+
+.diagram-box{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+svg{
+    width:100%;
+    height:auto;
+    border:1px solid #ddd;
+    background:white;
+}
 </style>
 </head>
+
 <body>
+
+<div class="container">
 
 <h1>Beam Calculation Sheet (Section Method)</h1>
 
+<div class="input-section">
+
+<div class="input-grid">
+
 <div>
-  <label>Left Overhang (L1, m): <input id="L_left" type="number" step="0.1" value="2.0"></label>
-  <label>Main Span (L2, m): <input id="L_span" type="number" step="0.1" value="8.0"></label>
-  <label>Right Overhang (L3, m): <input id="L_right" type="number" step="0.1" value="3.0"></label>
-  <label>UDL w (kN/m): <input id="udl" type="number" step="0.1" value="9.0"></label>
-  <label>Point Load P (kN): <input id="P_load" type="number" step="1" value="35.0"></label>
-  <label>Position from left end (m): <input id="P_pos" type="number" step="0.1" value="6.0"></label>
-  <button onclick="runCalculations()">Run Calculation</button>
+<label>Left Overhang L1 (m)</label>
+<input id="L_left" type="number" value="2">
+</div>
+
+<div>
+<label>Main Span L2 (m)</label>
+<input id="L_span" type="number" value="8">
+</div>
+
+<div>
+<label>Right Overhang L3 (m)</label>
+<input id="L_right" type="number" value="3">
+</div>
+
+<div>
+<label>UDL w (kN/m)</label>
+<input id="udl" type="number" value="9">
+</div>
+
+<div>
+<label>Point Load P (kN)</label>
+<input id="P_load" type="number" value="35">
+</div>
+
+<div>
+<label>Point Load Position x (m)</label>
+<input id="P_pos" type="number" value="6">
+</div>
+
+</div>
+
+<button onclick="runCalculations()">Run Calculation</button>
+
+</div>
+
+<div class="diagram-box">
+<h2>Beam Diagram</h2>
+<div id="beamDiagram"></div>
+</div>
+
+<div class="diagram-box">
+<h2>Shear Force Diagram</h2>
+<div id="sfd"></div>
+</div>
+
+<div class="diagram-box">
+<h2>Bending Moment Diagram</h2>
+<div id="bmd"></div>
 </div>
 
 <div id="output"></div>
 
-<script>
-// ---------- Helper ----------
-function f(num, d=2){ return num.toFixed(d); }
+</div>
 
-// ---------- Calculation Engine ----------
-function runCalculations() {
+<script>
+
+function f(num, d=2){
+    return Number(num).toFixed(d);
+}
+
+function runCalculations(){
+
     const L1 = parseFloat(document.getElementById('L_left').value);
     const L2 = parseFloat(document.getElementById('L_span').value);
     const L3 = parseFloat(document.getElementById('L_right').value);
+
     const w = parseFloat(document.getElementById('udl').value);
     const P = parseFloat(document.getElementById('P_load').value);
     const xP = parseFloat(document.getElementById('P_pos').value);
 
     const L_total = L1 + L2 + L3;
+
     const xA = L1;
     const xB = L1 + L2;
 
-    // Step 1: Total UDL
+    // ===================================================
+    // STEP 1
+    // ===================================================
+
     const totalUDL = w * L_total;
-    const step1 = `Total UDL = w × L_total = ${w} × ${f(L_total)} = ${f(totalUDL)} kN`;
 
-    // Step 2: Reactions
-    const M_UDL = w*L_total*(L_total/2 - L1);
-    const M_P = P*(xP - L1);
-    const R_B = (M_UDL + M_P)/L2;
-    const R_A = totalUDL + P - R_B;
-    const step2 = `Moment about A: R_B × L2 = M_UDL + M_P → R_B = ${f(R_B)} kN\nVertical equilibrium: R_A = totalUDL + P - R_B = ${f(R_A)} kN`;
+    const step1 = `
+Total UDL
 
-    // Step 3: Shear Force at Key Points
-    const critX = [0, xA, xP, xB, L_total].sort((a,b)=>a-b);
-    const shearPoints = critX.map(x=>{
-        let V = R_A - w*x;
-        if(x >= xP) V -= P;
-        if(x >= xB) V -= R_B;
-        return {x, V};
+w × L_total
+= ${w} × ${f(L_total)}
+= ${f(totalUDL)} kN
+`;
+
+    // ===================================================
+    // STEP 2
+    // ===================================================
+
+    const M_UDL = w * L_total * ((L_total/2) - xA);
+
+    const M_P = P * (xP - xA);
+
+    const RB = (M_UDL + M_P) / L2;
+
+    const RA = totalUDL + P - RB;
+
+    const step2 = `
+Taking moments about A
+
+RB × ${f(L2)}
+
+= ${f(M_UDL)} + ${f(M_P)}
+
+RB = ${f(RB)} kN
+
+
+Vertical equilibrium
+
+RA + RB = Total Load
+
+RA = ${f(totalUDL)} + ${f(P)} - ${f(RB)}
+
+RA = ${f(RA)} kN
+`;
+
+    // ===================================================
+    // STEP 3
+    // ===================================================
+
+    const criticalPoints = [0, xA, xP, xB, L_total];
+
+    let shearResults = [];
+    let momentResults = [];
+
+    let step3 = "SHEAR FORCE VALUES\n\n";
+
+    let step4 = "BENDING MOMENT VALUES\n\n";
+
+    criticalPoints.forEach(x=>{
+
+        let V = RA - (w * x);
+
+        if(x >= xP){
+            V -= P;
+        }
+
+        if(x >= xB){
+            V -= RB;
+        }
+
+        shearResults.push({
+            x,
+            V
+        });
+
+        step3 += `x = ${f(x)} m   →   V = ${f(V)} kN\n`;
+
     });
-    let step3 = "Shear Force at critical points:\n";
-    shearPoints.forEach(p => step3 += `x=${f(p.x)} m → V=${f(p.V)} kN\n`);
 
-    // Step 4: Bending Moment at Key Points
-    const momentPoints = critX.map(x=>{
-        let M = R_A*x - w*x*x/2;
-        if(x >= xP) M -= P*(x - xP);
-        if(x >= xB) M -= R_B*(x - xB);
-        return {x, M};
+    // ===================================================
+    // STEP 4
+    // ===================================================
+
+    criticalPoints.forEach(x=>{
+
+        let M = (RA * x) - ((w * x * x)/2);
+
+        if(x >= xP){
+            M -= P * (x - xP);
+        }
+
+        if(x >= xB){
+            M -= RB * (x - xB);
+        }
+
+        momentResults.push({
+            x,
+            M
+        });
+
+        step4 += `x = ${f(x)} m   →   M = ${f(M)} kNm\n`;
+
     });
-    let step4 = "Bending Moment at critical points:\n";
-    momentPoints.forEach(p => step4 += `x=${f(p.x)} m → M=${f(p.M)} kNm\n`);
 
-    // Step 5: Max/Min
-    const maxShear = Math.max(...shearPoints.map(p=>p.V));
-    const minShear = Math.min(...shearPoints.map(p=>p.V));
-    const maxMoment = Math.max(...momentPoints.map(p=>p.M));
-    const minMoment = Math.min(...momentPoints.map(p=>p.M));
-    const step5 = `Max Shear = ${f(maxShear)} kN, Min Shear = ${f(minShear)} kN\nMax Moment = ${f(maxMoment)} kNm, Min Moment = ${f(minMoment)} kNm`;
+    // ===================================================
+    // STEP 5
+    // ===================================================
 
-    // ---------- Display Steps ----------
-    const outputDiv = document.getElementById('output');
-    outputDiv.innerHTML = "";
-    [step1, step2, step3, step4, step5].forEach((s,i)=>{
-        const div = document.createElement('div');
-        div.className = 'step';
-        div.innerHTML = `<h3>Step ${i+1}</h3><pre>${s}</pre>`;
-        outputDiv.appendChild(div);
+    const maxShear = Math.max(...shearResults.map(v=>v.V));
+    const minShear = Math.min(...shearResults.map(v=>v.V));
+
+    const maxMoment = Math.max(...momentResults.map(v=>v.M));
+    const minMoment = Math.min(...momentResults.map(v=>v.M));
+
+    const step5 = `
+SUMMARY
+
+Maximum Shear = ${f(maxShear)} kN
+
+Minimum Shear = ${f(minShear)} kN
+
+Maximum Moment = ${f(maxMoment)} kNm
+
+Minimum Moment = ${f(minMoment)} kNm
+`;
+
+    // ===================================================
+    // DISPLAY STEPS
+    // ===================================================
+
+    const steps = [step1, step2, step3, step4, step5];
+
+    const output = document.getElementById('output');
+
+    output.innerHTML = '';
+
+    steps.forEach((step, index)=>{
+
+        output.innerHTML += `
+        <div class="step">
+            <h3>Step ${index + 1}</h3>
+            <pre>${step}</pre>
+        </div>
+        `;
+
     });
+
+    // ===================================================
+    // DRAW DIAGRAMS
+    // ===================================================
+
+    drawBeam(L_total, xA, xB, xP, P);
+
+    drawSFD(shearResults);
+
+    drawBMD(momentResults);
+
 }
+
+// ===================================================
+// BEAM DIAGRAM
+// ===================================================
+
+function drawBeam(L, xA, xB, xP, P){
+
+    const width = 800;
+    const scale = width / L;
+
+    const beamY = 100;
+
+    const beamSvg = `
+    <svg viewBox="0 0 900 200">
+
+        <line x1="50" y1="${beamY}" x2="${50 + (L * scale)}" y2="${beamY}" stroke="black" stroke-width="4"/>
+
+        <polygon points="${50 + (xA * scale)-10},120 ${50 + (xA * scale)+10},120 ${50 + (xA * scale)},140"
+        fill="black"/>
+
+        <polygon points="${50 + (xB * scale)-10},120 ${50 + (xB * scale)+10},120 ${50 + (xB * scale)},140"
+        fill="black"/>
+
+        <line x1="${50 + (xP * scale)}" y1="40"
+        x2="${50 + (xP * scale)}" y2="90"
+        stroke="red"
+        stroke-width="3"/>
+
+        <polygon points="
+        ${50 + (xP * scale)-8},90
+        ${50 + (xP * scale)+8},90
+        ${50 + (xP * scale)},105"
+        fill="red"/>
+
+        <text x="${50 + (xP * scale)-10}" y="30" fill="red">
+        ${P} kN
+        </text>
+
+    </svg>
+    `;
+
+    document.getElementById('beamDiagram').innerHTML = beamSvg;
+
+}
+
+// ===================================================
+// SFD
+// ===================================================
+
+function drawSFD(points){
+
+    const width = 800;
+    const height = 300;
+
+    const maxV = Math.max(...points.map(p=>p.V));
+    const minV = Math.min(...points.map(p=>p.V));
+
+    const range = maxV - minV;
+
+    let polyline = '';
+
+    points.forEach((p,index)=>{
+
+        const x = 50 + (index * 150);
+
+        const y = 150 - ((p.V - minV) / range) * 200;
+
+        polyline += `${x},${y} `;
+
+    });
+
+    const svg = `
+    <svg viewBox="0 0 900 300">
+
+        <line x1="0" y1="150" x2="900" y2="150"
+        stroke="black"/>
+
+        <polyline
+        points="${polyline}"
+        fill="none"
+        stroke="green"
+        stroke-width="3"/>
+
+    </svg>
+    `;
+
+    document.getElementById('sfd').innerHTML = svg;
+
+}
+
+// ===================================================
+// BMD
+// ===================================================
+
+function drawBMD(points){
+
+    const width = 800;
+    const height = 300;
+
+    const maxM = Math.max(...points.map(p=>p.M));
+    const minM = Math.min(...points.map(p=>p.M));
+
+    const range = maxM - minM;
+
+    let polyline = '';
+
+    points.forEach((p,index)=>{
+
+        const x = 50 + (index * 150);
+
+        const y = 150 - ((p.M - minM) / range) * 200;
+
+        polyline += `${x},${y} `;
+
+    });
+
+    const svg = `
+    <svg viewBox="0 0 900 300">
+
+        <line x1="0" y1="150" x2="900" y2="150"
+        stroke="black"/>
+
+        <polyline
+        points="${polyline}"
+        fill="none"
+        stroke="blue"
+        stroke-width="3"/>
+
+    </svg>
+    `;
+
+    document.getElementById('bmd').innerHTML = svg;
+
+}
+
 </script>
+
 </body>
 </html>
