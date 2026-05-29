@@ -1,373 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-  <title>SF & BM – Section Method | Concrete Design (9‑Page A4)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --navy: #0f172a; --navy2: #172236; --border: #334155;
-      --blue: #3b82f6; --blue2: #2563eb; --muted: #94a3b8;
-      --green: #22c55e;
-    }
-    body { background: #b8bec8; font-family: 'Space Mono', monospace; padding-top: 80px; padding-bottom: 40px; }
-    #navbar {
-      position: fixed; top: 0; left: 0; right: 0; height: 65px; background: #0f172a;
-      display: flex; align-items: center; justify-content: space-between; padding: 0 5%;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5); z-index: 900; border-bottom: 2px solid #3b82f6;
-    }
-    .nav-brand { color: #fff; font-family: Arial, sans-serif; font-size: 19px; font-weight: 800; }
-    .nav-brand span { color: #3b82f6; }
-    #hamburgerBtn {
-      background: none; border: none; cursor: pointer; padding: 6px; display: flex; flex-direction: column; gap: 5px;
-    }
-    #hamburgerBtn span { display: block; width: 24px; height: 2.5px; background: #e2e8f0; transition: 0.2s; }
-    #hamburgerBtn.open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
-    #hamburgerBtn.open span:nth-child(2) { opacity: 0; }
-    #hamburgerBtn.open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
-    #navDropdown {
-      position: fixed; top: 65px; right: 0; width: 240px; background: #0f172a; border-radius: 0 0 10px 10px;
-      display: none; flex-direction: column; padding: 8px 0; z-index: 899;
-    }
-    #navDropdown.open { display: flex; }
-    .nav-drop-item { padding: 12px 20px; color: #cbd5e1; cursor: pointer; background: none; border: none; text-align: left; }
-    .nav-drop-item:hover { background: #1e293b; color: #fff; }
-    #out { display: none; width: 100%; overflow-x: auto; }
-    #out.visible { display: block; }
-    .page-wrapper { width: 794px; margin: 0 auto; transform-origin: top left; }
-    .page {
-      background: #fffef9;
-      background-image: repeating-linear-gradient(transparent 0px, transparent 23px, #dde6ef 23px, #dde6ef 24px);
-      width: 210mm; margin: 0 auto 24px auto; box-shadow: 0 4px 24px rgba(0,0,0,.25);
-      position: relative; padding-bottom: 12px;
-    }
-    .page::before { content: ''; position: absolute; left: 21mm; top: 0; bottom: 0; border-left: 2px solid #cc0000; pointer-events: none; }
-    .tbl-head {
-      display: grid; grid-template-columns: 28mm 1fr 32mm; border: 2px solid #222; margin: 5mm 5mm 0;
-      font-family: Arial, sans-serif; font-size: 10px; font-weight: 700;
-    }
-    .tbl-head div { padding: 4px 6px; text-align: center; border-right: 1.5px solid #222; }
-    .tbl-head div:last-child { border-right: none; }
-    .sheet-body {
-      display: grid; grid-template-columns: 28mm 1fr 32mm; border: 2px solid #222; border-top: none;
-      margin: 0 5mm 4mm;
-    }
-    .rc, .cc, .oc { border-bottom: 1px solid #dde6ef; padding: 2px 6px; font-size: 11px; line-height: 1.45; min-height: 26px; }
-    .rc { border-right: 1.5px solid #222; background: #f9f9f0; font-weight: 600; }
-    .cc { border-right: 1.5px solid #222; color: #00008b; font-family: monospace; }
-    .oc { text-align: right; color: #00008b; }
-    .pgnum { border-top: 1.5px solid #222; margin: 12px 5mm 0; text-align: center; padding: 2px 0; font-size: 11px; }
-    .rbox { border: 1.5px solid #00008b; padding: 0 8px; background: #f0f4ff; display: inline-block; }
-    .eq-tag { color: #2563eb; cursor: pointer; border: 1px dashed transparent; padding: 2px 4px; border-radius: 4px; font-size: 8px; }
-    .eq-tag:hover { background: #dbeafe; border-color: #3b82f6; }
-    .ok { color: #166534; font-weight: bold; }
-    .fail { color: #991b1b; }
-    .uline { text-decoration: underline; font-weight: bold; }
-    #backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.85); backdrop-filter: blur(5px); z-index: 1000; display: none; }
-    #backdrop.open { display: block; }
-    #inputModal {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
-      background: #172236; border: 2px solid #3b82f6; border-radius: 12px; padding: 28px; width: 520px;
-      z-index: 1001; max-height: 90vh; overflow-y: auto; display: none;
-    }
-    #inputModal.open { display: flex; flex-direction: column; transform: translate(-50%, -50%) scale(1); }
-    .fp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
-    .fp-grid label { font-family: Arial; font-size: 10px; color: #94a3b8; display: block; margin-bottom: 4px; }
-    .fp-grid input { background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fbbf24; padding: 8px; width: 100%; }
-    .calc-btn { background: #2563eb; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
-    #zoom-bar { position: fixed; bottom: 20px; right: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 500; }
-    .zoom-btn { width: 32px; height: 32px; background: #172236; border: 1px solid #334155; border-radius: 8px; color: white; cursor: pointer; }
-    @media print { #navbar, #backdrop, #inputModal, #zoom-bar { display: none !important; } body { background: white; padding: 0; } .page { box-shadow: none; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beam Calculation Sheet</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+h1 { color: #0b3d91; }
+label { display:block; margin-top:10px; }
+input { width: 100px; padding:4px; margin-left:5px; }
+button { margin-top: 15px; padding: 8px 12px; }
+.step { background: #fff; padding: 10px; margin-top: 10px; border-left: 4px solid #0b3d91; }
+.step pre { margin:0; white-space: pre-wrap; }
+</style>
 </head>
 <body>
 
-<nav id="navbar">
-  <div class="nav-brand">📐 Concrete Design <span>SF & BM</span> (9‑Page A4)</div>
-  <button id="hamburgerBtn" onclick="toggleHamburger()"><span></span><span></span><span></span></button>
-</nav>
-<div id="navDropdown">
-  <button class="nav-drop-item" onclick="openModal(); toggleHamburger();">✎ Edit Parameters</button>
-  <button class="nav-drop-item" onclick="window.print();">🖨️ Print / PDF</button>
+<h1>Beam Calculation Sheet (Section Method)</h1>
+
+<div>
+  <label>Left Overhang (L1, m): <input id="L_left" type="number" step="0.1" value="2.0"></label>
+  <label>Main Span (L2, m): <input id="L_span" type="number" step="0.1" value="8.0"></label>
+  <label>Right Overhang (L3, m): <input id="L_right" type="number" step="0.1" value="3.0"></label>
+  <label>UDL w (kN/m): <input id="udl" type="number" step="0.1" value="9.0"></label>
+  <label>Point Load P (kN): <input id="P_load" type="number" step="1" value="35.0"></label>
+  <label>Position from left end (m): <input id="P_pos" type="number" step="0.1" value="6.0"></label>
+  <button onclick="runCalculations()">Run Calculation</button>
 </div>
 
-<div id="backdrop" onclick="closeModal()"></div>
-<div id="inputModal">
-  <h2 style="color:#fff; margin-bottom:12px;">Beam Data (Figure 2 style)</h2>
-  <div class="fp-grid">
-    <div><label>Left overhang (m)</label><input id="L_left" type="number" step="0.5" value="2.0"></div>
-    <div><label>Main span (m)</label><input id="L_span" type="number" step="0.5" value="8.0"></div>
-    <div><label>Right overhang (m)</label><input id="L_right" type="number" step="0.5" value="3.0"></div>
-    <div><label>UDL w (kN/m)</label><input id="udl" type="number" step="0.5" value="9.0"></div>
-    <div><label>Point load P (kN)</label><input id="P_load" type="number" step="5" value="35.0"></div>
-    <div><label>Position from left end (m)</label><input id="P_pos" type="number" step="0.5" value="6.0"></div>
-  </div>
-  <button class="calc-btn" onclick="runCalculation()">Calculate 9‑Page Report</button>
-  <button style="margin-top:10px;" class="calc-btn" onclick="window.print()">Print Report</button>
-</div>
-
-<div id="out"></div>
-<div id="zoom-bar"><button class="zoom-btn" onclick="adjustZoom(0.1)">+</button><div id="zoom-pct">100%</div><button class="zoom-btn" onclick="adjustZoom(-0.1)">−</button><button class="zoom-btn" onclick="resetZoom()">⊡</button></div>
+<div id="output"></div>
 
 <script>
-  // ---------- helpers ----------
-  function f(v, d=2) { return (+v).toFixed(d); }
-  function R(ref, calc, out='') { return `<div class="rc">${ref}</div><div class="cc">${calc}</div><div class="oc">${out}</div>`; }
-  function BLANK() { return `<div class="rc"></div><div class="cc"></div><div class="oc"></div>`; }
-  
-  let hasRun = false;
-  function openModal() { document.getElementById('backdrop').classList.add('open'); document.getElementById('inputModal').classList.add('open'); }
-  function closeModal() { if(!hasRun) return; document.getElementById('backdrop').classList.remove('open'); document.getElementById('inputModal').classList.remove('open'); }
-  function toggleHamburger() { const btn=document.getElementById('hamburgerBtn'); const dd=document.getElementById('navDropdown'); btn.classList.toggle('open'); dd.classList.toggle('open'); }
-  
-  // ---- core beam analysis ----
-  function computeBeam() {
+// ---------- Helper ----------
+function f(num, d=2){ return num.toFixed(d); }
+
+// ---------- Calculation Engine ----------
+function runCalculations() {
     const L1 = parseFloat(document.getElementById('L_left').value);
     const L2 = parseFloat(document.getElementById('L_span').value);
     const L3 = parseFloat(document.getElementById('L_right').value);
     const w = parseFloat(document.getElementById('udl').value);
     const P = parseFloat(document.getElementById('P_load').value);
     const xP = parseFloat(document.getElementById('P_pos').value);
-    
+
     const L_total = L1 + L2 + L3;
-    const xA = L1;               // left support
-    const xB = L1 + L2;          // right support
-    
-    // Reactions (equilibrium)
+    const xA = L1;
+    const xB = L1 + L2;
+
+    // Step 1: Total UDL
     const totalUDL = w * L_total;
-    // Moment about A: R_B * L2 = w * L_total * (L_total/2 - xA) + P * (xP - xA)
-    const M_UDL = w * L_total * (L_total/2 - xA);
-    const M_P = P * (xP - xA);
-    let R_B = (M_UDL + M_P) / L2;
-    let R_A = totalUDL + P - R_B;
-    
-    // define critical x positions: ends, supports, point load
-    let critX = [0, L_total, xA, xB];
-    if(xP>0 && xP<L_total) critX.push(xP);
-    critX.sort((a,b)=>a-b);
-    critX = [...new Set(critX)];
-    
-    // functions to get shear and moment (using standard sign: positive shear upward, moment sagging positive)
-    function getShear(x) {
-      let V = R_A - w*x;
-      if(x >= xP) V -= P;
-      if(x >= xB) V -= R_B;
-      return V;
-    }
-    function getMoment(x) {
-      let M = R_A*x - w*x*x/2;
-      if(x >= xP) M -= P*(x - xP);
-      if(x >= xB) M -= R_B*(x - xB);
-      return M;
-    }
-    
-    // detailed points for diagrams (every 0.2m for smooth curves)
-    let finePoints = [];
-    for(let x=0; x<=L_total; x+=0.2) finePoints.push({x, V: getShear(x), M: getMoment(x)});
-    
-    // critical values
-    let minShear = Math.min(...finePoints.map(p=>p.V));
-    let maxShear = Math.max(...finePoints.map(p=>p.V));
-    let minMoment = Math.min(...finePoints.map(p=>p.M));
-    let maxMoment = Math.max(...finePoints.map(p=>p.M));
-    
-    // zero shear position for max moment (approximately)
-    let zeroShearX = null;
-    for(let i=0; i<finePoints.length-1; i++) {
-      if(finePoints[i].V * finePoints[i+1].V < 0) {
-        let t = Math.abs(finePoints[i].V) / (Math.abs(finePoints[i].V) + Math.abs(finePoints[i+1].V));
-        zeroShearX = finePoints[i].x + t*(finePoints[i+1].x - finePoints[i].x);
-        break;
-      }
-    }
-    let maxMomentAtZero = zeroShearX ? getMoment(zeroShearX) : maxMoment;
-    
-    // ---------- generate 9 pages ----------
-    let pages = [];
-    
-    // Page 1: Cover, beam diagram, given data
-    pages.push(page(1, `
-      ${R('BS 8110 / Concrete Design', '<span class="uline">Shear Force & Bending Moment</span>', '')}
-      ${R('Figure 2 – Simply supported beam with overhangs', 'Method: Section grouping (intervals)', '')}
-      ${BLANK()}
-      ${R('Given data', `Left overhang = ${L1} m &nbsp;&nbsp; Main span = ${L2} m &nbsp;&nbsp; Right overhang = ${L3} m`, '')}
-      ${R('', `UDL (w) = ${w} kN/m (over full length)`, '')}
-      ${R('', `Point load P = ${P} kN at x = ${xP} m from left end`, '')}
-      ${R('', `Total length L = ${f(L_total,3)} m`, '')}
-      ${BLANK()}
-      ${R('Beam sketch', drawBeamSketch(L1, L2, L3, xP, w, P), '')}
-    `));
-    
-    // Page 2: Support reactions
-    pages.push(page(2, `
-      ${R('Equilibrium equations', 'ΣFy = 0 , ΣM = 0', '')}
-      ${R('Moment about left support A', `R_B × ${L2} = w×${f(L_total,2)}×(${f(L_total/2,2)} - ${L1}) + ${P}×(${xP} - ${L1})`, '')}
-      ${R('', `R_B = ${f(R_B,3)} kN`, `R_B = ${f(R_B,2)} kN`)}
-      ${R('Vertical equilibrium', `R_A = w·L_total + P - R_B = ${f(w*L_total,2)} + ${P} - ${f(R_B,2)}`, '')}
-      ${R('', `<span class="rbox">R_A = ${f(R_A,3)} kN</span>`, `R_A = ${f(R_A,2)} kN`)}
-      ${BLANK()}
-      ${R('Check', `R_A + R_B = ${f(R_A+R_B,2)} kN &nbsp;&nbsp; total load = ${f(w*L_total+P,2)} kN`, `${Math.abs(R_A+R_B - (w*L_total+P))<0.01 ? '✓ OK' : '✗ ERROR'}`)}
-    `));
-    
-    // Page 3: Shear force at key sections
-    let shearRows = '';
-    for(let x of critX) {
-      shearRows += R(`x = ${f(x,2)} m`, `V = ${f(getShear(x),2)} kN`, `${f(getShear(x),1)} kN`);
-    }
-    pages.push(page(3, `
-      ${R('Shear force values', 'Using V(x) = R_A - w·x - ΣP_left(x) - R_B (if x ≥ xB)', '')}
-      ${shearRows}
-      ${BLANK()}
-      ${R('Maximum shear', `${f(maxShear,2)} kN at ${finePoints.find(p=>p.V===maxShear)?.x.toFixed(2)} m`, '')}
-      ${R('Minimum shear', `${f(minShear,2)} kN`, '')}
-    `));
-    
-    // Page 4: Bending moment at key sections
-    let momentRows = '';
-    for(let x of critX) {
-      momentRows += R(`x = ${f(x,2)} m`, `M = ${f(getMoment(x),2)} kNm`, `${f(getMoment(x),1)} kNm`);
-    }
-    pages.push(page(4, `
-      ${R('Bending moment values', 'M(x) = R_A·x - w·x²/2 - ΣP·(x-xP) - R_B·(x-xB) (if applicable)', '')}
-      ${momentRows}
-      ${BLANK()}
-      ${R('Maximum moment', `${f(maxMomentAtZero,2)} kNm at x ≈ ${f(zeroShearX,2)} m (zero shear)`, '')}
-      ${R('Minimum moment', `${f(minMoment,2)} kNm`, '')}
-    `));
-    
-    // Page 5: Section grouping (like PDF table)
-    let groupRows = '';
-    let intervals = [];
-    for(let i=0; i<critX.length-1; i++) {
-      intervals.push({from: critX[i], to: critX[i+1]});
-    }
-    for(let i=0; i<intervals.length; i++) {
-      let seg = intervals[i];
-      let x_mid = (seg.from + seg.to)/2;
-      groupRows += R(`Section ${i+1}`, `${f(seg.from,2)}m → ${f(seg.to,2)}m &nbsp;&nbsp; V(x) linear, M(x) parabolic<br>Shear at start: ${f(getShear(seg.from),2)} kN &nbsp;&nbsp; end: ${f(getShear(seg.to),2)} kN<br>Moment at start: ${f(getMoment(seg.from),2)} kNm &nbsp;&nbsp; end: ${f(getMoment(seg.to),2)} kNm`, `ΔV = ${f(getShear(seg.to)-getShear(seg.from),2)}`);
-    }
-    pages.push(page(5, `
-      ${R('📋 Grouped sections (method of intervals)', 'Each segment has linear shear / parabolic moment', '')}
-      ${groupRows}
-    `));
-    
-    // Page 6: Continuous Shear Force Diagram (connected line)
-    let sfdSvg = drawContinuousDiagram(finePoints, L_total, 'V', maxShear, minShear, 'Shear Force (kN)', '#166534');
-    pages.push(page(6, `
-      ${R('Shear Force Diagram', sfdSvg, '')}
-      ${R('Note', 'Line is continuous – no gaps. Zero shear indicates maximum bending moment.', '')}
-    `));
-    
-    // Page 7: Continuous Bending Moment Diagram
-    let bmdSvg = drawContinuousDiagram(finePoints, L_total, 'M', maxMoment, minMoment, 'Bending Moment (kNm)', '#00008b');
-    pages.push(page(7, `
-      ${R('Bending Moment Diagram', bmdSvg, '')}
-      ${R('', 'Parabolic shape due to UDL; point load causes slope change.', '')}
-    `));
-    
-    // Page 8: Relationship & verification
-    pages.push(page(8, `
-      ${R('Relationship between SF and BM', 'dM/dx = V → maximum bending moment occurs where shear force changes sign (zero shear).', '')}
-      ${R('Zero shear location', `x = ${f(zeroShearX,2)} m &nbsp;&nbsp; M_max = ${f(maxMomentAtZero,2)} kNm`, '')}
-      ${R('Check derivative', `At zero shear, slope of moment diagram is zero. Verified by adjacent values.`, '')}
-      ${BLANK()}
-      ${R('Maximum shear force', `|V|_max = ${f(Math.max(Math.abs(maxShear), Math.abs(minShear)),2)} kN`, `${f(Math.max(Math.abs(maxShear), Math.abs(minShear)),2)} kN`)}
-    `));
-    
-    // Page 9: Summary & design notes
-    pages.push(page(9, `
-      ${R('Design summary', 'All critical values computed using exact static equilibrium.', '')}
-      ${R('Reactions', `R_A = ${f(R_A,2)} kN &nbsp;&nbsp; R_B = ${f(R_B,2)} kN`, '')}
-      ${R('Max moment', `${f(maxMomentAtZero,2)} kNm @ ${f(zeroShearX,2)} m`, '')}
-      ${R('Max shear', `${f(maxShear,2)} kN (positive) / ${f(minShear,2)} kN (negative)`, '')}
-      ${BLANK()}
-      ${R('Verification', 'Sum of moments about any point = 0 (within rounding).', '✓')}
-      ${R('', 'This calculation sheet follows the "section method" as required for CVE 502.', '')}
-    `));
-    
-    document.getElementById('out').innerHTML = `<div class="page-wrapper">${pages.join('')}</div>`;
-    if(typeof fitToScreen === 'function') fitToScreen();
-  }
-  
-  // Helper: draw beam sketch (SVG)
-  function drawBeamSketch(L1, L2, L3, xP, w, P) {
-    const W = 450, H = 120, yBeam = 60;
-    const Ltot = L1+L2+L3;
-    const xA = L1, xB = L1+L2;
-    const scale = (W-60)/Ltot;
-    const offset = 30;
-    function sx(x) { return offset + x*scale; }
-    let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; max-width:500px;">`;
-    svg += `<line x1="${sx(0)}" y1="${yBeam}" x2="${sx(Ltot)}" y2="${yBeam}" stroke="#222" stroke-width="3"/>`;
-    // supports
-    svg += `<polygon points="${sx(xA)-5},${yBeam+5} ${sx(xA)+5},${yBeam+5} ${sx(xA)},${yBeam+15}" fill="#555"/>`;
-    svg += `<polygon points="${sx(xB)-5},${yBeam+5} ${sx(xB)+5},${yBeam+5} ${sx(xB)},${yBeam+15}" fill="#555"/>`;
-    // UDL arrows
-    for(let i=0; i<12; i++) {
-      let x = (Ltot * i)/11;
-      let ytop = yBeam-12;
-      svg += `<line x1="${sx(x)}" y1="${yBeam-4}" x2="${sx(x)}" y2="${ytop}" stroke="#cc0000" stroke-width="1.5" marker-end="url(#udlArrow)"/>`;
-    }
-    // point load
-    svg += `<line x1="${sx(xP)}" y1="${yBeam-4}" x2="${sx(xP)}" y2="${yBeam-35}" stroke="#cc0000" stroke-width="2.5" marker-end="url(#pointArrow)"/>`;
-    svg += `<text x="${sx(xP)}" y="${yBeam-40}" text-anchor="middle" fill="#cc0000" font-size="10">${P} kN</text>`;
-    svg += `<text x="${sx(Ltot/2)}" y="${yBeam-42}" text-anchor="middle" fill="#cc0000" font-size="9">UDL w = ${w} kN/m</text>`;
-    svg += `<defs><marker id="udlArrow" markerWidth="5" markerHeight="5" refX="2.5" refY="5" orient="auto"><path d="M0,0 L2.5,5 L5,0" fill="#cc0000"/></marker><marker id="pointArrow" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto"><path d="M0,0 L3,6 L6,0" fill="#cc0000"/></marker></defs>`;
-    svg += `<text x="${sx(xA)}" y="${yBeam+18}" text-anchor="middle" font-size="9">A</text>`;
-    svg += `<text x="${sx(xB)}" y="${yBeam+18}" text-anchor="middle" font-size="9">B</text>`;
-    svg += `<text x="${sx(L1/2)}" y="${yBeam+25}" text-anchor="middle" font-size="8">${L1} m</text>`;
-    svg += `<text x="${sx(xA+L2/2)}" y="${yBeam+25}" text-anchor="middle" font-size="8">${L2} m</text>`;
-    svg += `<text x="${sx(xB+L3/2)}" y="${yBeam+25}" text-anchor="middle" font-size="8">${L3} m</text>`;
-    svg += `</svg>`;
-    return svg;
-  }
-  
-  // Draw continuous line diagram (no gaps)
-  function drawContinuousDiagram(points, totalLen, field, maxVal, minVal, yLabel, color) {
-    if(points.length===0) return "<div>no data</div>";
-    const width=450, height=180;
-    const marginX=45, marginTop=20, marginBottom=30;
-    const plotW = width - 2*marginX;
-    const range = Math.max(Math.abs(maxVal), Math.abs(minVal)) || 1;
-    let path = "";
-    for(let i=0; i<points.length; i++) {
-      let yVal = points[i][field];
-      let px = marginX + (points[i].x / totalLen) * plotW;
-      let py = marginTop + (1 - (yVal - minVal)/(maxVal-minVal)) * (height-marginTop-marginBottom);
-      if(i===0) path += `M ${px} ${py}`;
-      else path += ` L ${px} ${py}`;
-    }
-    let zeroY = marginTop + (1 - (0 - minVal)/(maxVal-minVal)) * (height-marginTop-marginBottom);
-    return `<svg viewBox="0 0 ${width} ${height}" style="width:100%; background:#fafaf5; border-radius:6px;">
-      <line x1="${marginX-5}" y1="${zeroY}" x2="${width-marginX+10}" y2="${zeroY}" stroke="#888" stroke-width="1.5" stroke-dasharray="4,3"/>
-      <polyline points="${path}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round"/>
-      <text x="10" y="25" font-size="10" fill="#333">${yLabel}</text>
-      <text x="${marginX-8}" y="${marginTop+8}" font-size="8">${f(maxVal,1)}</text>
-      <text x="${marginX-8}" y="${zeroY+4}" font-size="8">0</text>
-      <text x="${marginX-8}" y="${marginTop+height-marginTop-marginBottom-4}" font-size="8">${f(minVal,1)}</text>
-    </svg>`;
-  }
-  
-  function page(pgNum, rows) {
-    return `<div class="page"><div class="tbl-head"><div>Reference</div><div>Calculation / Diagram</div><div>Output</div></div><div class="sheet-body">${rows}</div><div class="pgnum">Page ${pgNum} / 9</div></div>`;
-  }
-  
-  function runCalculation() { hasRun=true; computeBeam(); document.getElementById('out').classList.add('visible'); closeModal(); setTimeout(fitToScreen, 100); }
-  
-  // Zoom & fit
-  const A4_PX = 794;
-  let currentScale = 1;
-  function fitToScreen() { let vw=window.innerWidth; currentScale=Math.min((vw*0.96)/A4_PX,1.0); applyScale(); }
-  function applyScale() { let w=document.querySelector('.page-wrapper'); if(!w) return; w.style.transform=`scale(${currentScale})`; w.style.marginLeft=`${Math.max((window.innerWidth-A4_PX*currentScale)/2,0)}px`; document.getElementById('zoom-pct').innerText=Math.round(currentScale*100)+'%'; }
-  function adjustZoom(delta) { currentScale=Math.min(Math.max(currentScale+delta,0.2),2.0); applyScale(); }
-  function resetZoom() { fitToScreen(); }
-  window.addEventListener('resize', ()=>{ if(document.getElementById('out').classList.contains('visible')) fitToScreen(); });
-  const obs = new MutationObserver(()=>{ if(document.getElementById('out').classList.contains('visible')) fitToScreen(); });
-  obs.observe(document.getElementById('out'), {attributes:true, attributeFilter:['class']});
-  
-  document.addEventListener('DOMContentLoaded', openModal);
+    const step1 = `Total UDL = w × L_total = ${w} × ${f(L_total)} = ${f(totalUDL)} kN`;
+
+    // Step 2: Reactions
+    const M_UDL = w*L_total*(L_total/2 - L1);
+    const M_P = P*(xP - L1);
+    const R_B = (M_UDL + M_P)/L2;
+    const R_A = totalUDL + P - R_B;
+    const step2 = `Moment about A: R_B × L2 = M_UDL + M_P → R_B = ${f(R_B)} kN\nVertical equilibrium: R_A = totalUDL + P - R_B = ${f(R_A)} kN`;
+
+    // Step 3: Shear Force at Key Points
+    const critX = [0, xA, xP, xB, L_total].sort((a,b)=>a-b);
+    const shearPoints = critX.map(x=>{
+        let V = R_A - w*x;
+        if(x >= xP) V -= P;
+        if(x >= xB) V -= R_B;
+        return {x, V};
+    });
+    let step3 = "Shear Force at critical points:\n";
+    shearPoints.forEach(p => step3 += `x=${f(p.x)} m → V=${f(p.V)} kN\n`);
+
+    // Step 4: Bending Moment at Key Points
+    const momentPoints = critX.map(x=>{
+        let M = R_A*x - w*x*x/2;
+        if(x >= xP) M -= P*(x - xP);
+        if(x >= xB) M -= R_B*(x - xB);
+        return {x, M};
+    });
+    let step4 = "Bending Moment at critical points:\n";
+    momentPoints.forEach(p => step4 += `x=${f(p.x)} m → M=${f(p.M)} kNm\n`);
+
+    // Step 5: Max/Min
+    const maxShear = Math.max(...shearPoints.map(p=>p.V));
+    const minShear = Math.min(...shearPoints.map(p=>p.V));
+    const maxMoment = Math.max(...momentPoints.map(p=>p.M));
+    const minMoment = Math.min(...momentPoints.map(p=>p.M));
+    const step5 = `Max Shear = ${f(maxShear)} kN, Min Shear = ${f(minShear)} kN\nMax Moment = ${f(maxMoment)} kNm, Min Moment = ${f(minMoment)} kNm`;
+
+    // ---------- Display Steps ----------
+    const outputDiv = document.getElementById('output');
+    outputDiv.innerHTML = "";
+    [step1, step2, step3, step4, step5].forEach((s,i)=>{
+        const div = document.createElement('div');
+        div.className = 'step';
+        div.innerHTML = `<h3>Step ${i+1}</h3><pre>${s}</pre>`;
+        outputDiv.appendChild(div);
+    });
+}
 </script>
 </body>
 </html>
