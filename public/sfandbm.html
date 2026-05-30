@@ -162,6 +162,28 @@ tr:last-child td { border-bottom: none; }
 .eq { font-size: 10px; color: var(--muted); line-height: 1.8; }
 .eq span { color: var(--text); }
 
+/* ── DETAILED WORKING ── */
+.fbd-wrap { margin: 10px 0 14px; overflow-x: auto; }
+.fbd-svg  { background: rgba(30,41,59,0.55); border: 1px solid rgba(51,65,85,0.6);
+            border-radius: 6px; display: block; }
+.eq-group { margin-bottom: 4px; }
+.eq-subtitle {
+  font-size: 9px; font-weight: 700; color: var(--amber);
+  letter-spacing: .13em; text-transform: uppercase;
+  margin: 10px 0 5px; padding-bottom: 3px;
+  border-bottom: 1px dashed rgba(251,191,36,0.3);
+}
+.eq-row { font-size: 10.5px; line-height: 2.1; color: var(--muted); }
+.eq-row.comment   { color: var(--blue3); font-style: italic; }
+.eq-row.indent1   { padding-left: 16px; }
+.eq-row.indent2   { padding-left: 32px; }
+.eq-row.indent3   { padding-left: 48px; }
+.eq-row.hilite-eq { color: var(--text); border-left: 2px solid var(--blue);
+                    padding-left: 8px; margin: 2px 0 2px 0; }
+.eq-row.zero-line { color: var(--amber); padding-left: 16px; margin-top: 6px; }
+.eq-row.mt8       { margin-top: 8px; }
+.eq-row span      { color: var(--text); }
+
 /* ── SVG DIAGRAMS ── */
 .diagram-wrap {
   background: var(--navy2); border: 1px solid var(--border);
@@ -389,37 +411,242 @@ function calculate() {
   $('raVal').textContent = f(RA);
   $('rbVal').textContent = f(RB);
 
-  // ── WORKING (section by section) ──
+  // ── WORKING (section by section) — full step-by-step mirroring handwritten ──
+  function makeFBD(secStart, secEnd) {
+    const W = 390, H = 96;
+    const dL = 12, dR = W - 42;   // left / right edges of the beam drawing
+    const drawW = dR - dL;
+    const bY = 60, udlY = bY - 18;
+    function tx(pos) { return dL + (pos / secEnd) * drawW; }
+
+    let s = `<svg width="${W}" height="${H}" class="fbd-svg">`;
+
+    // UDL fill + ticks
+    s += `<rect x="${dL}" y="${udlY}" width="${drawW}" height="${bY - udlY}"
+              fill="rgba(59,130,246,0.06)"/>`;
+    const step = Math.max(1, Math.round(secEnd / 14));
+    for (let p = 0; p <= secEnd; p += step) {
+      const tx_ = tx(p);
+      s += `<line x1="${tx_}" y1="${udlY}" x2="${tx_}" y2="${bY}"
+                stroke="rgba(96,165,250,0.45)" stroke-width="1"/>`;
+    }
+    s += `<line x1="${dL}" y1="${udlY}" x2="${dR}" y2="${udlY}"
+              stroke="#60a5fa" stroke-width="1"/>`;
+    // w label
+    s += `<text x="${(dL+dR)/2}" y="${udlY-4}" fill="#60a5fa" font-size="7.5"
+              text-anchor="middle" font-family="Space Mono">w = ${w} kN/m</text>`;
+
+    // Beam line
+    s += `<line x1="${dL}" y1="${bY}" x2="${dR}" y2="${bY}"
+              stroke="#e2e8f0" stroke-width="3"/>`;
+    // Left free end
+    s += `<line x1="${dL}" y1="${bY-10}" x2="${dL}" y2="${bY+10}"
+              stroke="#94a3b8" stroke-width="2"/>`;
+
+    // Helper: upward reaction arrow
+    function drawReaction(pos, label, col) {
+      if (pos > secEnd) return;
+      const ax = tx(pos);
+      s += `<polygon points="${ax},${bY} ${ax-7},${bY+14} ${ax+7},${bY+14}" fill="${col}"/>`;
+      s += `<line x1="${ax-8}" y1="${bY+16}" x2="${ax+8}" y2="${bY+16}"
+                stroke="${col}" stroke-width="1.5"/>`;
+      s += `<line x1="${ax}" y1="${bY-2}" x2="${ax}" y2="${bY-28}"
+                stroke="${col}" stroke-width="2"/>`;
+      s += `<polygon points="${ax},${bY-28} ${ax-3},${bY-20} ${ax+3},${bY-20}" fill="${col}"/>`;
+      s += `<text x="${ax}" y="${bY-31}" fill="${col}" font-size="7.5"
+                text-anchor="middle" font-family="Space Mono">${label}</text>`;
+    }
+    // Helper: downward point load arrow (above UDL)
+    function drawLoad(pos, label, col) {
+      if (pos > secEnd) return;
+      const px = tx(pos);
+      s += `<line x1="${px}" y1="${udlY-20}" x2="${px}" y2="${bY}"
+                stroke="${col}" stroke-width="2"/>`;
+      s += `<polygon points="${px},${bY} ${px-4},${bY-10} ${px+4},${bY-10}" fill="${col}"/>`;
+      s += `<text x="${px}" y="${udlY-23}" fill="${col}" font-size="7.5"
+                text-anchor="middle" font-family="Space Mono">${label}</text>`;
+    }
+
+    if (posA <= secEnd) drawReaction(posA, 'Rₐ', '#22c55e');
+    if (posB <  secEnd) drawReaction(posB, 'R\u1D05', '#22c55e');
+    if (posP1 <= secEnd) drawLoad(posP1, `${f(P1,0)}kN`, '#fbbf24');
+    if (posP2 <  secEnd) drawLoad(posP2, `${f(P2,0)}kN`, '#f97316');
+
+    // Cut line
+    s += `<line x1="${dR}" y1="${bY-22}" x2="${dR}" y2="${bY+22}"
+              stroke="#a78bfa" stroke-width="2" stroke-dasharray="4,2"/>`;
+    // Fx upward at cut
+    s += `<line x1="${dR+5}" y1="${bY+2}" x2="${dR+5}" y2="${bY-26}"
+              stroke="#ef4444" stroke-width="2"/>`;
+    s += `<polygon points="${dR+5},${bY-26} ${dR+1},${bY-17} ${dR+9},${bY-17}" fill="#ef4444"/>`;
+    s += `<text x="${dR+14}" y="${bY-10}" fill="#ef4444" font-size="8"
+              font-family="Space Mono">F\u2093</text>`;
+    // Mx arc
+    s += `<path d="M${dR+18},${bY+4} a10,10 0 0,1 0,-18"
+              stroke="#a78bfa" fill="none" stroke-width="1.5"/>`;
+    s += `<text x="${dR+15}" y="${bY+19}" fill="#a78bfa" font-size="8"
+              font-family="Space Mono">M\u2093</text>`;
+
+    // Dimension line: x below beam
+    const dimY = bY + 30;
+    s += `<line x1="${dL}" y1="${dimY}" x2="${dR}" y2="${dimY}"
+              stroke="#334155" stroke-width="1"/>`;
+    s += `<line x1="${dL}" y1="${dimY-4}" x2="${dL}" y2="${dimY+4}"
+              stroke="#334155" stroke-width="1"/>`;
+    s += `<line x1="${dR}" y1="${dimY-4}" x2="${dR}" y2="${dimY+4}"
+              stroke="#334155" stroke-width="1"/>`;
+    s += `<text x="${(dL+dR)/2}" y="${dimY+13}" fill="#94a3b8" font-size="8"
+              text-anchor="middle" font-family="Space Mono">x</text>`;
+
+    s += `</svg>`;
+    return `<div class="fbd-wrap">${s}</div>`;
+  }
+
   let workHtml = '';
-  const secNames = ['1','2','3','4','5'];
   for (let i = 0; i < bounds.length - 1; i++) {
     const a = bounds[i], b = bounds[i+1];
     const mid = (a + b) / 2;
-    const sfA = SF(a + 0.001), sfB = SF(b - 0.001);
-    const bmA = BM(a), bmB = BM(b);
 
-    // Build formula description
-    let sfFormula = `-${f(w,0)}x`;
-    let bmFormula = `-${f(w,0)}x²/2`;
-    if (mid > posA)  { sfFormula = `R_A - ${f(w,0)}x = ${f(RA)} - ${f(w,0)}x`; bmFormula += ` + R_A(x−${f(posA,1)})`; }
-    if (mid > posP1) { sfFormula += ` − ${f(P1,0)}`; bmFormula += ` − ${f(P1,0)}(x−${f(posP1,1)})`; }
-    if (mid > posP2) { sfFormula += ` − ${f(P2,0)}`; bmFormula += ` − ${f(P2,0)}(x−${f(posP2,1)})`; }
-    if (mid > posB)  { sfFormula += ` + R_B`; bmFormula += ` + R_B(x−${f(posB,1)})`; }
+    const hasRA = mid > posA;
+    const hasP1 = mid > posP1;
+    const hasP2 = mid > posP2;
+    const hasRB = mid > posB;
+
+    // ── Constant part of SF (all terms except -wx) ──
+    let sfConst = 0;
+    if (hasRA) sfConst += RA;
+    if (hasRB) sfConst += RB;
+    if (hasP1) sfConst -= P1;
+    if (hasP2) sfConst -= P2;
+
+    // Build ΣFy = 0 equilibrium line
+    let sfUp = [], sfDn = [`${w}x`];
+    if (hasRA) sfUp.push('R<sub>A</sub>');
+    if (hasRB) sfUp.push('R<sub>B</sub>');
+    if (hasP1) sfDn.push(`${f(P1,0)}`);
+    if (hasP2) sfDn.push(`${f(P2,0)}`);
+    sfDn.push('F<sub>x</sub>');
+    const sfEqLine = (sfUp.length ? sfUp.join(' + ') + ' &minus; ' : '&minus;')
+                   + sfDn.join(' &minus;') + ' = 0';
+
+    // Rearranged symbolically
+    let sfRhsSym = [];
+    if (hasRA) sfRhsSym.push('R<sub>A</sub>');
+    if (hasRB) sfRhsSym.push('R<sub>B</sub>');
+    if (hasP1) sfRhsSym.push(`&minus; ${f(P1,0)}`);
+    if (hasP2) sfRhsSym.push(`&minus; ${f(P2,0)}`);
+    sfRhsSym.push(`&minus; ${w}x`);
+    const sfRearranged = `F<sub>x</sub> = ${sfRhsSym.join(' ')}`;
+
+    // With numbers substituted for reactions
+    let sfRhsNum = [];
+    if (hasRA) sfRhsNum.push(`${f(RA,2)}`);
+    if (hasRB) sfRhsNum.push(`${f(RB,2)}`);
+    if (hasP1) sfRhsNum.push(`&minus; ${f(P1,2)}`);
+    if (hasP2) sfRhsNum.push(`&minus; ${f(P2,2)}`);
+    sfRhsNum.push(`&minus; ${w}x`);
+    const sfWithNums = `F<sub>x</sub> = ${sfRhsNum.join(' ')}`;
+
+    // Simplified (constant ± wx)
+    const sfSimplified = sfConst !== 0
+      ? `F<sub>x</sub> = ${f(sfConst,2)} &minus; ${w}x`
+      : `F<sub>x</sub> = &minus;${w}x`;
+
+    // Substitution helper
+    function sfSub(xv) {
+      const wx  = w * xv;
+      const val = sfConst - wx;
+      if (sfConst !== 0) {
+        return `F<sub>x</sub> = ${f(sfConst,2)} &minus; ${w}(${f(xv,1)})
+                = ${f(sfConst,2)} &minus; ${f(wx,2)}
+                = <span class="${sfClass(val)}">${f(val,2)} kN</span>`;
+      }
+      return `F<sub>x</sub> = &minus;${w}(${f(xv,1)})
+              = <span class="${sfClass(val)}">${f(val,2)} kN</span>`;
+    }
+
+    const sfValA = SF(a + 0.001), sfValB = SF(b - 0.001);
+
+    // SF = 0 crossing
+    let sfZeroHtml = '';
+    if (sfValA * sfValB < 0) {
+      const xz = sfConst / w;
+      if (xz > a && xz < b) {
+        sfZeroHtml = `<div class="eq-row zero-line">
+          F<sub>x</sub> = 0 &rArr; ${f(sfConst,2)} &minus; ${w}x = 0
+          &nbsp;&rarr;&nbsp; x = ${f(sfConst,2)} / ${w} = <span>${f(xz,2)} m</span>
+        </div>`;
+      }
+    }
+
+    // ── BM formula ──
+    let bmTermsSym = [`&minus;${w}x&sup2;/2`];
+    let bmTermsNum = [`&minus;${f(w,0)}x&sup2;/2`];
+    if (hasRA) { bmTermsSym.push(`+ R<sub>A</sub>(x &minus; ${f(posA,1)})`);
+                 bmTermsNum.push(`+ ${f(RA,2)}(x &minus; ${f(posA,1)})`); }
+    if (hasP1) { bmTermsSym.push(`&minus; ${f(P1,0)}(x &minus; ${f(posP1,1)})`);
+                 bmTermsNum.push(`&minus; ${f(P1,0)}(x &minus; ${f(posP1,1)})`); }
+    if (hasP2) { bmTermsSym.push(`&minus; ${f(P2,0)}(x &minus; ${f(posP2,1)})`);
+                 bmTermsNum.push(`&minus; ${f(P2,0)}(x &minus; ${f(posP2,1)})`); }
+    if (hasRB) { bmTermsSym.push(`+ R<sub>B</sub>(x &minus; ${f(posB,1)})`);
+                 bmTermsNum.push(`+ ${f(RB,2)}(x &minus; ${f(posB,1)})`); }
+
+    // Substitution: show each term individually then sum
+    function bmSubTerms(xv) {
+      let parts = [`&minus;${f(w,0)}(${f(xv,1)})&sup2;/2`];
+      if (hasRA) parts.push(`+ ${f(RA,2)}(${f(xv,1)} &minus; ${f(posA,1)})`);
+      if (hasP1) parts.push(`&minus; ${f(P1,0)}(${f(xv,1)} &minus; ${f(posP1,1)})`);
+      if (hasP2) parts.push(`&minus; ${f(P2,0)}(${f(xv,1)} &minus; ${f(posP2,1)})`);
+      if (hasRB) parts.push(`+ ${f(RB,2)}(${f(xv,1)} &minus; ${f(posB,1)})`);
+      return parts.join(' ');
+    }
+    function bmEvalTerms(xv) {
+      let parts = [f(-w * xv * xv / 2, 2)];
+      if (hasRA) parts.push(`+ ${f(RA * (xv - posA), 2)}`);
+      if (hasP1) parts.push(`+ ${f(-P1 * (xv - posP1), 2)}`);
+      if (hasP2) parts.push(`+ ${f(-P2 * (xv - posP2), 2)}`);
+      if (hasRB) parts.push(`+ ${f(RB * (xv - posB), 2)}`);
+      return parts.join(' ');
+    }
+
+    const bmValA = BM(a), bmValB = BM(b);
 
     workHtml += `
     <div class="working-block">
-      <div class="sec-title">Section ${secNames[i]} &nbsp; ${f(a,1)} m ≤ x ≤ ${f(b,1)} m</div>
-      <div class="eq">
-        <b>Shear Force:</b><br>
-        <span>F_x = ${sfFormula}</span><br>
-        &nbsp;&nbsp;At x = ${f(a,2)}m: F = <span class="${sfClass(sfA)}">${f(sfA)} kN</span><br>
-        &nbsp;&nbsp;At x = ${f(b,2)}m: F = <span class="${sfClass(sfB)}">${f(sfB)} kN</span>
+      <div class="sec-title">SECTION ${i+1}&emsp;${f(a,1)} m &le; x &le; ${f(b,1)} m</div>
+
+      ${makeFBD(a, b)}
+
+      <div class="eq-group">
+        <div class="eq-subtitle">Shear Force</div>
+        <div class="eq-row comment">+&uarr; &Sigma;F<sub>y</sub> = 0</div>
+        <div class="eq-row indent1">${sfEqLine}</div>
+        <div class="eq-row indent1">${sfRearranged}</div>
+        ${hasRA || hasRB ? `<div class="eq-row indent1">${sfWithNums}</div>` : ''}
+        <div class="eq-row indent1 hilite-eq">${sfSimplified}</div>
+
+        <div class="eq-row indent1 mt8"><em>At x = ${f(a,1)} m:</em></div>
+        <div class="eq-row indent2">${sfSub(a)}</div>
+        <div class="eq-row indent1"><em>At x = ${f(b,1)} m:</em></div>
+        <div class="eq-row indent2">${sfSub(b)}</div>
+        ${sfZeroHtml}
       </div>
-      <div class="eq" style="margin-top:6px">
-        <b>Bending Moment:</b><br>
-        <span>M_x = ${bmFormula}</span><br>
-        &nbsp;&nbsp;At x = ${f(a,2)}m: M = <span class="${bmClass(bmA)}">${f(bmA)} kNm</span><br>
-        &nbsp;&nbsp;At x = ${f(b,2)}m: M = <span class="${bmClass(bmB)}">${f(bmB)} kNm</span>
+
+      <div class="eq-group" style="margin-top:10px">
+        <div class="eq-subtitle">Bending Moment</div>
+        <div class="eq-row comment">+&#8635; &Sigma;M<sub>x</sub> = 0</div>
+        <div class="eq-row indent1">M<sub>x</sub> = ${bmTermsSym.join(' ')}</div>
+        <div class="eq-row indent1 hilite-eq">M<sub>x</sub> = ${bmTermsNum.join(' ')}</div>
+
+        <div class="eq-row indent1 mt8"><em>At x = ${f(a,1)} m:</em></div>
+        <div class="eq-row indent2">M<sub>x</sub> = ${bmSubTerms(a)}</div>
+        <div class="eq-row indent3">= ${bmEvalTerms(a)}</div>
+        <div class="eq-row indent3">= <span class="${bmClass(bmValA)}">${f(bmValA,2)} kNm</span></div>
+
+        <div class="eq-row indent1"><em>At x = ${f(b,1)} m:</em></div>
+        <div class="eq-row indent2">M<sub>x</sub> = ${bmSubTerms(b)}</div>
+        <div class="eq-row indent3">= ${bmEvalTerms(b)}</div>
+        <div class="eq-row indent3">= <span class="${bmClass(bmValB)}">${f(bmValB,2)} kNm</span></div>
       </div>
     </div>`;
   }
