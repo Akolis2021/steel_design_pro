@@ -266,7 +266,7 @@ svg.diagram { display: block; margin: 0 auto; overflow: visible; }
   <!-- BEAM DIAGRAM -->
   <p class="section-label">Beam Diagram</p>
   <div class="beam-canvas-wrap">
-    <canvas id="beamDiag" width="820" height="130"></canvas>
+    <canvas id="beamDiag" width="820" height="175"></canvas>
   </div>
 
   <!-- RESULTS -->
@@ -525,17 +525,54 @@ function calculate() {
     s += `<text x="${dR+15}" y="${bY+19}" fill="#a78bfa" font-size="8"
               font-family="Space Mono">M\u2093</text>`;
 
-    // Dimension line: x below beam
-    const dimY = bY + 30;
-    s += `<line x1="${dL}" y1="${dimY}" x2="${dR}" y2="${dimY}"
-              stroke="#334155" stroke-width="1"/>`;
-    s += `<line x1="${dL}" y1="${dimY-4}" x2="${dL}" y2="${dimY+4}"
-              stroke="#334155" stroke-width="1"/>`;
-    s += `<line x1="${dR}" y1="${dimY-4}" x2="${dR}" y2="${dimY+4}"
-              stroke="#334155" stroke-width="1"/>`;
-    s += `<text x="${(dL+dR)/2}" y="${dimY+13}" fill="#94a3b8" font-size="8"
-              text-anchor="middle" font-family="Space Mono">x</text>`;
+    // ── Dimension lines: segment-by-segment below the beam ──
+    const fbdTotalH = 132;
+    const dimY1  = bY + 24;   // row 1: individual segments
+    const dimY2  = bY + 44;   // row 2: total x from left end to cut
+    const wBot   = dimY2 + 6;
 
+    // collect key positions that fall within [0, secEnd]
+    const kp = [...new Set(
+      [0, posA, posP1, posP2, posB, secEnd]
+        .filter(p => p <= secEnd + 0.001)
+        .map(p => +Math.min(p, secEnd).toFixed(4))
+    )].sort((a, b) => a - b);
+
+    // witness lines at every key position
+    kp.forEach(p => {
+      const px = tx(p);
+      s += `<line x1="${px}" y1="${bY+2}" x2="${px}" y2="${wBot}"
+                stroke="#334155" stroke-width="1" stroke-dasharray="2,2"/>`;
+    });
+
+    // helper: draw one labelled dimension arrow segment
+    function fbdDimSeg(p1, p2, y, col, lbl) {
+      const x1 = tx(p1), x2 = tx(p2), mid = (x1+x2)/2;
+      const pixW = Math.abs(x2 - x1);
+      s += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${col}" stroke-width="1"/>`;
+      s += `<polygon points="${x1},${y} ${x1+5},${y-2.5} ${x1+5},${y+2.5}" fill="${col}"/>`;
+      s += `<polygon points="${x2},${y} ${x2-5},${y-2.5} ${x2-5},${y+2.5}" fill="${col}"/>`;
+      if (pixW < 38) {
+        s += `<text transform="translate(${mid},${y-9}) rotate(-90)"
+                  fill="${col}" font-size="6.5" text-anchor="middle"
+                  font-family="Space Mono">${lbl}</text>`;
+      } else {
+        s += `<text x="${mid}" y="${y-3}" fill="${col}" font-size="7"
+                  text-anchor="middle" font-family="Space Mono">${lbl}</text>`;
+      }
+    }
+
+    // row 1: label each individual segment
+    for (let k = 0; k < kp.length - 1; k++) {
+      const d = kp[k+1] - kp[k];
+      fbdDimSeg(kp[k], kp[k+1], dimY1, '#64748b', `${d.toFixed(1)}m`);
+    }
+
+    // row 2: overall purple arrow from left end to cut face (matches Fx colour)
+    fbdDimSeg(0, secEnd, dimY2, '#7c3aed', `x = ${secEnd.toFixed(1)} m`);
+
+    // update SVG height to accommodate both dim rows
+    s = s.replace(`height="${H}"`, `height="${fbdTotalH}"`);
     s += `</svg>`;
     return `<div class="fbd-wrap">${s}</div>`;
   }
@@ -566,22 +603,27 @@ function calculate() {
     const sfEqLine = (sfUp.length ? sfUp.join(' + ') + ' &minus; ' : '&minus;')
                    + sfDn.join(' &minus;') + ' = 0';
 
-    let sfRhsSym = [];
-    if (hasRA) sfRhsSym.push('R<sub>A</sub>');
-    if (hasRB) sfRhsSym.push('R<sub>B</sub>');
-    if (hasP1) sfRhsSym.push(`&minus; ${f(P1,0)}`);
-    if (hasP2) sfRhsSym.push(`&minus; ${f(P2,0)}`);
-    sfRhsSym.push(`&minus; ${w}x`);
-    const sfRearranged = `F<sub>x</sub> = ${sfRhsSym.join(' ')}`;
+    // ── Symbolic rearranged: Fx = RA + RB − P1 − P2 − wx ──
+    const posSym = [], negSym = [];
+    if (hasRA) posSym.push('R<sub>A</sub>');
+    if (hasRB) posSym.push('R<sub>B</sub>');
+    if (hasP1) negSym.push(`${f(P1,0)}`);
+    if (hasP2) negSym.push(`${f(P2,0)}`);
+    negSym.push(`${w}x`);
+    const sfPosStr = posSym.join(' + ');
+    const sfNegStr = negSym.map(t => ` &minus; ${t}`).join('');
+    const sfRearranged = `F<sub>x</sub> = ${sfPosStr}${sfNegStr}`;
 
-    let sfRhsNum = [];
-    if (hasRA) sfRhsNum.push(`${f(RA,2)}`);
-    if (hasRB) sfRhsNum.push(`${f(RB,2)}`);
-    if (hasP1) sfRhsNum.push(`&minus; ${f(P1,2)}`);
-    if (hasP2) sfRhsNum.push(`&minus; ${f(P2,2)}`);
-    sfRhsNum.push(`&minus; ${w}x`);
-    const sfWithNums = `F<sub>x</sub> = ${sfRhsNum.join(' ')}`;
+    // ── With numbers substituted ──
+    const posNum = [], negNum = [];
+    if (hasRA) posNum.push(`${f(RA,2)}`);
+    if (hasRB) posNum.push(`${f(RB,2)}`);
+    if (hasP1) negNum.push(`${f(P1,2)}`);
+    if (hasP2) negNum.push(`${f(P2,2)}`);
+    negNum.push(`${w}x`);
+    const sfWithNums = `F<sub>x</sub> = ${posNum.join(' + ')}${negNum.map(t => ` &minus; ${t}`).join('')}`;
 
+    // simplified: show collapsed constant clearly
     const sfSimplified = sfConst !== 0
       ? `F<sub>x</sub> = ${f(sfConst,2)} &minus; ${w}x`
       : `F<sub>x</sub> = &minus;${w}x`;
@@ -704,7 +746,7 @@ function calculate() {
 
   // ── DIAGRAMS ──
   drawCombined(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w);
-  drawBeam(L, posA, posB, posP1, posP2, P1, P2, w);
+  drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, x);
 
   // ── Q6, Q7, Q8 ──
   const allSFZeros = [];
@@ -716,98 +758,190 @@ function calculate() {
       allSFZeros.push({ x: xz, m: BM(xz), sec: i+1, range: `${f(a,1)}–${f(b,1)} m` });
     }
   }
-  const candidates = [...allSFZeros.map(z => ({x:z.x, m:BM(z.x)})),
-    ...bounds.map(b => ({x:b, m:BM(b)}))];
-  const maxCand = candidates.reduce((best, c) => Math.abs(c.m) > Math.abs(best.m) ? c : best, {m:0,x:0});
-  const maxSFv = Math.max(...bounds.flatMap(b => [Math.abs(SF(b+0.001)), Math.abs(SF(b-0.001))]));
 
-  let maxSec = '';
+  // Q6 — max BM occurs where SF = 0 (dM/dx = F = 0), i.e. the interior smooth maximum.
+  // Support points have SF discontinuities so BM is NOT at a smooth max there.
+  let maxCand;
+  if (allSFZeros.length > 0) {
+    // Among all SF=0 crossings, pick the one with the largest absolute BM
+    maxCand = allSFZeros
+      .map(z => ({ x: z.x, m: BM(z.x), sec: z.sec, range: z.range }))
+      .reduce((best, c) => Math.abs(c.m) > Math.abs(best.m) ? c : best, allSFZeros[0]);
+  } else {
+    // Fallback: no SF=0 crossing found — use boundary with largest absolute BM
+    maxCand = bounds
+      .map(b => ({ x: b, m: BM(b) }))
+      .reduce((best, c) => Math.abs(c.m) > Math.abs(best.m) ? c : best, { x: 0, m: 0 });
+  }
+
+  // Q8 — max positive (upward) shear force only
+  const sfSamples = bounds.flatMap(b => [
+    { x: b + 0.0001, v: SF(b + 0.0001) },
+    { x: b - 0.0001, v: SF(b - 0.0001) }
+  ]);
+  const maxPosSF = sfSamples.reduce(
+    (best, s) => s.v > best.v ? s : best,
+    { x: 0, v: -Infinity }
+  );
+
+  let maxSec = '', maxSFsec = '';
   for (let i = 0; i < bounds.length - 1; i++) {
-    if (maxCand.x >= bounds[i] && maxCand.x <= bounds[i+1]) {
+    if (maxCand.x >= bounds[i] && maxCand.x <= bounds[i+1])
       maxSec = `Section ${i+1} (${f(bounds[i],1)}–${f(bounds[i+1],1)} m)`;
-    }
+    if (maxPosSF.x >= bounds[i] && maxPosSF.x <= bounds[i+1])
+      maxSFsec = `Section ${i+1} (${f(bounds[i],1)}–${f(bounds[i+1],1)} m)`;
   }
 
   const sfAtMax = SF(maxCand.x);
+  const sfNearZero = Math.abs(sfAtMax) < 1.0;
   $('answersBody').innerHTML = `
     <div class="answer-row">
       <div class="answer-q">Q6 — At what point is the max bending moment, and what is its value?</div>
-      <div class="answer-v">At x = ${f(maxCand.x, 2)} m (${maxSec})<br>M<sub>max</sub> = <span class="${bmClass(maxCand.m)}">${f(maxCand.m)} kNm</span></div>
+      <div class="answer-v">At x = ${f(maxCand.x, 2)} m (${maxSec})<br>M<sub>max</sub> = <span class="${bmClass(maxCand.m)}">${f(maxCand.m, 2)} kNm</span></div>
     </div>
     <div class="answer-row">
       <div class="answer-q">Q7 — Relationship between point of max bending and shear force at that point?</div>
-      <div class="answer-v">SF at x = ${f(maxCand.x,2)} m is <span class="${sfClass(sfAtMax)}">${f(sfAtMax, 2)} kN ≈ 0</span><br>
-      The shear force is zero (or changes sign) at the point of maximum bending moment. This is because M is maximum where dM/dx = F = 0.</div>
+      <div class="answer-v">
+        SF at x = ${f(maxCand.x,2)} m is <span class="${sfClass(sfAtMax)}">${f(sfAtMax, 2)} kN${sfNearZero ? ' ≈ 0' : ''}</span><br>
+        The shear force is zero (changes sign) at the point of maximum bending moment.<br>
+        This is because M is maximum where dM/dx = F = 0.
+      </div>
     </div>
     <div class="answer-row">
       <div class="answer-q">Q8 — Maximum shear force</div>
-      <div class="answer-v">F<sub>max</sub> = ${f(maxSFv)} kN</div>
+      <div class="answer-v">
+        F<sub>max</sub> = <span class="sf-pos">${f(maxPosSF.v, 2)} kN</span>
+        &nbsp;at x ≈ ${f(maxPosSF.x, 2)} m &nbsp;(${maxSFsec})<br>
+        <span style="font-size:9px;color:var(--muted)">Maximum positive (upward) shear — negative values are downward shear on the left face.</span>
+      </div>
     </div>`;
 
   $('results').style.display = 'block';
 }
 
 // ── DRAW BEAM DIAGRAM ─────────────────────────────────────────────────────────
-function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w) {
+function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, xVal) {
   const cvs = $('beamDiag');
   const ctx = cvs.getContext('2d');
+  cvs.height = 175;
   ctx.clearRect(0, 0, cvs.width, cvs.height);
 
-  const W = cvs.width, H = cvs.height;
-  const pad = 40, bY = 80;
-  const scale = (W - 2*pad) / L;
-
+  const W = cvs.width;
+  const pad = 48, bY = 68;
+  const scale = (W - 2 * pad) / L;
   function toX(pos) { return pad + pos * scale; }
 
-  // UDL hatching
-  ctx.fillStyle = 'rgba(59,130,246,0.08)';
-  ctx.fillRect(toX(0), bY - 30, toX(L) - toX(0), 30);
-  for (let p = 0; p <= L; p += 1.2) {
-    ctx.beginPath(); ctx.strokeStyle = 'rgba(59,130,246,0.4)'; ctx.lineWidth = 1;
-    ctx.moveTo(toX(p), bY - 30); ctx.lineTo(toX(p), bY);
-    ctx.stroke();
+  // ── Symbolic segment label e.g. "0.75x = 4.5m" ──
+  function segLabel(dist) {
+    const r = dist / xVal;
+    const map = { 0.5:'0.5x', 0.75:'0.75x', 1:'x', 1.25:'1.25x',
+                  1.5:'1.5x', 1.75:'1.75x', 2:'2x', 2.25:'2.25x',
+                  2.5:'2.5x', 3:'3x', 4:'4x', 6:'6x' };
+    const key = Object.keys(map).find(k => Math.abs(r - +k) < 0.02);
+    const sym = key ? map[key] + ' = ' : '';
+    return sym + dist.toFixed(1) + 'm';
   }
-  // UDL label
-  ctx.fillStyle = '#60a5fa'; ctx.font = '11px Space Mono'; ctx.textAlign = 'center';
-  ctx.fillText(`w = ${w} kN/m`, toX(L/2), bY - 34);
 
-  // Beam line
+  // ── Dimension arrow segment with inward arrowheads ──
+  function dimSeg(x1, x2, y, col, label) {
+    const mid = (x1 + x2) / 2;
+    const pixW = Math.abs(x2 - x1);
+    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+    // inward arrows
+    [[x1, 1], [x2, -1]].forEach(([ax, dir]) => {
+      ctx.beginPath();
+      ctx.moveTo(ax, y);
+      ctx.lineTo(ax + dir * 6, y - 2.5);
+      ctx.lineTo(ax + dir * 6, y + 2.5);
+      ctx.closePath(); ctx.fill();
+    });
+    ctx.font = '8px Space Mono'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    if (pixW < 52) {
+      ctx.save();
+      ctx.translate(mid, y - 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText(label, 0, 0);
+      ctx.restore();
+    } else {
+      ctx.fillText(label, mid, y - 2);
+    }
+  }
+
+  // ── Witness line (dashed vertical) ──
+  function witness(px, y1, y2) {
+    ctx.save(); ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 2]);
+    ctx.beginPath(); ctx.moveTo(px, y1); ctx.lineTo(px, y2); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  // ── UDL ──
+  ctx.fillStyle = 'rgba(59,130,246,0.08)';
+  ctx.fillRect(toX(0), bY - 26, toX(L) - toX(0), 26);
+  for (let p = 0; p <= L; p += 1.2) {
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(59,130,246,0.38)'; ctx.lineWidth = 1;
+    ctx.moveTo(toX(p), bY - 26); ctx.lineTo(toX(p), bY); ctx.stroke();
+  }
+  ctx.fillStyle = '#60a5fa'; ctx.font = '10px Space Mono';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.fillText(`w = ${w} kN/m`, toX(L / 2), bY - 28);
+
+  // ── Beam line ──
   ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(toX(0), bY); ctx.lineTo(toX(L), bY); ctx.stroke();
 
-  // Supports
-  [[posA, '#22c55e'], [posB, '#22c55e']].forEach(([pos, col]) => {
-    const x = toX(pos);
-    ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+  // ── Supports ──
+  [['A', posA], ['B', posB]].forEach(([lbl, pos]) => {
+    const cx = toX(pos);
+    ctx.fillStyle = '#22c55e'; ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(x, bY); ctx.lineTo(x-10, bY+22); ctx.lineTo(x+10, bY+22);
+    ctx.moveTo(cx, bY); ctx.lineTo(cx - 10, bY + 20); ctx.lineTo(cx + 10, bY + 20);
     ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(x-12, bY+25); ctx.lineTo(x+12, bY+25); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx - 13, bY + 23); ctx.lineTo(cx + 13, bY + 23); ctx.stroke();
+    ctx.fillStyle = '#22c55e'; ctx.font = '10px Space Mono';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(lbl, cx, bY + 26);
   });
 
-  // Point loads
+  // ── Point loads ──
   [[posP1, P1, '#fbbf24'], [posP2, P2, '#f97316']].forEach(([pos, val, col]) => {
-    const x = toX(pos);
+    const cx = toX(pos);
     ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x, bY-30); ctx.lineTo(x, bY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x, bY); ctx.lineTo(x-5, bY-10); ctx.lineTo(x+5, bY-10); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = col; ctx.font = '10px Space Mono'; ctx.textAlign = 'center';
-    ctx.fillText(`${val}kN`, x, bY-33);
+    ctx.beginPath(); ctx.moveTo(cx, bY - 26); ctx.lineTo(cx, bY); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx, bY); ctx.lineTo(cx - 5, bY - 11); ctx.lineTo(cx + 5, bY - 11);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = col; ctx.font = '10px Space Mono';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText(`${val} kN`, cx, bY - 28);
   });
 
-  // Labels: A, B, dimensions
-  ctx.fillStyle = '#94a3b8'; ctx.font = '10px Space Mono'; ctx.textAlign = 'center';
-  ctx.fillText('A', toX(posA), bY + 38);
-  ctx.fillText('B', toX(posB), bY + 38);
-  ctx.fillText('0', toX(0), bY + 38);
-  ctx.fillText(`${L}m`, toX(L), bY + 38);
+  // ── Key positions for dimension rows ──
+  const keyPos = [...new Set(
+    [0, posA, posP1, posP2, posB, L].map(v => +v.toFixed(4))
+  )].sort((a, b) => a - b);
 
-  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
-  ctx.setLineDash([4,3]);
-  [0, posA, posP1, posP2, posB, L].forEach(pos => {
-    ctx.beginPath(); ctx.moveTo(toX(pos), bY+3); ctx.lineTo(toX(pos), bY+18); ctx.stroke();
-  });
-  ctx.setLineDash([]);
+  const dimY1  = bY + 46;   // row 1: individual segments
+  const dimY2  = bY + 74;   // row 2: span A→B
+  const wBot   = dimY2 + 8;
+
+  // witness lines at every key position
+  keyPos.forEach(pos => witness(toX(pos), bY + 2, wBot));
+
+  // row 1: individual segment labels
+  for (let i = 0; i < keyPos.length - 1; i++) {
+    const d = keyPos[i + 1] - keyPos[i];
+    dimSeg(toX(keyPos[i]), toX(keyPos[i + 1]), dimY1, '#64748b', segLabel(d));
+  }
+
+  // row 2: span A→B in green
+  dimSeg(toX(posA), toX(posB), dimY2, '#22c55e', `span = ${segLabel(posB - posA)}`);
+
+  // total length label below
+  ctx.fillStyle = '#475569'; ctx.font = '8px Space Mono';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText(`Total L = ${segLabel(L)}`, toX(L / 2), wBot + 2);
 }
 
 // ── COMBINED SFD + BMD DIAGRAM ────────────────────────────────────────────────
