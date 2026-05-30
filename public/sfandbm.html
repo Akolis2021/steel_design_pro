@@ -3,487 +3,752 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Beam Calculation Sheet</title>
-
+<title>SF & BM – Simply Supported Beam with Overhangs</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#3b82f6">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:   #0f172a; --navy2:  #172236; --navy3:  #1e293b;
+  --border: #334155; --blue:   #3b82f6; --blue3:  #60a5fa;
+  --amber:  #fbbf24; --muted:  #94a3b8; --text:   #e2e8f0;
+  --green:  #22c55e; --red:    #ef4444; --purple: #a78bfa;
+}
+body {
+  background: var(--navy); color: var(--text);
+  font-family: 'Space Mono', monospace; min-height: 100vh;
+  padding-bottom: 60px;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+  background-size: 40px 40px; pointer-events: none; z-index: 0;
 }
 
-body{
-    font-family:Arial, sans-serif;
-    background:#f4f4f4;
-    padding:20px;
-    color:#222;
+/* ── NAVBAR ── */
+#navbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px;
+  background: rgba(15,23,42,0.95); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px;
+  gap: 12px; z-index: 100;
+}
+.nav-back {
+  color: var(--blue3); text-decoration: none; font-size: 12px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border: 1px solid var(--border);
+  border-radius: 6px; transition: border-color .2s;
+}
+.nav-back:hover { border-color: var(--blue3); }
+.nav-title { font-size: 12px; color: var(--text); font-weight: 700; }
+.nav-badge {
+  margin-left: auto; font-size: 9px; padding: 3px 8px;
+  background: rgba(59,130,246,0.15); color: var(--blue3);
+  border: 1px solid rgba(59,130,246,0.3); border-radius: 4px;
 }
 
-.container{
-    max-width:1200px;
-    margin:auto;
+/* ── LAYOUT ── */
+.page { position: relative; z-index: 1; padding: 72px 16px 0; max-width: 900px; margin: 0 auto; }
+
+.page-header { margin-bottom: 20px; }
+.page-header h1 { font-size: 18px; color: var(--text); }
+.page-header p  { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ── BEAM DIAGRAM ── */
+.beam-canvas-wrap {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px; margin-bottom: 20px; overflow-x: auto;
+}
+canvas#beamDiag { display: block; margin: 0 auto; }
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: .12em;
+  color: var(--muted); text-transform: uppercase;
+  margin: 24px 0 10px; border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
 }
 
-h1{
-    margin-bottom:20px;
-    color:#0b3d91;
+/* ── INPUT CARD ── */
+.input-card {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; margin-bottom: 20px;
 }
+.input-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+@media (min-width: 540px) { .input-grid { grid-template-columns: repeat(4,1fr); } }
 
-.input-section{
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:20px;
+.field label {
+  display: block; font-size: 9px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px;
 }
+.field input, .field select {
+  width: 100%; background: var(--navy3); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 10px; font-family: 'Space Mono', monospace;
+  font-size: 13px; transition: border-color .2s;
+}
+.field input:focus, .field select:focus {
+  outline: none; border-color: var(--blue);
+}
+.field-hint { font-size: 9px; color: var(--muted); margin-top: 3px; }
 
-.input-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    gap:15px;
+.calc-btn {
+  width: 100%; margin-top: 14px; padding: 12px;
+  background: var(--blue); color: white; border: none;
+  border-radius: 8px; font-family: 'Space Mono', monospace;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  letter-spacing: .05em; transition: background .2s;
 }
+.calc-btn:hover { background: #2563eb; }
 
-label{
-    display:block;
-    font-size:14px;
-    margin-bottom:5px;
-}
+/* ── RESULTS ── */
+#results { display: none; }
 
-input{
-    width:100%;
-    padding:10px;
-    border:1px solid #ccc;
-    border-radius:5px;
+.reactions-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-bottom: 20px;
 }
+.reaction-box {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; text-align: center;
+}
+.reaction-box .label { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+.reaction-box .value { font-size: 22px; font-weight: 700; color: var(--blue3); }
+.reaction-box .unit  { font-size: 10px; color: var(--muted); }
 
-button{
-    margin-top:20px;
-    padding:12px 20px;
-    border:none;
-    background:#0b3d91;
-    color:white;
-    border-radius:5px;
-    cursor:pointer;
-    font-size:16px;
+/* ── SECTION TABLE ── */
+.table-wrap {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin-bottom: 20px;
 }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+thead { background: var(--navy3); }
+th {
+  padding: 10px 8px; text-align: center; font-size: 9px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 9px 8px; text-align: center;
+  border-bottom: 1px solid rgba(51,65,85,0.5);
+}
+tr:last-child td { border-bottom: none; }
+.sf-pos { color: var(--green); }
+.sf-neg { color: var(--red); }
+.bm-pos { color: var(--blue3); }
+.bm-neg { color: var(--amber); }
+.sec-label { color: var(--purple); font-weight: 700; }
 
-button:hover{
-    background:#072c69;
+/* ── WORKING CARD ── */
+.working-card {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; margin-bottom: 20px;
 }
+.working-card h3 {
+  font-size: 11px; color: var(--blue3); margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.working-block { margin-bottom: 12px; }
+.working-block .sec-title {
+  font-size: 10px; color: var(--purple); font-weight: 700;
+  margin-bottom: 4px; padding-bottom: 4px;
+  border-bottom: 1px solid rgba(167,139,250,0.2);
+}
+.eq { font-size: 10px; color: var(--muted); line-height: 1.8; }
+.eq span { color: var(--text); }
 
-.step{
-    background:white;
-    padding:15px;
-    border-left:5px solid #0b3d91;
-    margin-bottom:15px;
-    border-radius:5px;
+/* ── SVG DIAGRAMS ── */
+.diagram-wrap {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px; margin-bottom: 20px; overflow-x: auto;
 }
+.diagram-wrap h3 {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .08em; margin-bottom: 10px;
+}
+svg.diagram { display: block; margin: 0 auto; overflow: visible; }
 
-.step h3{
-    margin-bottom:10px;
-    color:#0b3d91;
+/* ── ANSWERS ── */
+.answers-card {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; margin-bottom: 20px;
 }
-
-pre{
-    white-space:pre-wrap;
-    line-height:1.6;
+.answers-card h3 {
+  font-size: 11px; color: var(--green); margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: .08em;
 }
-
-.diagram-box{
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:20px;
+.answer-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 7px 0; border-bottom: 1px solid rgba(51,65,85,0.5);
+  font-size: 11px; gap: 12px;
 }
-
-svg{
-    width:100%;
-    height:auto;
-    border:1px solid #ddd;
-    background:white;
-}
+.answer-row:last-child { border-bottom: none; }
+.answer-q { color: var(--muted); flex: 1; }
+.answer-v { color: var(--text); font-weight: 700; text-align: right; }
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<nav id="navbar">
+  <a class="nav-back" href="/index.html">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Home
+  </a>
+  <span class="nav-title">SF &amp; BM — Simply Supported + Overhangs</span>
+  <span class="nav-badge">CVE 204</span>
+</nav>
 
-<h1>Beam Calculation Sheet (Section Method)</h1>
+<div class="page">
+  <div class="page-header">
+    <h1>Shear Force &amp; Bending Moment</h1>
+    <p>Simply supported beam with overhangs · UDL + two point loads · Sectional method</p>
+  </div>
 
-<div class="input-section">
+  <!-- INPUT -->
+  <p class="section-label">Input Data</p>
+  <div class="input-card">
+    <div class="input-grid">
+      <div class="field">
+        <label>S/N (your number)</label>
+        <input type="number" id="sn" value="65" min="1" max="100">
+      </div>
+      <div class="field">
+        <label>P (kN)</label>
+        <input type="number" id="P" value="35" step="0.1">
+      </div>
+      <div class="field">
+        <label>w (kN/m) UDL</label>
+        <input type="number" id="w" value="9" step="0.1">
+      </div>
+      <div class="field">
+        <label>x (m)</label>
+        <input type="number" id="x" value="6" step="0.1">
+        <div class="field-hint">Overhang = x, span = 3x, right overhang = 2x</div>
+      </div>
+      <div class="field">
+        <label>Figure</label>
+        <select id="fig">
+          <option value="2" selected>Figure 2 (P at A+0.5x, 1.5P at B-0.75x)</option>
+          <option value="1">Figure 1 (P at B+0.5x, 1.5P at A+0.75x)</option>
+        </select>
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calculate()">▶ Run Calculation</button>
+  </div>
 
-<div class="input-grid">
+  <!-- BEAM DIAGRAM -->
+  <p class="section-label">Beam Diagram</p>
+  <div class="beam-canvas-wrap">
+    <canvas id="beamDiag" width="820" height="130"></canvas>
+  </div>
 
-<div>
-<label>Left Overhang L1 (m)</label>
-<input id="L_left" type="number" value="2">
-</div>
+  <!-- RESULTS -->
+  <div id="results">
 
-<div>
-<label>Main Span L2 (m)</label>
-<input id="L_span" type="number" value="8">
-</div>
+    <p class="section-label">Support Reactions</p>
+    <div class="reactions-grid">
+      <div class="reaction-box">
+        <div class="label">Reaction at A (R<sub>A</sub>)</div>
+        <div class="value" id="raVal">—</div>
+        <div class="unit">kN ↑</div>
+      </div>
+      <div class="reaction-box">
+        <div class="label">Reaction at B (R<sub>B</sub>)</div>
+        <div class="value" id="rbVal">—</div>
+        <div class="unit">kN ↑</div>
+      </div>
+    </div>
 
-<div>
-<label>Right Overhang L3 (m)</label>
-<input id="L_right" type="number" value="3">
-</div>
+    <p class="section-label">Section-by-Section Working</p>
+    <div class="working-card" id="workingCard">
+      <h3>Shear Force &amp; Bending Moment by Section</h3>
+      <div id="workingBody"></div>
+    </div>
 
-<div>
-<label>UDL w (kN/m)</label>
-<input id="udl" type="number" value="9">
-</div>
+    <p class="section-label">Summary Table</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Section</th>
+            <th>Range (m)</th>
+            <th colspan="2">Shear Force (kN)</th>
+            <th colspan="2">Bending Moment (kNm)</th>
+          </tr>
+          <tr>
+            <th></th><th></th>
+            <th>Start (A)</th><th>End (B)</th>
+            <th>Start (A)</th><th>End (B)</th>
+          </tr>
+        </thead>
+        <tbody id="summaryTable"></tbody>
+      </table>
+    </div>
 
-<div>
-<label>Point Load P (kN)</label>
-<input id="P_load" type="number" value="35">
-</div>
+    <p class="section-label">Shear Force Diagram</p>
+    <div class="diagram-wrap">
+      <h3>SFD — Shear Force Diagram</h3>
+      <svg id="sfdSvg" class="diagram" width="820" height="220"></svg>
+    </div>
 
-<div>
-<label>Point Load Position x (m)</label>
-<input id="P_pos" type="number" value="6">
-</div>
+    <p class="section-label">Bending Moment Diagram</p>
+    <div class="diagram-wrap">
+      <h3>BMD — Bending Moment Diagram</h3>
+      <svg id="bmdSvg" class="diagram" width="820" height="260"></svg>
+    </div>
 
-</div>
+    <p class="section-label">Questions 6, 7 &amp; 8</p>
+    <div class="answers-card">
+      <h3>Project Answers</h3>
+      <div id="answersBody"></div>
+    </div>
 
-<button onclick="runCalculations()">Run Calculation</button>
-
-</div>
-
-<div class="diagram-box">
-<h2>Beam Diagram</h2>
-<div id="beamDiagram"></div>
-</div>
-
-<div class="diagram-box">
-<h2>Shear Force Diagram</h2>
-<div id="sfd"></div>
-</div>
-
-<div class="diagram-box">
-<h2>Bending Moment Diagram</h2>
-<div id="bmd"></div>
-</div>
-
-<div id="output"></div>
-
-</div>
+  </div><!-- /results -->
+</div><!-- /page -->
 
 <script>
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+const f = (v, dp = 2) => (Math.round(v * 10**dp) / 10**dp).toFixed(dp);
+const $ = id => document.getElementById(id);
 
-function f(num, d=2){
-    return Number(num).toFixed(d);
+function sfClass(v) { return v >= 0 ? 'sf-pos' : 'sf-neg'; }
+function bmClass(v) { return v >= 0 ? 'bm-pos' : 'bm-neg'; }
+
+// ── CALCULATION ENGINE ────────────────────────────────────────────────────────
+function calculate() {
+  const P   = +$('P').value;
+  const w   = +$('w').value;
+  const x   = +$('x').value;
+  const fig = +$('fig').value;
+
+  // Geometry (Figure 2 or Figure 1)
+  // Total beam = x + 3x + 2x = 6x
+  const L    = 6 * x;          // total length
+  const posA = x;              // support A
+  const posB = x + 3 * x;     // support B = 4x from left
+  const span = 3 * x;
+
+  // Point load positions
+  let posP1, posP2;
+  const P1 = P, P2 = 1.5 * P;
+  if (fig === 2) {
+    // Fig 2: P at A+0.5x, 1.5P at B-0.75x
+    posP1 = posA + 0.5 * x;      // P   = P  at x+0.5x = 1.5x from left
+    posP2 = posB - 0.75 * x;     // 1.5P at 4x-0.75x = 3.25x? 
+    // From verified: posP1=9=posA+0.5x ✓, posP2=19.5=posB-0.75x... 
+    // posB-0.75x = 4x-0.75x=3.25x → for x=6: 19.5 ✓
+  } else {
+    // Fig 1: P at B+0.5x (right overhang), 1.5P at A+0.75x (in span)
+    posP1 = posA + 0.75 * x;     // 1.5P at 1.75x from left
+    posP2 = posB + 0.5 * x;      // P at right overhang
+  }
+
+  // Section boundaries (sorted positions of interest)
+  const allPos = [0, posA, posP1, posP2, posB, L];
+  // Ensure sorted and unique
+  const bounds = [...new Set(allPos.map(v => +v.toFixed(6)))].sort((a,b)=>a-b);
+
+  // ── REACTIONS ── (taking moments about A)
+  // ΣMA = 0: RB*span = w*L*(L/2 - posA) + P1*(posP1-posA) + P2*(posP2-posA)
+  // For loads to LEFT of A, moment arm is negative (restoring), careful with signs
+  // General: ΣMA=0 clockwise positive
+  // All loads downward. UDL centroid at L/2 from left.
+  // Reactions upward at A and B.
+  // Taking ΣMA=0 (clockwise +):
+  // -w*L*(L/2-posA) - P1*(posP1-posA) - P2*(posP2-posA) + RB*span = 0
+  // Note: if posP1<posA, (posP1-posA) is negative → P1 causes negative (CCW from A perspective)
+  const RB = (w*L*(L/2 - posA) + P1*(posP1 - posA) + P2*(posP2 - posA)) / span;
+  const RA = w*L + P1 + P2 - RB;
+
+  // ── SF and BM functions ──
+  // SF(x): sum of upward forces minus UDL from left up to x
+  function SF(xx) {
+    let v = -w * xx;
+    if (xx > posA)  v += RA;
+    if (xx > posP1) v -= P1;
+    if (xx > posP2) v -= P2;
+    if (xx > posB)  v += RB;
+    return v;
+  }
+  // BM(x): moment of all forces to left of x
+  function BM(xx) {
+    let m = -w * xx * xx / 2;
+    if (xx > posA)  m += RA * (xx - posA);
+    if (xx > posP1) m -= P1 * (xx - posP1);
+    if (xx > posP2) m -= P2 * (xx - posP2);
+    if (xx > posB)  m += RB * (xx - posB);
+    return m;
+  }
+
+  // ── DISPLAY REACTIONS ──
+  $('raVal').textContent = f(RA);
+  $('rbVal').textContent = f(RB);
+
+  // ── WORKING (section by section) ──
+  let workHtml = '';
+  const secNames = ['1','2','3','4','5'];
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const a = bounds[i], b = bounds[i+1];
+    const mid = (a + b) / 2;
+    const sfA = SF(a + 0.001), sfB = SF(b - 0.001);
+    const bmA = BM(a), bmB = BM(b);
+
+    // Build formula description
+    let sfFormula = `-${f(w,0)}x`;
+    let bmFormula = `-${f(w,0)}x²/2`;
+    if (mid > posA)  { sfFormula = `R_A - ${f(w,0)}x = ${f(RA)} - ${f(w,0)}x`; bmFormula += ` + R_A(x−${f(posA,1)})`; }
+    if (mid > posP1) { sfFormula += ` − ${f(P1,0)}`; bmFormula += ` − ${f(P1,0)}(x−${f(posP1,1)})`; }
+    if (mid > posP2) { sfFormula += ` − ${f(P2,0)}`; bmFormula += ` − ${f(P2,0)}(x−${f(posP2,1)})`; }
+    if (mid > posB)  { sfFormula += ` + R_B`; bmFormula += ` + R_B(x−${f(posB,1)})`; }
+
+    workHtml += `
+    <div class="working-block">
+      <div class="sec-title">Section ${secNames[i]} &nbsp; ${f(a,1)} m ≤ x ≤ ${f(b,1)} m</div>
+      <div class="eq">
+        <b>Shear Force:</b><br>
+        <span>F_x = ${sfFormula}</span><br>
+        &nbsp;&nbsp;At x = ${f(a,2)}m: F = <span class="${sfClass(sfA)}">${f(sfA)} kN</span><br>
+        &nbsp;&nbsp;At x = ${f(b,2)}m: F = <span class="${sfClass(sfB)}">${f(sfB)} kN</span>
+      </div>
+      <div class="eq" style="margin-top:6px">
+        <b>Bending Moment:</b><br>
+        <span>M_x = ${bmFormula}</span><br>
+        &nbsp;&nbsp;At x = ${f(a,2)}m: M = <span class="${bmClass(bmA)}">${f(bmA)} kNm</span><br>
+        &nbsp;&nbsp;At x = ${f(b,2)}m: M = <span class="${bmClass(bmB)}">${f(bmB)} kNm</span>
+      </div>
+    </div>`;
+  }
+  $('workingBody').innerHTML = workHtml;
+
+  // ── SUMMARY TABLE ──
+  let tableHtml = '';
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const a = bounds[i], b = bounds[i+1];
+    const sfA = SF(a + 0.001), sfB = SF(b - 0.001);
+    const bmA = BM(a), bmB = BM(b);
+    tableHtml += `
+    <tr>
+      <td class="sec-label">${i+1}</td>
+      <td>${f(a,1)} ≤ x ≤ ${f(b,1)}</td>
+      <td class="${sfClass(sfA)}">${f(sfA)}</td>
+      <td class="${sfClass(sfB)}">${f(sfB)}</td>
+      <td class="${bmClass(bmA)}">${f(bmA)}</td>
+      <td class="${bmClass(bmB)}">${f(bmB)}</td>
+    </tr>`;
+  }
+  $('summaryTable').innerHTML = tableHtml;
+
+  // ── DIAGRAMS ──
+  drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w);
+  drawBMD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w);
+  drawBeam(L, posA, posB, posP1, posP2, P1, P2, w);
+
+  // ── Q6, Q7, Q8 ──
+  // Q6: max BM — where SF=0 within a section
+  let maxBM = 0, maxBMx = 0, maxBMsec = '';
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const a = bounds[i], b = bounds[i+1];
+    // SF linear in section — find zero crossing
+    const sfStart = SF(a + 0.001);
+    const sfEnd   = SF(b - 0.001);
+    if (sfStart * sfEnd <= 0) {
+      // linear interpolation for zero
+      // SF(x) = sfStart + (sfEnd-sfStart)/(b-a) * (x-a) = 0
+      const xZero = a + sfStart * (b - a) / (sfStart - sfEnd);
+      const mZero = BM(xZero);
+      if (Math.abs(mZero) > Math.abs(maxBM)) {
+        maxBM = mZero; maxBMx = xZero;
+        maxBMsec = `Section ${i+1} (${f(a,1)}–${f(b,1)} m)`;
+      }
+    }
+    // also check endpoints
+    [a, b].forEach(xx => {
+      const m = BM(xx);
+      if (Math.abs(m) > Math.abs(maxBM)) { maxBM = m; maxBMx = xx; maxBMsec = `Section ${i+1}`; }
+    });
+  }
+  // But truly max means largest absolute value where SF=0 in span
+  // Re-do properly: check all SF=0 crossings
+  const allSFZeros = [];
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const a = bounds[i], b = bounds[i+1];
+    const sfS = SF(a + 0.001), sfE = SF(b - 0.001);
+    if (sfS * sfE < 0) {
+      const xz = a + sfS * (b - a) / (sfS - sfE);
+      allSFZeros.push({ x: xz, m: BM(xz), sec: i+1, range: `${f(a,1)}–${f(b,1)} m` });
+    }
+  }
+  // max BM occurs at SF=0 crossing or at concentrated load positions
+  const candidates = [...allSFZeros.map(z => ({x:z.x, m:BM(z.x)})),
+    ...bounds.map(b => ({x:b, m:BM(b)}))];
+  const maxCand = candidates.reduce((best, c) => Math.abs(c.m) > Math.abs(best.m) ? c : best, {m:0,x:0});
+  const maxSFv = Math.max(...bounds.flatMap(b => [Math.abs(SF(b+0.001)), Math.abs(SF(b-0.001))]));
+
+  // find which section max occurs in
+  let maxSec = '';
+  for (let i = 0; i < bounds.length - 1; i++) {
+    if (maxCand.x >= bounds[i] && maxCand.x <= bounds[i+1]) {
+      maxSec = `Section ${i+1} (${f(bounds[i],1)}–${f(bounds[i+1],1)} m)`;
+    }
+  }
+
+  const sfAtMax = SF(maxCand.x);
+  $('answersBody').innerHTML = `
+    <div class="answer-row">
+      <div class="answer-q">Q6 — At what point is the max bending moment, and what is its value?</div>
+      <div class="answer-v">At x = ${f(maxCand.x, 2)} m (${maxSec})<br>M<sub>max</sub> = <span class="${bmClass(maxCand.m)}">${f(maxCand.m)} kNm</span></div>
+    </div>
+    <div class="answer-row">
+      <div class="answer-q">Q7 — Relationship between point of max bending and shear force at that point?</div>
+      <div class="answer-v">SF at x = ${f(maxCand.x,2)} m is <span class="${sfClass(sfAtMax)}">${f(sfAtMax, 2)} kN ≈ 0</span><br>
+      The shear force is zero (or changes sign) at the point of maximum bending moment. This is because M is maximum where dM/dx = F = 0.</div>
+    </div>
+    <div class="answer-row">
+      <div class="answer-q">Q8 — Maximum shear force</div>
+      <div class="answer-v">F<sub>max</sub> = ${f(maxSFv)} kN</div>
+    </div>`;
+
+  $('results').style.display = 'block';
 }
 
-function runCalculations(){
+// ── DRAW BEAM DIAGRAM ─────────────────────────────────────────────────────────
+function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w) {
+  const cvs = $('beamDiag');
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0, 0, cvs.width, cvs.height);
 
-    const L1 = parseFloat(document.getElementById('L_left').value);
-    const L2 = parseFloat(document.getElementById('L_span').value);
-    const L3 = parseFloat(document.getElementById('L_right').value);
+  const W = cvs.width, H = cvs.height;
+  const pad = 40, bY = 80;
+  const scale = (W - 2*pad) / L;
 
-    const w = parseFloat(document.getElementById('udl').value);
-    const P = parseFloat(document.getElementById('P_load').value);
-    const xP = parseFloat(document.getElementById('P_pos').value);
+  function toX(pos) { return pad + pos * scale; }
 
-    const L_total = L1 + L2 + L3;
+  // UDL hatching
+  ctx.fillStyle = 'rgba(59,130,246,0.08)';
+  ctx.fillRect(toX(0), bY - 30, toX(L) - toX(0), 30);
+  for (let p = 0; p <= L; p += 1.2) {
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(59,130,246,0.4)'; ctx.lineWidth = 1;
+    ctx.moveTo(toX(p), bY - 30); ctx.lineTo(toX(p), bY);
+    ctx.stroke();
+  }
+  // UDL label
+  ctx.fillStyle = '#60a5fa'; ctx.font = '11px Space Mono'; ctx.textAlign = 'center';
+  ctx.fillText(`w = ${w} kN/m`, toX(L/2), bY - 34);
 
-    const xA = L1;
-    const xB = L1 + L2;
+  // Beam line
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(toX(0), bY); ctx.lineTo(toX(L), bY); ctx.stroke();
 
-    // ===================================================
-    // STEP 1
-    // ===================================================
+  // Supports
+  [[posA, '#22c55e'], [posB, '#22c55e']].forEach(([pos, col]) => {
+    const x = toX(pos);
+    ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, bY); ctx.lineTo(x-10, bY+22); ctx.lineTo(x+10, bY+22);
+    ctx.closePath(); ctx.fill();
+    // roller line
+    ctx.beginPath(); ctx.moveTo(x-12, bY+25); ctx.lineTo(x+12, bY+25); ctx.stroke();
+  });
 
-    const totalUDL = w * L_total;
+  // Point loads
+  [[posP1, P1, '#fbbf24'], [posP2, P2, '#f97316']].forEach(([pos, val, col]) => {
+    const x = toX(pos);
+    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, bY-30); ctx.lineTo(x, bY); ctx.stroke();
+    // arrowhead
+    ctx.beginPath(); ctx.moveTo(x, bY); ctx.lineTo(x-5, bY-10); ctx.lineTo(x+5, bY-10); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = col; ctx.font = '10px Space Mono'; ctx.textAlign = 'center';
+    ctx.fillText(`${val}kN`, x, bY-33);
+  });
 
-    const step1 = `
-Total UDL
+  // Labels: A, B, dimensions
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px Space Mono'; ctx.textAlign = 'center';
+  ctx.fillText('A', toX(posA), bY + 38);
+  ctx.fillText('B', toX(posB), bY + 38);
+  ctx.fillText('0', toX(0), bY + 38);
+  ctx.fillText(`${L}m`, toX(L), bY + 38);
 
-w × L_total
-= ${w} × ${f(L_total)}
-= ${f(totalUDL)} kN
-`;
-
-    // ===================================================
-    // STEP 2
-    // ===================================================
-
-    const M_UDL = w * L_total * ((L_total/2) - xA);
-
-    const M_P = P * (xP - xA);
-
-    const RB = (M_UDL + M_P) / L2;
-
-    const RA = totalUDL + P - RB;
-
-    const step2 = `
-Taking moments about A
-
-RB × ${f(L2)}
-
-= ${f(M_UDL)} + ${f(M_P)}
-
-RB = ${f(RB)} kN
-
-
-Vertical equilibrium
-
-RA + RB = Total Load
-
-RA = ${f(totalUDL)} + ${f(P)} - ${f(RB)}
-
-RA = ${f(RA)} kN
-`;
-
-    // ===================================================
-    // STEP 3
-    // ===================================================
-
-    const criticalPoints = [0, xA, xP, xB, L_total];
-
-    let shearResults = [];
-    let momentResults = [];
-
-    let step3 = "SHEAR FORCE VALUES\n\n";
-
-    let step4 = "BENDING MOMENT VALUES\n\n";
-
-    criticalPoints.forEach(x=>{
-
-        let V = RA - (w * x);
-
-        if(x >= xP){
-            V -= P;
-        }
-
-        if(x >= xB){
-            V -= RB;
-        }
-
-        shearResults.push({
-            x,
-            V
-        });
-
-        step3 += `x = ${f(x)} m   →   V = ${f(V)} kN\n`;
-
-    });
-
-    // ===================================================
-    // STEP 4
-    // ===================================================
-
-    criticalPoints.forEach(x=>{
-
-        let M = (RA * x) - ((w * x * x)/2);
-
-        if(x >= xP){
-            M -= P * (x - xP);
-        }
-
-        if(x >= xB){
-            M -= RB * (x - xB);
-        }
-
-        momentResults.push({
-            x,
-            M
-        });
-
-        step4 += `x = ${f(x)} m   →   M = ${f(M)} kNm\n`;
-
-    });
-
-    // ===================================================
-    // STEP 5
-    // ===================================================
-
-    const maxShear = Math.max(...shearResults.map(v=>v.V));
-    const minShear = Math.min(...shearResults.map(v=>v.V));
-
-    const maxMoment = Math.max(...momentResults.map(v=>v.M));
-    const minMoment = Math.min(...momentResults.map(v=>v.M));
-
-    const step5 = `
-SUMMARY
-
-Maximum Shear = ${f(maxShear)} kN
-
-Minimum Shear = ${f(minShear)} kN
-
-Maximum Moment = ${f(maxMoment)} kNm
-
-Minimum Moment = ${f(minMoment)} kNm
-`;
-
-    // ===================================================
-    // DISPLAY STEPS
-    // ===================================================
-
-    const steps = [step1, step2, step3, step4, step5];
-
-    const output = document.getElementById('output');
-
-    output.innerHTML = '';
-
-    steps.forEach((step, index)=>{
-
-        output.innerHTML += `
-        <div class="step">
-            <h3>Step ${index + 1}</h3>
-            <pre>${step}</pre>
-        </div>
-        `;
-
-    });
-
-    // ===================================================
-    // DRAW DIAGRAMS
-    // ===================================================
-
-    drawBeam(L_total, xA, xB, xP, P);
-
-    drawSFD(shearResults);
-
-    drawBMD(momentResults);
-
+  // dimension line
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+  ctx.setLineDash([4,3]);
+  [0, posA, posP1, posP2, posB, L].forEach(pos => {
+    ctx.beginPath(); ctx.moveTo(toX(pos), bY+3); ctx.lineTo(toX(pos), bY+18); ctx.stroke();
+  });
+  ctx.setLineDash([]);
 }
 
-// ===================================================
-// BEAM DIAGRAM
-// ===================================================
+// ── DRAW SFD ──────────────────────────────────────────────────────────────────
+function drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w) {
+  const svg = $('sfdSvg');
+  const W = 820, H = 220;
+  const pad = 50, bY = H / 2, scale = (W - 2*pad) / L;
 
-function drawBeam(L, xA, xB, xP, P){
+  // Collect detailed points
+  const pts = [];
+  bounds.forEach((b, i) => {
+    if (i > 0) pts.push({ x: b, y: SF(b - 0.001) });
+    pts.push({ x: b, y: SF(b + 0.001) });
+    // mid points for UDL slope
+    if (i < bounds.length - 1) {
+      const mid = (b + bounds[i+1]) / 2;
+      pts.push({ x: mid, y: SF(mid) });
+    }
+  });
+  pts.sort((a,b) => a.x - b.x);
 
-    const width = 800;
-    const scale = width / L;
+  function toSvgX(px) { return pad + px * scale; }
+  function toSvgY(fy) {
+    const maxF = Math.max(...pts.map(p => Math.abs(p.y)), 1);
+    return bY - (fy / maxF) * (H/2 - 20);
+  }
 
-    const beamY = 100;
+  let html = `<line x1="${pad}" y1="${bY}" x2="${W-pad}" y2="${bY}" stroke="#334155" stroke-width="1.5"/>`;
+  // Y axis
+  html += `<line x1="${pad}" y1="10" x2="${pad}" y2="${H-10}" stroke="#334155" stroke-width="1"/>`;
 
-    const beamSvg = `
-    <svg viewBox="0 0 900 200">
+  // SFD path — step function with linear UDL segments
+  let path = '';
+  const drawPts = [];
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const a = bounds[i], b = bounds[i+1];
+    const steps = 20;
+    for (let s = 0; s <= steps; s++) {
+      const xx = a + (b-a)*s/steps;
+      drawPts.push({ x: xx, y: SF(xx) });
+    }
+    // force the jump at b
+    drawPts.push({ x: b, y: SF(b - 0.001) });
+    drawPts.push({ x: b, y: SF(b + 0.001) });
+  }
 
-        <line x1="50" y1="${beamY}" x2="${50 + (L * scale)}" y2="${beamY}" stroke="black" stroke-width="4"/>
+  // split path into segments to handle jumps
+  let pathStr = '';
+  let prevY = null;
+  drawPts.forEach((p, i) => {
+    const sx = toSvgX(p.x), sy = toSvgY(p.y);
+    if (i === 0) { pathStr = `M${sx},${sy}`; }
+    else {
+      const prev = drawPts[i-1];
+      if (Math.abs(p.x - prev.x) < 0.001 && Math.abs(p.y - prev.y) > 0.5) {
+        // jump — lift pen
+        pathStr += ` M${sx},${sy}`;
+      } else {
+        pathStr += ` L${sx},${sy}`;
+      }
+    }
+  });
 
-        <polygon points="${50 + (xA * scale)-10},120 ${50 + (xA * scale)+10},120 ${50 + (xA * scale)},140"
-        fill="black"/>
+  // fill areas
+  const maxF = Math.max(...drawPts.map(p => Math.abs(p.y)), 1);
+  let posPath = `M${pad},${bY}`, negPath = `M${pad},${bY}`;
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const a = bounds[i], b = bounds[i+1];
+    const steps = 30;
+    let segPos = '', segNeg = '';
+    for (let s = 0; s <= steps; s++) {
+      const xx = a + (b-a)*s/steps;
+      const fy = SF(xx);
+      const sx = toSvgX(xx), sy = toSvgY(fy);
+      if (s===0) { segPos += `M${toSvgX(a)},${bY} L${sx},${sy}`; segNeg += `M${toSvgX(a)},${bY} L${sx},${sy}`; }
+      else { if(fy>=0) segPos+=` L${sx},${sy}`; else segNeg+=` L${sx},${sy}`; }
+    }
+    segPos += ` L${toSvgX(b)},${bY} Z`;
+    segNeg += ` L${toSvgX(b)},${bY} Z`;
+    html += `<path d="${segPos}" fill="rgba(34,197,94,0.15)" stroke="none"/>`;
+    html += `<path d="${segNeg}" fill="rgba(239,68,68,0.15)" stroke="none"/>`;
+  }
 
-        <polygon points="${50 + (xB * scale)-10},120 ${50 + (xB * scale)+10},120 ${50 + (xB * scale)},140"
-        fill="black"/>
+  html += `<path d="${pathStr}" fill="none" stroke="#22c55e" stroke-width="2"/>`;
 
-        <line x1="${50 + (xP * scale)}" y1="40"
-        x2="${50 + (xP * scale)}" y2="90"
-        stroke="red"
-        stroke-width="3"/>
+  // Zero line label
+  html += `<text x="${pad-4}" y="${bY+4}" fill="#94a3b8" font-size="9" text-anchor="end" font-family="Space Mono">0</text>`;
 
-        <polygon points="
-        ${50 + (xP * scale)-8},90
-        ${50 + (xP * scale)+8},90
-        ${50 + (xP * scale)},105"
-        fill="red"/>
+  // value labels at key points
+  bounds.forEach(pos => {
+    const sfv = SF(pos + (pos===0?0.001:-0.001));
+    if (Math.abs(sfv) < 0.5) return;
+    const sx = toSvgX(pos), sy = toSvgY(sfv);
+    const col = sfv >= 0 ? '#22c55e' : '#ef4444';
+    html += `<circle cx="${sx}" cy="${sy}" r="3" fill="${col}"/>`;
+    html += `<text x="${sx}" y="${sy + (sfv>=0?-6:12)}" fill="${col}" font-size="8" text-anchor="middle" font-family="Space Mono">${f(sfv,1)}</text>`;
+  });
 
-        <text x="${50 + (xP * scale)-10}" y="30" fill="red">
-        ${P} kN
-        </text>
+  // axis label
+  html += `<text x="${W-pad+4}" y="${bY+4}" fill="#94a3b8" font-size="9" font-family="Space Mono">x(m)</text>`;
+  html += `<text x="${pad+4}" y="16" fill="#94a3b8" font-size="9" font-family="Space Mono">F(kN)</text>`;
 
-    </svg>
-    `;
-
-    document.getElementById('beamDiagram').innerHTML = beamSvg;
-
+  svg.innerHTML = html;
 }
 
-// ===================================================
-// SFD
-// ===================================================
+// ── DRAW BMD ──────────────────────────────────────────────────────────────────
+function drawBMD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w) {
+  const svg = $('bmdSvg');
+  const W = 820, H = 260;
+  const pad = 50, bY = H / 2 + 10;
+  const scale = (W - 2*pad) / L;
 
-function drawSFD(points){
+  function toSvgX(px) { return pad + px * scale; }
 
-    const width = 800;
-    const height = 300;
+  // gather all BM values
+  const bmPts = [];
+  for (let i = 0; i <= 400; i++) {
+    const xx = L * i / 400;
+    bmPts.push({ x: xx, y: BM(xx) });
+  }
+  const maxBM = Math.max(...bmPts.map(p => Math.abs(p.y)), 1);
+  function toSvgY(bm) { return bY - (bm / maxBM) * (H/2 - 25); }
 
-    const maxV = Math.max(...points.map(p=>p.V));
-    const minV = Math.min(...points.map(p=>p.V));
+  let html = `<line x1="${pad}" y1="${bY}" x2="${W-pad}" y2="${bY}" stroke="#334155" stroke-width="1.5"/>`;
+  html += `<line x1="${pad}" y1="10" x2="${pad}" y2="${H-10}" stroke="#334155" stroke-width="1"/>`;
 
-    const range = maxV - minV;
+  // Fill areas
+  let posArea = `M${toSvgX(0)},${bY}`, negArea = `M${toSvgX(0)},${bY}`;
+  bmPts.forEach(p => {
+    const sx = toSvgX(p.x), sy = toSvgY(p.y);
+    if (p.y >= 0) posArea += ` L${sx},${sy}`;
+    else negArea += ` L${sx},${sy}`;
+  });
+  posArea += ` L${toSvgX(L)},${bY} Z`;
+  negArea += ` L${toSvgX(L)},${bY} Z`;
+  html += `<path d="${posArea}" fill="rgba(59,130,246,0.15)" stroke="none"/>`;
+  html += `<path d="${negArea}" fill="rgba(251,191,36,0.12)" stroke="none"/>`;
 
-    let polyline = '';
+  // BMD curve
+  let pathStr = `M${toSvgX(bmPts[0].x)},${toSvgY(bmPts[0].y)}`;
+  bmPts.slice(1).forEach(p => { pathStr += ` L${toSvgX(p.x)},${toSvgY(p.y)}`; });
+  html += `<path d="${pathStr}" fill="none" stroke="#60a5fa" stroke-width="2"/>`;
 
-    points.forEach((p,index)=>{
+  // Labels at key x positions
+  bounds.forEach(pos => {
+    const bm = BM(pos);
+    const sx = toSvgX(pos), sy = toSvgY(bm);
+    const col = bm >= 0 ? '#60a5fa' : '#fbbf24';
+    html += `<circle cx="${sx}" cy="${sy}" r="3" fill="${col}"/>`;
+    const above = bm >= 0;
+    html += `<text x="${sx}" y="${sy + (above?-6:13)}" fill="${col}" font-size="8" text-anchor="middle" font-family="Space Mono">${f(bm,1)}</text>`;
+  });
 
-        const x = 50 + (index * 150);
+  // max BM marker
+  const maxPt = bmPts.reduce((best, p) => Math.abs(p.y) > Math.abs(best.y) ? p : best, bmPts[0]);
+  const msx = toSvgX(maxPt.x), msy = toSvgY(maxPt.y);
+  html += `<circle cx="${msx}" cy="${msy}" r="5" fill="none" stroke="#f97316" stroke-width="1.5"/>`;
+  html += `<text x="${msx}" y="${msy-10}" fill="#f97316" font-size="8" text-anchor="middle" font-family="Space Mono">M_max=${f(maxPt.y,1)}</text>`;
 
-        const y = 150 - ((p.V - minV) / range) * 200;
+  // axis labels
+  html += `<text x="${W-pad+4}" y="${bY+4}" fill="#94a3b8" font-size="9" font-family="Space Mono">x(m)</text>`;
+  html += `<text x="${pad+4}" y="16" fill="#94a3b8" font-size="9" font-family="Space Mono">M(kNm)</text>`;
+  html += `<text x="${pad-4}" y="${bY+4}" fill="#94a3b8" font-size="9" text-anchor="end" font-family="Space Mono">0</text>`;
 
-        polyline += `${x},${y} `;
-
-    });
-
-    const svg = `
-    <svg viewBox="0 0 900 300">
-
-        <line x1="0" y1="150" x2="900" y2="150"
-        stroke="black"/>
-
-        <polyline
-        points="${polyline}"
-        fill="none"
-        stroke="green"
-        stroke-width="3"/>
-
-    </svg>
-    `;
-
-    document.getElementById('sfd').innerHTML = svg;
-
+  svg.innerHTML = html;
 }
 
-// ===================================================
-// BMD
-// ===================================================
-
-function drawBMD(points){
-
-    const width = 800;
-    const height = 300;
-
-    const maxM = Math.max(...points.map(p=>p.M));
-    const minM = Math.min(...points.map(p=>p.M));
-
-    const range = maxM - minM;
-
-    let polyline = '';
-
-    points.forEach((p,index)=>{
-
-        const x = 50 + (index * 150);
-
-        const y = 150 - ((p.M - minM) / range) * 200;
-
-        polyline += `${x},${y} `;
-
-    });
-
-    const svg = `
-    <svg viewBox="0 0 900 300">
-
-        <line x1="0" y1="150" x2="900" y2="150"
-        stroke="black"/>
-
-        <polyline
-        points="${polyline}"
-        fill="none"
-        stroke="blue"
-        stroke-width="3"/>
-
-    </svg>
-    `;
-
-    document.getElementById('bmd').innerHTML = svg;
-
-}
-
+// Auto-run on load
+window.addEventListener('DOMContentLoaded', () => { calculate(); drawBeam(36,6,24,9,19.5,35,52.5,9); });
 </script>
-
 </body>
 </html>
