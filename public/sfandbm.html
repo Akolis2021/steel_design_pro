@@ -286,6 +286,10 @@ svg.diagram { display: block; margin: 0 auto; overflow: visible; }
       </div>
     </div>
 
+    <!-- NEW: Step-by-Step Reaction Calculation Section -->
+    <div class="working-card" id="reactionsWorkingCard">
+    </div>
+
     <p class="section-label">Section-by-Section Working</p>
     <div class="working-card" id="workingCard">
       <h3>Shear Force &amp; Bending Moment by Section</h3>
@@ -352,7 +356,7 @@ function calculate() {
   // Total beam = x + 3x + 2x = 6x
   const L    = 6 * x;          // total length
   const posA = x;              // support A
-  const posB = x + 3 * x;     // support B = 4x from left
+  const posB = x + 3 * x;      // support B = 4x from left
   const span = 3 * x;
 
   // Point load positions
@@ -361,9 +365,7 @@ function calculate() {
   if (fig === 2) {
     // Fig 2: P at A+0.5x, 1.5P at B-0.75x
     posP1 = posA + 0.5 * x;      // P   = P  at x+0.5x = 1.5x from left
-    posP2 = posB - 0.75 * x;     // 1.5P at 4x-0.75x = 3.25x? 
-    // From verified: posP1=9=posA+0.5x ✓, posP2=19.5=posB-0.75x... 
-    // posB-0.75x = 4x-0.75x=3.25x → for x=6: 19.5 ✓
+    posP2 = posB - 0.75 * x;     // 1.5P at 4x-0.75x = 3.25x
   } else {
     // Fig 1: P at B+0.5x (right overhang), 1.5P at A+0.75x (in span)
     posP1 = posA + 0.75 * x;     // 1.5P at 1.75x from left
@@ -375,20 +377,63 @@ function calculate() {
   // Ensure sorted and unique
   const bounds = [...new Set(allPos.map(v => +v.toFixed(6)))].sort((a,b)=>a-b);
 
-  // ── REACTIONS ── (taking moments about A)
-  // ΣMA = 0: RB*span = w*L*(L/2 - posA) + P1*(posP1-posA) + P2*(posP2-posA)
-  // For loads to LEFT of A, moment arm is negative (restoring), careful with signs
-  // General: ΣMA=0 clockwise positive
-  // All loads downward. UDL centroid at L/2 from left.
-  // Reactions upward at A and B.
-  // Taking ΣMA=0 (clockwise +):
-  // -w*L*(L/2-posA) - P1*(posP1-posA) - P2*(posP2-posA) + RB*span = 0
-  // Note: if posP1<posA, (posP1-posA) is negative → P1 causes negative (CCW from A perspective)
+  // ── CALCULATING REACTIONS algebraically ──
   const RB = (w*L*(L/2 - posA) + P1*(posP1 - posA) + P2*(posP2 - posA)) / span;
   const RA = w*L + P1 + P2 - RB;
 
+  // ── DISPLAY REACTIONS OVERVIEW ──
+  $('raVal').textContent = f(RA);
+  $('rbVal').textContent = f(RB);
+
+  // ── 1. RENDER STEP-BY-STEP REACTION CALCULATION ──
+  const uTotal = w * L;
+  const uArmA  = L/2 - posA;
+  const p1ArmA = posP1 - posA;
+  const p2ArmA = posP2 - posA;
+
+  const uArmB  = posB - L/2;
+  const p1ArmB = posB - posP1;
+  const p2ArmB = posB - posP2;
+
+  const sumMomentsA = P1 * p1ArmA + P2 * p2ArmA + uTotal * uArmA;
+  const sumMomentsB = P1 * p1ArmB + P2 * p2ArmB + uTotal * uArmB;
+
+  // Helper to format negative terms elegantly (- -105 becomes + 105)
+  function fmtTerm(val) {
+    return val < 0 ? `+ ${f(Math.abs(val), 2)}` : `&minus; ${f(val, 2)}`;
+  }
+
+  $('reactionsWorkingCard').innerHTML = `
+    <h3>Support Reactions Calculation</h3>
+    <div class="working-block">
+      <div class="sec-title">1. Taking Moments about Support A (&Sigma;M<sub>A</sub> = 0)</div>
+      <div class="eq-row comment">+&#8634; &Sigma;M<sub>A</sub> = 0 (Anti-clockwise moments are positive)</div>
+      <div class="eq-row indent1">R<sub>B</sub>(${f(span,1)}) &minus; P<sub>1</sub>(${f(p1ArmA,1)}) &minus; P<sub>2</sub>(${f(p2ArmA,1)}) &minus; (w &times; L)(${f(uArmA,1)}) = 0</div>
+      <div class="eq-row indent1">${f(span,1)}R<sub>B</sub> &minus; ${f(P1,1)}(${f(p1ArmA,1)}) &minus; ${f(P2,1)}(${f(p2ArmA,1)}) &minus; (${f(w,1)} &times; ${f(L,1)})(${f(uArmA,1)}) = 0</div>
+      <div class="eq-row indent1">${f(span,1)}R<sub>B</sub> ${fmtTerm(P1 * p1ArmA)} ${fmtTerm(P2 * p2ArmA)} ${fmtTerm(uTotal * uArmA)} = 0</div>
+      <div class="eq-row indent1">${f(span,1)}R<sub>B</sub> = ${f(sumMomentsA, 2)}</div>
+      <div class="eq-row indent1 hilite-eq">R<sub>B</sub> = ${f(RB, 2)} kN</div>
+    </div>
+
+    <div class="working-block" style="margin-top:14px;">
+      <div class="sec-title">2. Taking Moments about Support B (&Sigma;M<sub>B</sub> = 0)</div>
+      <div class="eq-row comment">+&#8635; &Sigma;M<sub>B</sub> = 0 (Clockwise moments are positive)</div>
+      <div class="eq-row indent1">R<sub>A</sub>(${f(span,1)}) &minus; P<sub>1</sub>(${f(p1ArmB,1)}) &minus; P<sub>2</sub>(${f(p2ArmB,1)}) &minus; (w &times; L)(${f(uArmB,1)}) = 0</div>
+      <div class="eq-row indent1">${f(span,1)}R<sub>A</sub> &minus; ${f(P1,1)}(${f(p1ArmB,1)}) &minus; ${f(P2,1)}(${f(p2ArmB,1)}) &minus; (${f(w,1)} &times; ${f(L,1)})(${f(uArmB,1)}) = 0</div>
+      <div class="eq-row indent1">${f(span,1)}R<sub>A</sub> ${fmtTerm(P1 * p1ArmB)} ${fmtTerm(P2 * p2ArmB)} ${fmtTerm(uTotal * uArmB)} = 0</div>
+      <div class="eq-row indent1">${f(span,1)}R<sub>A</sub> = ${f(sumMomentsB, 2)}</div>
+      <div class="eq-row indent1 hilite-eq">R<sub>A</sub> = ${f(RA, 2)} kN</div>
+    </div>
+
+    <div class="working-block" style="margin-top:14px;">
+      <div class="sec-title">3. Equilibrium Check (&Sigma;F<sub>y</sub> = 0)</div>
+      <div class="eq-row indent1">R<sub>A</sub> + R<sub>B</sub> = P<sub>1</sub> + P<sub>2</sub> + (w &times; L)</div>
+      <div class="eq-row indent1">${f(RA, 2)} + ${f(RB, 2)} = ${f(P1, 1)} + ${f(P2, 1)} + ${f(uTotal, 1)}</div>
+      <div class="eq-row indent1">${f(RA + RB, 2)} = ${f(P1 + P2 + uTotal, 2)} &emsp;<span style="color:var(--green);font-weight:bold;">&#10004; Checks out</span></div>
+    </div>
+  `;
+
   // ── SF and BM functions ──
-  // SF(x): sum of upward forces minus UDL from left up to x
   function SF(xx) {
     let v = -w * xx;
     if (xx > posA)  v += RA;
@@ -397,7 +442,7 @@ function calculate() {
     if (xx > posB)  v += RB;
     return v;
   }
-  // BM(x): moment of all forces to left of x
+
   function BM(xx) {
     let m = -w * xx * xx / 2;
     if (xx > posA)  m += RA * (xx - posA);
@@ -407,14 +452,10 @@ function calculate() {
     return m;
   }
 
-  // ── DISPLAY REACTIONS ──
-  $('raVal').textContent = f(RA);
-  $('rbVal').textContent = f(RB);
-
   // ── WORKING (section by section) — full step-by-step mirroring handwritten ──
   function makeFBD(secStart, secEnd) {
     const W = 390, H = 96;
-    const dL = 12, dR = W - 42;   // left / right edges of the beam drawing
+    const dL = 12, dR = W - 42;
     const drawW = dR - dL;
     const bY = 60, udlY = bY - 18;
     function tx(pos) { return dL + (pos / secEnd) * drawW; }
@@ -456,7 +497,7 @@ function calculate() {
       s += `<text x="${ax}" y="${bY-31}" fill="${col}" font-size="7.5"
                 text-anchor="middle" font-family="Space Mono">${label}</text>`;
     }
-    // Helper: downward point load arrow (above UDL)
+    // Helper: downward point load arrow
     function drawLoad(pos, label, col) {
       if (pos > secEnd) return;
       const px = tx(pos);
@@ -512,14 +553,13 @@ function calculate() {
     const hasP2 = mid > posP2;
     const hasRB = mid > posB;
 
-    // ── Constant part of SF (all terms except -wx) ──
+    // ── Constant part of SF ──
     let sfConst = 0;
     if (hasRA) sfConst += RA;
     if (hasRB) sfConst += RB;
     if (hasP1) sfConst -= P1;
     if (hasP2) sfConst -= P2;
 
-    // Build ΣFy = 0 equilibrium line
     let sfUp = [], sfDn = [`${w}x`];
     if (hasRA) sfUp.push('R<sub>A</sub>');
     if (hasRB) sfUp.push('R<sub>B</sub>');
@@ -529,7 +569,6 @@ function calculate() {
     const sfEqLine = (sfUp.length ? sfUp.join(' + ') + ' &minus; ' : '&minus;')
                    + sfDn.join(' &minus;') + ' = 0';
 
-    // Rearranged symbolically
     let sfRhsSym = [];
     if (hasRA) sfRhsSym.push('R<sub>A</sub>');
     if (hasRB) sfRhsSym.push('R<sub>B</sub>');
@@ -538,7 +577,6 @@ function calculate() {
     sfRhsSym.push(`&minus; ${w}x`);
     const sfRearranged = `F<sub>x</sub> = ${sfRhsSym.join(' ')}`;
 
-    // With numbers substituted for reactions
     let sfRhsNum = [];
     if (hasRA) sfRhsNum.push(`${f(RA,2)}`);
     if (hasRB) sfRhsNum.push(`${f(RB,2)}`);
@@ -547,12 +585,10 @@ function calculate() {
     sfRhsNum.push(`&minus; ${w}x`);
     const sfWithNums = `F<sub>x</sub> = ${sfRhsNum.join(' ')}`;
 
-    // Simplified (constant ± wx)
     const sfSimplified = sfConst !== 0
       ? `F<sub>x</sub> = ${f(sfConst,2)} &minus; ${w}x`
       : `F<sub>x</sub> = &minus;${w}x`;
 
-    // Substitution helper
     function sfSub(xv) {
       const wx  = w * xv;
       const val = sfConst - wx;
@@ -567,7 +603,6 @@ function calculate() {
 
     const sfValA = SF(a + 0.001), sfValB = SF(b - 0.001);
 
-    // SF = 0 crossing
     let sfZeroHtml = '';
     if (sfValA * sfValB < 0) {
       const xz = sfConst / w;
@@ -591,7 +626,6 @@ function calculate() {
     if (hasRB) { bmTermsSym.push(`+ R<sub>B</sub>(x &minus; ${f(posB,1)})`);
                  bmTermsNum.push(`+ ${f(RB,2)}(x &minus; ${f(posB,1)})`); }
 
-    // Substitution: show each term individually then sum
     function bmSubTerms(xv) {
       let parts = [`&minus;${f(w,0)}(${f(xv,1)})&sup2;/2`];
       if (hasRA) parts.push(`+ ${f(RA,2)}(${f(xv,1)} &minus; ${f(posA,1)})`);
@@ -676,31 +710,6 @@ function calculate() {
   drawBeam(L, posA, posB, posP1, posP2, P1, P2, w);
 
   // ── Q6, Q7, Q8 ──
-  // Q6: max BM — where SF=0 within a section
-  let maxBM = 0, maxBMx = 0, maxBMsec = '';
-  for (let i = 0; i < bounds.length - 1; i++) {
-    const a = bounds[i], b = bounds[i+1];
-    // SF linear in section — find zero crossing
-    const sfStart = SF(a + 0.001);
-    const sfEnd   = SF(b - 0.001);
-    if (sfStart * sfEnd <= 0) {
-      // linear interpolation for zero
-      // SF(x) = sfStart + (sfEnd-sfStart)/(b-a) * (x-a) = 0
-      const xZero = a + sfStart * (b - a) / (sfStart - sfEnd);
-      const mZero = BM(xZero);
-      if (Math.abs(mZero) > Math.abs(maxBM)) {
-        maxBM = mZero; maxBMx = xZero;
-        maxBMsec = `Section ${i+1} (${f(a,1)}–${f(b,1)} m)`;
-      }
-    }
-    // also check endpoints
-    [a, b].forEach(xx => {
-      const m = BM(xx);
-      if (Math.abs(m) > Math.abs(maxBM)) { maxBM = m; maxBMx = xx; maxBMsec = `Section ${i+1}`; }
-    });
-  }
-  // But truly max means largest absolute value where SF=0 in span
-  // Re-do properly: check all SF=0 crossings
   const allSFZeros = [];
   for (let i = 0; i < bounds.length - 1; i++) {
     const a = bounds[i], b = bounds[i+1];
@@ -710,13 +719,11 @@ function calculate() {
       allSFZeros.push({ x: xz, m: BM(xz), sec: i+1, range: `${f(a,1)}–${f(b,1)} m` });
     }
   }
-  // max BM occurs at SF=0 crossing or at concentrated load positions
   const candidates = [...allSFZeros.map(z => ({x:z.x, m:BM(z.x)})),
     ...bounds.map(b => ({x:b, m:BM(b)}))];
   const maxCand = candidates.reduce((best, c) => Math.abs(c.m) > Math.abs(best.m) ? c : best, {m:0,x:0});
   const maxSFv = Math.max(...bounds.flatMap(b => [Math.abs(SF(b+0.001)), Math.abs(SF(b-0.001))]));
 
-  // find which section max occurs in
   let maxSec = '';
   for (let i = 0; i < bounds.length - 1; i++) {
     if (maxCand.x >= bounds[i] && maxCand.x <= bounds[i+1]) {
@@ -778,7 +785,6 @@ function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w) {
     ctx.beginPath();
     ctx.moveTo(x, bY); ctx.lineTo(x-10, bY+22); ctx.lineTo(x+10, bY+22);
     ctx.closePath(); ctx.fill();
-    // roller line
     ctx.beginPath(); ctx.moveTo(x-12, bY+25); ctx.lineTo(x+12, bY+25); ctx.stroke();
   });
 
@@ -787,7 +793,6 @@ function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w) {
     const x = toX(pos);
     ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(x, bY-30); ctx.lineTo(x, bY); ctx.stroke();
-    // arrowhead
     ctx.beginPath(); ctx.moveTo(x, bY); ctx.lineTo(x-5, bY-10); ctx.lineTo(x+5, bY-10); ctx.closePath(); ctx.fill();
     ctx.fillStyle = col; ctx.font = '10px Space Mono'; ctx.textAlign = 'center';
     ctx.fillText(`${val}kN`, x, bY-33);
@@ -800,7 +805,6 @@ function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w) {
   ctx.fillText('0', toX(0), bY + 38);
   ctx.fillText(`${L}m`, toX(L), bY + 38);
 
-  // dimension line
   ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
   ctx.setLineDash([4,3]);
   [0, posA, posP1, posP2, posB, L].forEach(pos => {
@@ -815,12 +819,10 @@ function drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
   const W = 820, H = 220;
   const pad = 50, bY = H / 2, scale = (W - 2*pad) / L;
 
-  // Collect detailed points
   const pts = [];
   bounds.forEach((b, i) => {
     if (i > 0) pts.push({ x: b, y: SF(b - 0.001) });
     pts.push({ x: b, y: SF(b + 0.001) });
-    // mid points for UDL slope
     if (i < bounds.length - 1) {
       const mid = (b + bounds[i+1]) / 2;
       pts.push({ x: mid, y: SF(mid) });
@@ -835,11 +837,8 @@ function drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
   }
 
   let html = `<line x1="${pad}" y1="${bY}" x2="${W-pad}" y2="${bY}" stroke="#334155" stroke-width="1.5"/>`;
-  // Y axis
   html += `<line x1="${pad}" y1="10" x2="${pad}" y2="${H-10}" stroke="#334155" stroke-width="1"/>`;
 
-  // SFD path — step function with linear UDL segments
-  let path = '';
   const drawPts = [];
   for (let i = 0; i < bounds.length - 1; i++) {
     const a = bounds[i], b = bounds[i+1];
@@ -848,21 +847,17 @@ function drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
       const xx = a + (b-a)*s/steps;
       drawPts.push({ x: xx, y: SF(xx) });
     }
-    // force the jump at b
     drawPts.push({ x: b, y: SF(b - 0.001) });
     drawPts.push({ x: b, y: SF(b + 0.001) });
   }
 
-  // split path into segments to handle jumps
   let pathStr = '';
-  let prevY = null;
   drawPts.forEach((p, i) => {
     const sx = toSvgX(p.x), sy = toSvgY(p.y);
     if (i === 0) { pathStr = `M${sx},${sy}`; }
     else {
       const prev = drawPts[i-1];
       if (Math.abs(p.x - prev.x) < 0.001 && Math.abs(p.y - prev.y) > 0.5) {
-        // jump — lift pen
         pathStr += ` M${sx},${sy}`;
       } else {
         pathStr += ` L${sx},${sy}`;
@@ -870,9 +865,6 @@ function drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
     }
   });
 
-  // fill areas
-  const maxF = Math.max(...drawPts.map(p => Math.abs(p.y)), 1);
-  let posPath = `M${pad},${bY}`, negPath = `M${pad},${bY}`;
   for (let i = 0; i < bounds.length - 1; i++) {
     const a = bounds[i], b = bounds[i+1];
     const steps = 30;
@@ -891,11 +883,8 @@ function drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
   }
 
   html += `<path d="${pathStr}" fill="none" stroke="#22c55e" stroke-width="2"/>`;
-
-  // Zero line label
   html += `<text x="${pad-4}" y="${bY+4}" fill="#94a3b8" font-size="9" text-anchor="end" font-family="Space Mono">0</text>`;
 
-  // value labels at key points
   bounds.forEach(pos => {
     const sfv = SF(pos + (pos===0?0.001:-0.001));
     if (Math.abs(sfv) < 0.5) return;
@@ -905,7 +894,6 @@ function drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
     html += `<text x="${sx}" y="${sy + (sfv>=0?-6:12)}" fill="${col}" font-size="8" text-anchor="middle" font-family="Space Mono">${f(sfv,1)}</text>`;
   });
 
-  // axis label
   html += `<text x="${W-pad+4}" y="${bY+4}" fill="#94a3b8" font-size="9" font-family="Space Mono">x(m)</text>`;
   html += `<text x="${pad+4}" y="16" fill="#94a3b8" font-size="9" font-family="Space Mono">F(kN)</text>`;
 
@@ -921,7 +909,6 @@ function drawBMD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
 
   function toSvgX(px) { return pad + px * scale; }
 
-  // gather all BM values
   const bmPts = [];
   for (let i = 0; i <= 400; i++) {
     const xx = L * i / 400;
@@ -933,7 +920,6 @@ function drawBMD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
   let html = `<line x1="${pad}" y1="${bY}" x2="${W-pad}" y2="${bY}" stroke="#334155" stroke-width="1.5"/>`;
   html += `<line x1="${pad}" y1="10" x2="${pad}" y2="${H-10}" stroke="#334155" stroke-width="1"/>`;
 
-  // Fill areas
   let posArea = `M${toSvgX(0)},${bY}`, negArea = `M${toSvgX(0)},${bY}`;
   bmPts.forEach(p => {
     const sx = toSvgX(p.x), sy = toSvgY(p.y);
@@ -945,12 +931,10 @@ function drawBMD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
   html += `<path d="${posArea}" fill="rgba(59,130,246,0.15)" stroke="none"/>`;
   html += `<path d="${negArea}" fill="rgba(251,191,36,0.12)" stroke="none"/>`;
 
-  // BMD curve
   let pathStr = `M${toSvgX(bmPts[0].x)},${toSvgY(bmPts[0].y)}`;
   bmPts.slice(1).forEach(p => { pathStr += ` L${toSvgX(p.x)},${toSvgY(p.y)}`; });
   html += `<path d="${pathStr}" fill="none" stroke="#60a5fa" stroke-width="2"/>`;
 
-  // Labels at key x positions
   bounds.forEach(pos => {
     const bm = BM(pos);
     const sx = toSvgX(pos), sy = toSvgY(bm);
@@ -960,13 +944,11 @@ function drawBMD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
     html += `<text x="${sx}" y="${sy + (above?-6:13)}" fill="${col}" font-size="8" text-anchor="middle" font-family="Space Mono">${f(bm,1)}</text>`;
   });
 
-  // max BM marker
   const maxPt = bmPts.reduce((best, p) => Math.abs(p.y) > Math.abs(best.y) ? p : best, bmPts[0]);
   const msx = toSvgX(maxPt.x), msy = toSvgY(maxPt.y);
   html += `<circle cx="${msx}" cy="${msy}" r="5" fill="none" stroke="#f97316" stroke-width="1.5"/>`;
   html += `<text x="${msx}" y="${msy-10}" fill="#f97316" font-size="8" text-anchor="middle" font-family="Space Mono">M_max=${f(maxPt.y,1)}</text>`;
 
-  // axis labels
   html += `<text x="${W-pad+4}" y="${bY+4}" fill="#94a3b8" font-size="9" font-family="Space Mono">x(m)</text>`;
   html += `<text x="${pad+4}" y="16" fill="#94a3b8" font-size="9" font-family="Space Mono">M(kNm)</text>`;
   html += `<text x="${pad-4}" y="${bY+4}" fill="#94a3b8" font-size="9" text-anchor="end" font-family="Space Mono">0</text>`;
@@ -974,8 +956,8 @@ function drawBMD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w)
   svg.innerHTML = html;
 }
 
-// Auto-run on load
-window.addEventListener('DOMContentLoaded', () => { calculate(); drawBeam(36,6,24,9,19.5,35,52.5,9); });
+// Auto-run on load (Fixed so it inherently uses the default values you see in the input boxes rather than hardcoded ones)
+window.addEventListener('DOMContentLoaded', () => { calculate(); });
 </script>
 </body>
 </html>
