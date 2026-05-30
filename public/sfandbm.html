@@ -266,7 +266,7 @@ svg.diagram { display: block; margin: 0 auto; overflow: visible; }
   <!-- BEAM DIAGRAM -->
   <p class="section-label">Beam Diagram</p>
   <div class="beam-canvas-wrap">
-    <canvas id="beamDiag" width="820" height="175"></canvas>
+    <canvas id="beamDiag" width="820" height="130"></canvas>
   </div>
 
   <!-- RESULTS -->
@@ -316,16 +316,10 @@ svg.diagram { display: block; margin: 0 auto; overflow: visible; }
       </table>
     </div>
 
-    <p class="section-label">Shear Force Diagram</p>
+    <p class="section-label">Shear Force &amp; Bending Moment Diagrams</p>
     <div class="diagram-wrap">
-      <h3>SFD — Shear Force Diagram</h3>
-      <svg id="sfdSvg" class="diagram" width="820" height="220"></svg>
-    </div>
-
-    <p class="section-label">Bending Moment Diagram</p>
-    <div class="diagram-wrap">
-      <h3>BMD — Bending Moment Diagram</h3>
-      <svg id="bmdSvg" class="diagram" width="820" height="260"></svg>
+      <h3>Combined SFD &amp; BMD</h3>
+      <svg id="combinedSvg" class="diagram" width="820" height="560"></svg>
     </div>
 
     <p class="section-label">Questions 6, 7 &amp; 8</p>
@@ -339,7 +333,10 @@ svg.diagram { display: block; margin: 0 auto; overflow: visible; }
 
 <script>
 // ── HELPERS ──────────────────────────────────────────────────────────────────
-const f = (v, dp = 2) => (Math.round(v * 10**dp) / 10**dp).toFixed(dp);
+const f = (v, dp = 2) => {
+  const rounded = Math.round(v * 10**dp) / 10**dp;
+  return (rounded === 0 ? 0 : rounded).toFixed(dp);
+};
 const $ = id => document.getElementById(id);
 
 function sfClass(v) { return v >= 0 ? 'sf-pos' : 'sf-neg'; }
@@ -382,8 +379,8 @@ function calculate() {
   const RA = w*L + P1 + P2 - RB;
 
   // ── DISPLAY REACTIONS OVERVIEW ──
-  $('raVal').textContent = f(RA);
-  $('rbVal').textContent = f(RB);
+  $('raVal').textContent = f(RA, 2);
+  $('rbVal').textContent = f(RB, 2);
 
   // ── 1. RENDER STEP-BY-STEP REACTION CALCULATION ──
   const uTotal = w * L;
@@ -528,54 +525,17 @@ function calculate() {
     s += `<text x="${dR+15}" y="${bY+19}" fill="#a78bfa" font-size="8"
               font-family="Space Mono">M\u2093</text>`;
 
-    // ── Dimension lines: one per segment between key positions up to the cut ──
-    const fbdH = 130;  // updated height (set below on svg open)
-    const dimY   = bY + 26;   // row 1: individual segments
-    const dimY2  = bY + 46;   // row 2: total x from left to cut
-    const wBot   = dimY2 + 5;
+    // Dimension line: x below beam
+    const dimY = bY + 30;
+    s += `<line x1="${dL}" y1="${dimY}" x2="${dR}" y2="${dimY}"
+              stroke="#334155" stroke-width="1"/>`;
+    s += `<line x1="${dL}" y1="${dimY-4}" x2="${dL}" y2="${dimY+4}"
+              stroke="#334155" stroke-width="1"/>`;
+    s += `<line x1="${dR}" y1="${dimY-4}" x2="${dR}" y2="${dimY+4}"
+              stroke="#334155" stroke-width="1"/>`;
+    s += `<text x="${(dL+dR)/2}" y="${dimY+13}" fill="#94a3b8" font-size="8"
+              text-anchor="middle" font-family="Space Mono">x</text>`;
 
-    // collect key positions that fall within [0, secEnd]
-    const kp = [...new Set(
-      [0, posA, posP1, posP2, posB, secEnd]
-        .filter(p => p <= secEnd + 0.001)
-        .map(p => +Math.min(p, secEnd).toFixed(4))
-    )].sort((a, b) => a - b);
-
-    // witness lines for all key positions
-    kp.forEach(p => {
-      const px = tx(p);
-      s += `<line x1="${px}" y1="${bY+2}" x2="${px}" y2="${wBot}"
-                stroke="#334155" stroke-width="1" stroke-dasharray="2,2"/>`;
-    });
-
-    // helper: one dimension arrow segment
-    function fbdDimSeg(p1, p2, y, col, lbl) {
-      const x1 = tx(p1), x2 = tx(p2), mid = (x1+x2)/2;
-      const pixW = Math.abs(x2-x1);
-      s += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${col}" stroke-width="1"/>`;
-      s += `<polygon points="${x1},${y} ${x1+5},${y-2} ${x1+5},${y+2}" fill="${col}"/>`;
-      s += `<polygon points="${x2},${y} ${x2-5},${y-2} ${x2-5},${y+2}" fill="${col}"/>`;
-      if (pixW < 36) {
-        // rotated label
-        s += `<text transform="translate(${mid},${y-10}) rotate(-90)"
-                  fill="${col}" font-size="6.5" text-anchor="middle"
-                  font-family="Space Mono">${lbl}</text>`;
-      } else {
-        s += `<text x="${mid}" y="${y-3}" fill="${col}" font-size="7"
-                  text-anchor="middle" font-family="Space Mono">${lbl}</text>`;
-      }
-    }
-
-    // row 1: individual segments
-    for (let k = 0; k < kp.length - 1; k++) {
-      const d = kp[k+1] - kp[k];
-      fbdDimSeg(kp[k], kp[k+1], dimY, '#64748b', `${d.toFixed(1)}m`);
-    }
-
-    // row 2: overall x from left end to cut (purple, matches Fx colour)
-    fbdDimSeg(0, secEnd, dimY2, '#7c3aed', `x = ${secEnd.toFixed(1)} m`);
-
-    s = s.replace(`height="${H}"`, `height="${fbdH}"`);
     s += `</svg>`;
     return `<div class="fbd-wrap">${s}</div>`;
   }
@@ -727,24 +687,24 @@ function calculate() {
   let tableHtml = '';
   for (let i = 0; i < bounds.length - 1; i++) {
     const a = bounds[i], b = bounds[i+1];
-    const sfA = SF(a + 0.001), sfB = SF(b - 0.001);
-    const bmA = BM(a), bmB = BM(b);
+    // Sample exactly as the working section does: SF just inside each end
+    const sfA = SF(a + 0.0001), sfB = SF(b - 0.0001);
+    const bmA = BM(a),          bmB = BM(b);
     tableHtml += `
     <tr>
       <td class="sec-label">${i+1}</td>
       <td>${f(a,1)} ≤ x ≤ ${f(b,1)}</td>
-      <td class="${sfClass(sfA)}">${f(sfA)}</td>
-      <td class="${sfClass(sfB)}">${f(sfB)}</td>
-      <td class="${bmClass(bmA)}">${f(bmA)}</td>
-      <td class="${bmClass(bmB)}">${f(bmB)}</td>
+      <td class="${sfClass(sfA)}">${f(sfA,2)}</td>
+      <td class="${sfClass(sfB)}">${f(sfB,2)}</td>
+      <td class="${bmClass(bmA)}">${f(bmA,2)}</td>
+      <td class="${bmClass(bmB)}">${f(bmB,2)}</td>
     </tr>`;
   }
   $('summaryTable').innerHTML = tableHtml;
 
   // ── DIAGRAMS ──
-  drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w);
-  drawBMD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w);
-  drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, x);
+  drawCombined(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w);
+  drawBeam(L, posA, posB, posP1, posP2, P1, P2, w);
 
   // ── Q6, Q7, Q8 ──
   const allSFZeros = [];
@@ -788,262 +748,353 @@ function calculate() {
 }
 
 // ── DRAW BEAM DIAGRAM ─────────────────────────────────────────────────────────
-function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, xVal) {
+function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w) {
   const cvs = $('beamDiag');
   const ctx = cvs.getContext('2d');
-  cvs.height = 175;
   ctx.clearRect(0, 0, cvs.width, cvs.height);
 
-  const W = cvs.width;
-  const pad = 48, bY = 68;
-  const scale = (W - 2 * pad) / L;
+  const W = cvs.width, H = cvs.height;
+  const pad = 40, bY = 80;
+  const scale = (W - 2*pad) / L;
+
   function toX(pos) { return pad + pos * scale; }
 
-  // ── helper: symbolic label e.g. "0.5x = 3.0m" ──
-  function segLabel(dist) {
-    const r = dist / xVal;
-    const nice = { 0.5:'0.5x', 0.75:'0.75x', 1:'x', 1.25:'1.25x',
-                   1.5:'1.5x', 1.75:'1.75x', 2:'2x', 2.25:'2.25x',
-                   2.5:'2.5x', 3:'3x', 4:'4x', 6:'6x' };
-    const key = Object.keys(nice).find(k => Math.abs(r - +k) < 0.02);
-    const sym = key ? nice[key] + ' = ' : '';
-    return sym + dist.toFixed(1) + 'm';
-  }
-
-  // ── helper: draw one dimension line segment with arrows ──
-  function dimSeg(x1, x2, y, label, col, above) {
-    const mid = (x1 + x2) / 2;
-    const pixW = Math.abs(x2 - x1);
-    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 1;
-    // horizontal bar
-    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
-    // arrowheads (outward-facing)
-    const a = 5;
-    ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x1+a, y-2.5); ctx.lineTo(x1+a, y+2.5); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(x2, y); ctx.lineTo(x2-a, y-2.5); ctx.lineTo(x2-a, y+2.5); ctx.closePath(); ctx.fill();
-    // label — if segment too narrow, rotate 90°
-    ctx.font = '8.5px Space Mono'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if (pixW < 46) {
-      ctx.save(); ctx.translate(mid, y + (above ? -11 : 11));
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillText(label, 0, 0);
-      ctx.restore();
-    } else {
-      ctx.fillText(label, mid, y + (above ? -8 : 9));
-    }
-  }
-
-  // ── helper: vertical witness line ──
-  function witness(px, y1, y2) {
-    ctx.save(); ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
-    ctx.setLineDash([3, 2]); ctx.beginPath();
-    ctx.moveTo(px, y1); ctx.lineTo(px, y2); ctx.stroke();
-    ctx.setLineDash([]); ctx.restore();
-  }
-
-  // ── UDL ──
+  // UDL hatching
   ctx.fillStyle = 'rgba(59,130,246,0.08)';
-  ctx.fillRect(toX(0), bY - 28, toX(L) - toX(0), 28);
+  ctx.fillRect(toX(0), bY - 30, toX(L) - toX(0), 30);
   for (let p = 0; p <= L; p += 1.2) {
-    ctx.beginPath(); ctx.strokeStyle = 'rgba(59,130,246,0.38)'; ctx.lineWidth = 1;
-    ctx.moveTo(toX(p), bY - 28); ctx.lineTo(toX(p), bY); ctx.stroke();
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(59,130,246,0.4)'; ctx.lineWidth = 1;
+    ctx.moveTo(toX(p), bY - 30); ctx.lineTo(toX(p), bY);
+    ctx.stroke();
   }
-  ctx.fillStyle = '#60a5fa'; ctx.font = '10px Space Mono';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  ctx.fillText(`w = ${w} kN/m`, toX(L / 2), bY - 30);
+  // UDL label
+  ctx.fillStyle = '#60a5fa'; ctx.font = '11px Space Mono'; ctx.textAlign = 'center';
+  ctx.fillText(`w = ${w} kN/m`, toX(L/2), bY - 34);
 
-  // ── Beam line ──
+  // Beam line
   ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(toX(0), bY); ctx.lineTo(toX(L), bY); ctx.stroke();
 
-  // ── Supports (triangle + ground line + label) ──
-  [['A', posA], ['B', posB]].forEach(([lbl, pos]) => {
-    const cx = toX(pos);
-    ctx.fillStyle = '#22c55e'; ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(cx, bY); ctx.lineTo(cx - 10, bY + 20); ctx.lineTo(cx + 10, bY + 20); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(cx - 13, bY + 23); ctx.lineTo(cx + 13, bY + 23); ctx.stroke();
-    ctx.fillStyle = '#22c55e'; ctx.font = '10px Space Mono';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText(lbl, cx, bY + 26);
+  // Supports
+  [[posA, '#22c55e'], [posB, '#22c55e']].forEach(([pos, col]) => {
+    const x = toX(pos);
+    ctx.fillStyle = col; ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, bY); ctx.lineTo(x-10, bY+22); ctx.lineTo(x+10, bY+22);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x-12, bY+25); ctx.lineTo(x+12, bY+25); ctx.stroke();
   });
 
-  // ── Point loads ──
+  // Point loads
   [[posP1, P1, '#fbbf24'], [posP2, P2, '#f97316']].forEach(([pos, val, col]) => {
-    const cx = toX(pos);
+    const x = toX(pos);
     ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(cx, bY - 28); ctx.lineTo(cx, bY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, bY); ctx.lineTo(cx - 5, bY - 10); ctx.lineTo(cx + 5, bY - 10); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = col; ctx.font = '10px Space Mono';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText(`${val} kN`, cx, bY - 30);
+    ctx.beginPath(); ctx.moveTo(x, bY-30); ctx.lineTo(x, bY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, bY); ctx.lineTo(x-5, bY-10); ctx.lineTo(x+5, bY-10); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = col; ctx.font = '10px Space Mono'; ctx.textAlign = 'center';
+    ctx.fillText(`${val}kN`, x, bY-33);
   });
 
-  // ── Dimension rows ──
-  // Key positions (sorted, unique)
-  const keyPos = [...new Set([0, posA, posP1, posP2, posB, L].map(v => +v.toFixed(4)))].sort((a, b) => a - b);
-  const dimY1 = bY + 50;   // row 1 – individual segments
-  const dimY2 = bY + 80;   // row 2 – full span A→B + overall L
-  const witnessBot = dimY2 + 6;
+  // Labels: A, B, dimensions
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px Space Mono'; ctx.textAlign = 'center';
+  ctx.fillText('A', toX(posA), bY + 38);
+  ctx.fillText('B', toX(posB), bY + 38);
+  ctx.fillText('0', toX(0), bY + 38);
+  ctx.fillText(`${L}m`, toX(L), bY + 38);
 
-  // witness lines for all key positions
-  keyPos.forEach(pos => witness(toX(pos), bY + 2, witnessBot));
-
-  // row 1 – each segment between consecutive key positions
-  for (let i = 0; i < keyPos.length - 1; i++) {
-    const a = keyPos[i], b = keyPos[i + 1];
-    dimSeg(toX(a), toX(b), dimY1, segLabel(b - a), '#94a3b8', true);
-  }
-
-  // row 2a – span A to B (green)
-  dimSeg(toX(posA), toX(posB), dimY2, `span = ${segLabel(posB - posA)}`, '#22c55e', true);
-
-  // row 2b – total length (muted, at bottom)
-  ctx.fillStyle = '#475569'; ctx.font = '8px Space Mono';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  ctx.fillText(`Total L = ${segLabel(L)}`, toX(L / 2), witnessBot + 3);
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 1;
+  ctx.setLineDash([4,3]);
+  [0, posA, posP1, posP2, posB, L].forEach(pos => {
+    ctx.beginPath(); ctx.moveTo(toX(pos), bY+3); ctx.lineTo(toX(pos), bY+18); ctx.stroke();
+  });
+  ctx.setLineDash([]);
 }
 
-// ── DRAW SFD ──────────────────────────────────────────────────────────────────
-function drawSFD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w) {
-  const svg = $('sfdSvg');
-  const W = 820, H = 220;
-  const pad = 50, bY = H / 2, scale = (W - 2*pad) / L;
+// ── COMBINED SFD + BMD DIAGRAM ────────────────────────────────────────────────
+function drawCombined(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w) {
+  const svg = $('combinedSvg');
+  const W = 820;
 
-  const pts = [];
-  bounds.forEach((b, i) => {
-    if (i > 0) pts.push({ x: b, y: SF(b - 0.001) });
-    pts.push({ x: b, y: SF(b + 0.001) });
-    if (i < bounds.length - 1) {
-      const mid = (b + bounds[i+1]) / 2;
-      pts.push({ x: mid, y: SF(mid) });
-    }
-  });
-  pts.sort((a,b) => a.x - b.x);
+  // Layout zones (y positions)
+  const padL = 58, padR = 20;
+  const scale = (W - padL - padR) / L;
+  function toX(p) { return padL + p * scale; }
 
-  function toSvgX(px) { return pad + px * scale; }
-  function toSvgY(fy) {
-    const maxF = Math.max(...pts.map(p => Math.abs(p.y)), 1);
-    return bY - (fy / maxF) * (H/2 - 20);
+  // ── Row heights ──
+  const beamH  = 80;   // beam schematic strip
+  const sfdH   = 190;  // SFD panel height
+  const divH   = 28;   // divider + label row
+  const bmdH   = 230;  // BMD panel height
+  const totalH = beamH + sfdH + divH + bmdH + 10;
+  svg.setAttribute('height', totalH);
+
+  // Y origins for each panel
+  const beamY0 = 0;
+  const sfdY0  = beamH;
+  const bmdY0  = beamH + sfdH + divH;
+
+  // ── Sample data ──
+  const N = 600;
+  const sfPts = [], bmPts = [];
+  for (let i = 0; i <= N; i++) {
+    const xx = L * i / N;
+    sfPts.push({ x: xx, y: SF(xx) });
+    bmPts.push({ x: xx, y: BM(xx) });
   }
+  // Also push discontinuity edges
+  bounds.forEach(b => {
+    sfPts.push({ x: b, y: SF(b - 0.0005) });
+    sfPts.push({ x: b, y: SF(b + 0.0005) });
+  });
+  sfPts.sort((a, b) => a.x - b.x);
 
-  let html = `<line x1="${pad}" y1="${bY}" x2="${W-pad}" y2="${bY}" stroke="#334155" stroke-width="1.5"/>`;
-  html += `<line x1="${pad}" y1="10" x2="${pad}" y2="${H-10}" stroke="#334155" stroke-width="1"/>`;
+  const maxSF = Math.max(...sfPts.map(p => Math.abs(p.y)), 1);
+  const maxBM = Math.max(...bmPts.map(p => Math.abs(p.y)), 1);
 
-  const drawPts = [];
+  const sfdBaseline = sfdY0 + sfdH * 0.48;
+  const bmdBaseline = bmdY0 + bmdH * 0.44;
+  const sfdAmp  = sfdH * 0.40;
+  const bmdAmp  = bmdH * 0.44;
+
+  function toSFy(v) { return sfdBaseline - (v / maxSF) * sfdAmp; }
+  function toBMy(v) { return bmdBaseline - (v / maxBM) * bmdAmp; }
+
+  let h = '';
+
+  // ═══════════════════════════════════════════════════
+  // 1. BEAM SCHEMATIC STRIP
+  // ═══════════════════════════════════════════════════
+  const bLine = beamY0 + 54;
+
+  // UDL fill + ticks
+  h += `<rect x="${toX(0)}" y="${bLine-22}" width="${toX(L)-toX(0)}" height="22"
+            fill="rgba(59,130,246,0.07)"/>`;
+  for (let p = 0; p <= L; p += 1.5) {
+    h += `<line x1="${toX(p)}" y1="${bLine-22}" x2="${toX(p)}" y2="${bLine}"
+              stroke="rgba(96,165,250,0.35)" stroke-width="1"/>`;
+  }
+  h += `<line x1="${toX(0)}" y1="${bLine-22}" x2="${toX(L)}" y2="${bLine-22}"
+            stroke="#60a5fa" stroke-width="1"/>`;
+  h += `<text x="${toX(L/2)}" y="${bLine-25}" fill="#60a5fa" font-size="9"
+            text-anchor="middle" font-family="Space Mono">w = ${w} kN/m</text>`;
+
+  // Beam line
+  h += `<line x1="${toX(0)}" y1="${bLine}" x2="${toX(L)}" y2="${bLine}"
+            stroke="#e2e8f0" stroke-width="4"/>`;
+
+  // Supports
+  [[posA,'A'],[posB,'B']].forEach(([pos,lbl]) => {
+    const cx = toX(pos);
+    h += `<polygon points="${cx},${bLine} ${cx-9},${bLine+18} ${cx+9},${bLine+18}"
+              fill="#22c55e"/>`;
+    h += `<line x1="${cx-11}" y1="${bLine+21}" x2="${cx+11}" y2="${bLine+21}"
+              stroke="#22c55e" stroke-width="2"/>`;
+    h += `<text x="${cx}" y="${bLine+32}" fill="#22c55e" font-size="9"
+              text-anchor="middle" font-family="Space Mono">${lbl}</text>`;
+  });
+
+  // Point loads
+  [[posP1,P1,'#fbbf24'],[posP2,P2,'#f97316']].forEach(([pos,val,col]) => {
+    const cx = toX(pos);
+    h += `<line x1="${cx}" y1="${bLine-22}" x2="${cx}" y2="${bLine}"
+              stroke="${col}" stroke-width="2"/>`;
+    h += `<polygon points="${cx},${bLine} ${cx-5},${bLine-11} ${cx+5},${bLine-11}"
+              fill="${col}"/>`;
+    h += `<text x="${cx}" y="${bLine-25}" fill="${col}" font-size="9"
+              text-anchor="middle" font-family="Space Mono">${val} kN</text>`;
+  });
+
+  // x-axis position labels
+  bounds.forEach(pos => {
+    h += `<text x="${toX(pos)}" y="${beamY0+12}" fill="#475569" font-size="8"
+              text-anchor="middle" font-family="Space Mono">${pos.toFixed(1)}m</text>`;
+  });
+
+  // ═══════════════════════════════════════════════════
+  // 2. FULL-HEIGHT VERTICAL WITNESS LINES
+  // ═══════════════════════════════════════════════════
+  bounds.forEach(pos => {
+    h += `<line x1="${toX(pos)}" y1="${beamY0+14}" x2="${toX(pos)}" y2="${totalH-6}"
+              stroke="#1e3a5f" stroke-width="1" stroke-dasharray="3,3" opacity="0.7"/>`;
+  });
+
+  // ═══════════════════════════════════════════════════
+  // 3. SFD PANEL
+  // ═══════════════════════════════════════════════════
+  // Panel background
+  h += `<rect x="${padL}" y="${sfdY0}" width="${W-padL-padR}" height="${sfdH}"
+            fill="rgba(15,23,42,0.4)" rx="0"/>`;
+
+  // SFD label (left axis)
+  h += `<text x="10" y="${sfdY0+sfdH/2}" fill="#94a3b8" font-size="9"
+            text-anchor="middle" font-family="Space Mono"
+            transform="rotate(-90,10,${sfdY0+sfdH/2})">F (kN)</text>`;
+  h += `<text x="${padL+6}" y="${sfdY0+13}" fill="#22c55e" font-size="9"
+            font-family="Space Mono" font-weight="bold">SFD</text>`;
+
+  // Baseline (zero line)
+  h += `<line x1="${padL}" y1="${sfdBaseline}" x2="${W-padR}" y2="${sfdBaseline}"
+            stroke="#334155" stroke-width="1.5"/>`;
+  h += `<text x="${padL-4}" y="${sfdBaseline+4}" fill="#475569" font-size="8"
+            text-anchor="end" font-family="Space Mono">0</text>`;
+
+  // Fill areas (positive = green, negative = red)
   for (let i = 0; i < bounds.length - 1; i++) {
     const a = bounds[i], b = bounds[i+1];
-    const steps = 20;
-    for (let s = 0; s <= steps; s++) {
-      const xx = a + (b-a)*s/steps;
-      drawPts.push({ x: xx, y: SF(xx) });
-    }
-    drawPts.push({ x: b, y: SF(b - 0.001) });
-    drawPts.push({ x: b, y: SF(b + 0.001) });
-  }
-
-  let pathStr = '';
-  drawPts.forEach((p, i) => {
-    const sx = toSvgX(p.x), sy = toSvgY(p.y);
-    if (i === 0) { pathStr = `M${sx},${sy}`; }
-    else {
-      const prev = drawPts[i-1];
-      if (Math.abs(p.x - prev.x) < 0.001 && Math.abs(p.y - prev.y) > 0.5) {
-        pathStr += ` M${sx},${sy}`;
-      } else {
-        pathStr += ` L${sx},${sy}`;
-      }
-    }
-  });
-
-  for (let i = 0; i < bounds.length - 1; i++) {
-    const a = bounds[i], b = bounds[i+1];
-    const steps = 30;
-    let segPos = '', segNeg = '';
+    const steps = 40;
+    let pos = `M${toX(a)},${sfdBaseline}`, neg = `M${toX(a)},${sfdBaseline}`;
     for (let s = 0; s <= steps; s++) {
       const xx = a + (b-a)*s/steps;
       const fy = SF(xx);
-      const sx = toSvgX(xx), sy = toSvgY(fy);
-      if (s===0) { segPos += `M${toSvgX(a)},${bY} L${sx},${sy}`; segNeg += `M${toSvgX(a)},${bY} L${sx},${sy}`; }
-      else { if(fy>=0) segPos+=` L${sx},${sy}`; else segNeg+=` L${sx},${sy}`; }
+      const sx = toX(xx), sy = toSFy(fy);
+      if (fy >= 0) pos += ` L${sx},${sy}`; else neg += ` L${sx},${sy}`;
     }
-    segPos += ` L${toSvgX(b)},${bY} Z`;
-    segNeg += ` L${toSvgX(b)},${bY} Z`;
-    html += `<path d="${segPos}" fill="rgba(34,197,94,0.15)" stroke="none"/>`;
-    html += `<path d="${segNeg}" fill="rgba(239,68,68,0.15)" stroke="none"/>`;
+    const bfv = SF(b - 0.0005);
+    if (bfv >= 0) pos += ` L${toX(b)},${sfdBaseline} Z`;
+    else           neg += ` L${toX(b)},${sfdBaseline} Z`;
+    h += `<path d="${pos}" fill="rgba(34,197,94,0.18)" stroke="none"/>`;
+    h += `<path d="${neg}" fill="rgba(239,68,68,0.18)" stroke="none"/>`;
   }
 
-  html += `<path d="${pathStr}" fill="none" stroke="#22c55e" stroke-width="2"/>`;
-  html += `<text x="${pad-4}" y="${bY+4}" fill="#94a3b8" font-size="9" text-anchor="end" font-family="Space Mono">0</text>`;
+  // SF polyline (with jumps at discontinuities)
+  let sfPath = '';
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const a = bounds[i], b = bounds[i+1];
+    const steps = 40;
+    sfPath += `M${toX(a)},${toSFy(SF(a+0.0005))}`;
+    for (let s = 1; s <= steps; s++) {
+      const xx = a + (b-a)*s/steps;
+      sfPath += ` L${toX(xx)},${toSFy(SF(xx))}`;
+    }
+    sfPath += ` L${toX(b)},${toSFy(SF(b-0.0005))}`;
+  }
+  h += `<path d="${sfPath}" fill="none" stroke="#22c55e" stroke-width="2.2"/>`;
 
-  bounds.forEach(pos => {
-    const sfv = SF(pos + (pos===0?0.001:-0.001));
-    if (Math.abs(sfv) < 0.5) return;
-    const sx = toSvgX(pos), sy = toSvgY(sfv);
-    const col = sfv >= 0 ? '#22c55e' : '#ef4444';
-    html += `<circle cx="${sx}" cy="${sy}" r="3" fill="${col}"/>`;
-    html += `<text x="${sx}" y="${sy + (sfv>=0?-6:12)}" fill="${col}" font-size="8" text-anchor="middle" font-family="Space Mono">${f(sfv,1)}</text>`;
+  // Value labels + dots at key positions
+  bounds.forEach((pos, idx) => {
+    const vAfter = SF(pos + 0.0005);
+    const vBefore = SF(pos - 0.0005);
+
+    // dot + label for 'after' value (start of section)
+    if (Math.abs(vAfter) > 0.3 && idx < bounds.length - 1) {
+      const sy = toSFy(vAfter);
+      const col = vAfter >= 0 ? '#22c55e' : '#ef4444';
+      h += `<circle cx="${toX(pos)}" cy="${sy}" r="3.5" fill="${col}"/>`;
+      const lx = toX(pos) + (idx === 0 ? 6 : 0);
+      const ly = sy + (vAfter >= 0 ? -7 : 13);
+      h += `<text x="${lx}" y="${ly}" fill="${col}" font-size="8.5"
+                text-anchor="middle" font-family="Space Mono">${vAfter.toFixed(1)}</text>`;
+    }
+    // dot + label for 'before' value (end of section, if different → jump)
+    if (idx > 0 && Math.abs(vBefore) > 0.3 && Math.abs(vBefore - vAfter) > 0.5) {
+      const sy = toSFy(vBefore);
+      const col = vBefore >= 0 ? '#22c55e' : '#ef4444';
+      h += `<circle cx="${toX(pos)}" cy="${sy}" r="3.5" fill="${col}"/>`;
+      const ly = sy + (vBefore >= 0 ? -7 : 13);
+      h += `<text x="${toX(pos)}" y="${ly}" fill="${col}" font-size="8.5"
+                text-anchor="middle" font-family="Space Mono">${vBefore.toFixed(1)}</text>`;
+      // vertical jump line
+      h += `<line x1="${toX(pos)}" y1="${toSFy(vAfter)}" x2="${toX(pos)}" y2="${sy}"
+                stroke="#22c55e" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.6"/>`;
+    }
   });
 
-  html += `<text x="${W-pad+4}" y="${bY+4}" fill="#94a3b8" font-size="9" font-family="Space Mono">x(m)</text>`;
-  html += `<text x="${pad+4}" y="16" fill="#94a3b8" font-size="9" font-family="Space Mono">F(kN)</text>`;
-
-  svg.innerHTML = html;
-}
-
-// ── DRAW BMD ──────────────────────────────────────────────────────────────────
-function drawBMD(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w) {
-  const svg = $('bmdSvg');
-  const W = 820, H = 260;
-  const pad = 50, bY = H / 2 + 10;
-  const scale = (W - 2*pad) / L;
-
-  function toSvgX(px) { return pad + px * scale; }
-
-  const bmPts = [];
-  for (let i = 0; i <= 400; i++) {
-    const xx = L * i / 400;
-    bmPts.push({ x: xx, y: BM(xx) });
+  // SF = 0 crossing marker
+  for (let i = 0; i < bounds.length - 1; i++) {
+    const a = bounds[i], b = bounds[i+1];
+    const sfA = SF(a+0.001), sfB = SF(b-0.001);
+    if (sfA * sfB < 0) {
+      const xz = a + sfA*(b-a)/(sfA-sfB);
+      h += `<line x1="${toX(xz)}" y1="${sfdBaseline-6}" x2="${toX(xz)}" y2="${sfdBaseline+6}"
+                stroke="#a78bfa" stroke-width="2"/>`;
+      h += `<text x="${toX(xz)}" y="${sfdBaseline-9}" fill="#a78bfa" font-size="8"
+                text-anchor="middle" font-family="Space Mono">x=${xz.toFixed(2)}m</text>`;
+    }
   }
-  const maxBM = Math.max(...bmPts.map(p => Math.abs(p.y)), 1);
-  function toSvgY(bm) { return bY - (bm / maxBM) * (H/2 - 25); }
 
-  let html = `<line x1="${pad}" y1="${bY}" x2="${W-pad}" y2="${bY}" stroke="#334155" stroke-width="1.5"/>`;
-  html += `<line x1="${pad}" y1="10" x2="${pad}" y2="${H-10}" stroke="#334155" stroke-width="1"/>`;
+  // Panel border
+  h += `<rect x="${padL}" y="${sfdY0}" width="${W-padL-padR}" height="${sfdH}"
+            fill="none" stroke="#1e3a5f" stroke-width="1"/>`;
 
-  let posArea = `M${toSvgX(0)},${bY}`, negArea = `M${toSvgX(0)},${bY}`;
+  // ═══════════════════════════════════════════════════
+  // 4. DIVIDER ROW
+  // ═══════════════════════════════════════════════════
+  const divY = sfdY0 + sfdH;
+  h += `<rect x="${padL}" y="${divY}" width="${W-padL-padR}" height="${divH}"
+            fill="rgba(30,58,95,0.5)"/>`;
+  h += `<line x1="${padL}" y1="${divY}" x2="${W-padR}" y2="${divY}"
+            stroke="#334155" stroke-width="1"/>`;
+  h += `<line x1="${padL}" y1="${divY+divH}" x2="${W-padR}" y2="${divY+divH}"
+            stroke="#334155" stroke-width="1"/>`;
+
+  // x-position ticks & labels in divider
+  bounds.forEach(pos => {
+    h += `<line x1="${toX(pos)}" y1="${divY+2}" x2="${toX(pos)}" y2="${divY+divH-2}"
+              stroke="#334155" stroke-width="1"/>`;
+    h += `<text x="${toX(pos)}" y="${divY+divH/2+4}" fill="#64748b" font-size="8"
+              text-anchor="middle" font-family="Space Mono">${pos.toFixed(1)}</text>`;
+  });
+  h += `<text x="${padL+6}" y="${divY+divH/2+4}" fill="#475569" font-size="8"
+            font-family="Space Mono">x (m)</text>`;
+
+  // ═══════════════════════════════════════════════════
+  // 5. BMD PANEL
+  // ═══════════════════════════════════════════════════
+  h += `<rect x="${padL}" y="${bmdY0}" width="${W-padL-padR}" height="${bmdH}"
+            fill="rgba(15,23,42,0.4)" rx="0"/>`;
+
+  h += `<text x="10" y="${bmdY0+bmdH/2}" fill="#94a3b8" font-size="9"
+            text-anchor="middle" font-family="Space Mono"
+            transform="rotate(-90,10,${bmdY0+bmdH/2})">M (kNm)</text>`;
+  h += `<text x="${padL+6}" y="${bmdY0+13}" fill="#60a5fa" font-size="9"
+            font-family="Space Mono" font-weight="bold">BMD</text>`;
+
+  // Baseline
+  h += `<line x1="${padL}" y1="${bmdBaseline}" x2="${W-padR}" y2="${bmdBaseline}"
+            stroke="#334155" stroke-width="1.5"/>`;
+  h += `<text x="${padL-4}" y="${bmdBaseline+4}" fill="#475569" font-size="8"
+            text-anchor="end" font-family="Space Mono">0</text>`;
+
+  // Fill areas
+  let bmPos = `M${toX(0)},${bmdBaseline}`, bmNeg = `M${toX(0)},${bmdBaseline}`;
   bmPts.forEach(p => {
-    const sx = toSvgX(p.x), sy = toSvgY(p.y);
-    if (p.y >= 0) posArea += ` L${sx},${sy}`;
-    else negArea += ` L${sx},${sy}`;
+    const sx = toX(p.x), sy = toBMy(p.y);
+    if (p.y >= 0) bmPos += ` L${sx},${sy}`; else bmNeg += ` L${sx},${sy}`;
   });
-  posArea += ` L${toSvgX(L)},${bY} Z`;
-  negArea += ` L${toSvgX(L)},${bY} Z`;
-  html += `<path d="${posArea}" fill="rgba(59,130,246,0.15)" stroke="none"/>`;
-  html += `<path d="${negArea}" fill="rgba(251,191,36,0.12)" stroke="none"/>`;
+  bmPos += ` L${toX(L)},${bmdBaseline} Z`;
+  bmNeg += ` L${toX(L)},${bmdBaseline} Z`;
+  h += `<path d="${bmPos}" fill="rgba(59,130,246,0.15)" stroke="none"/>`;
+  h += `<path d="${bmNeg}" fill="rgba(251,191,36,0.13)" stroke="none"/>`;
 
-  let pathStr = `M${toSvgX(bmPts[0].x)},${toSvgY(bmPts[0].y)}`;
-  bmPts.slice(1).forEach(p => { pathStr += ` L${toSvgX(p.x)},${toSvgY(p.y)}`; });
-  html += `<path d="${pathStr}" fill="none" stroke="#60a5fa" stroke-width="2"/>`;
+  // BM curve
+  let bmPath = `M${toX(bmPts[0].x)},${toBMy(bmPts[0].y)}`;
+  bmPts.slice(1).forEach(p => { bmPath += ` L${toX(p.x)},${toBMy(p.y)}`; });
+  h += `<path d="${bmPath}" fill="none" stroke="#60a5fa" stroke-width="2.2"/>`;
 
-  bounds.forEach(pos => {
+  // Value labels at key positions
+  bounds.forEach((pos, idx) => {
     const bm = BM(pos);
-    const sx = toSvgX(pos), sy = toSvgY(bm);
+    const sx = toX(pos), sy = toBMy(bm);
     const col = bm >= 0 ? '#60a5fa' : '#fbbf24';
-    html += `<circle cx="${sx}" cy="${sy}" r="3" fill="${col}"/>`;
+    h += `<circle cx="${sx}" cy="${sy}" r="3.5" fill="${col}"/>`;
     const above = bm >= 0;
-    html += `<text x="${sx}" y="${sy + (above?-6:13)}" fill="${col}" font-size="8" text-anchor="middle" font-family="Space Mono">${f(bm,1)}</text>`;
+    const lx = sx + (idx === 0 ? 8 : idx === bounds.length-1 ? -8 : 0);
+    h += `<text x="${lx}" y="${sy+(above?-7:14)}" fill="${col}" font-size="8.5"
+              text-anchor="middle" font-family="Space Mono">${bm.toFixed(1)}</text>`;
   });
 
-  const maxPt = bmPts.reduce((best, p) => Math.abs(p.y) > Math.abs(best.y) ? p : best, bmPts[0]);
-  const msx = toSvgX(maxPt.x), msy = toSvgY(maxPt.y);
-  html += `<circle cx="${msx}" cy="${msy}" r="5" fill="none" stroke="#f97316" stroke-width="1.5"/>`;
-  html += `<text x="${msx}" y="${msy-10}" fill="#f97316" font-size="8" text-anchor="middle" font-family="Space Mono">M_max=${f(maxPt.y,1)}</text>`;
+  // Max BM marker (circle + annotation)
+  const maxBMpt = bmPts.reduce((best, p) => Math.abs(p.y) > Math.abs(best.y) ? p : best, bmPts[0]);
+  const msx = toX(maxBMpt.x), msy = toBMy(maxBMpt.y);
+  h += `<circle cx="${msx}" cy="${msy}" r="6" fill="none" stroke="#f97316" stroke-width="2"/>`;
+  const annY = maxBMpt.y >= 0 ? msy - 12 : msy + 18;
+  h += `<text x="${msx}" y="${annY}" fill="#f97316" font-size="8.5"
+            text-anchor="middle" font-family="Space Mono">M_max = ${maxBMpt.y.toFixed(1)} kNm</text>`;
 
-  html += `<text x="${W-pad+4}" y="${bY+4}" fill="#94a3b8" font-size="9" font-family="Space Mono">x(m)</text>`;
-  html += `<text x="${pad+4}" y="16" fill="#94a3b8" font-size="9" font-family="Space Mono">M(kNm)</text>`;
-  html += `<text x="${pad-4}" y="${bY+4}" fill="#94a3b8" font-size="9" text-anchor="end" font-family="Space Mono">0</text>`;
+  h += `<rect x="${padL}" y="${bmdY0}" width="${W-padL-padR}" height="${bmdH}"
+            fill="none" stroke="#1e3a5f" stroke-width="1"/>`;
 
-  svg.innerHTML = html;
+  svg.innerHTML = h;
 }
 
 // Auto-run on load (Fixed so it inherently uses the default values you see in the input boxes rather than hardcoded ones)
