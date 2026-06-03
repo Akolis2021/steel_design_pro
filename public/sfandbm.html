@@ -413,24 +413,58 @@ function runWithFeedback() {
   btn.className = 'calc-btn loading';
   btn.innerHTML = '<div class="btn-spinner"></div> Calculating…';
 
+  const MIN_LOADING_MS = 700; // minimum time to show spinner so it feels intentional
+  const startTime = Date.now();
+
   // Let the browser paint the loading state, then calculate
   setTimeout(() => {
+    let calcError = null;
     try {
       calculate();
-      // Success state
-      btn.className = 'calc-btn done';
-      btn.innerHTML = '✓ Done — scroll down';
-      setTimeout(() => {
+    } catch (err) {
+      calcError = err;
+    }
+
+    // Wait out the remaining minimum duration before updating UI
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+
+    setTimeout(() => {
+      if (calcError) {
         btn.disabled = false;
         btn.className = 'calc-btn';
         btn.innerHTML = '▶ Run Calculation';
-      }, 2200);
-    } catch (err) {
-      btn.disabled = false;
-      btn.className = 'calc-btn';
-      btn.innerHTML = '▶ Run Calculation';
-      alert('Error: ' + err.message);
-    }
+        alert('Error: ' + calcError.message);
+      } else {
+        // Success state
+        btn.className = 'calc-btn done';
+        btn.innerHTML = '✓ Done';
+        // Scroll to the start of the results section
+        // Smooth eased scroll — lands just above the beam diagram, clear of the navbar
+        (function smoothScrollTo(target, duration) {
+          const navH    = 56;          // fixed navbar height
+          const padding = 16;          // extra breathing room above diagram
+          const destY   = target.getBoundingClientRect().top + window.scrollY - navH - padding;
+          const startY  = window.scrollY;
+          const delta   = destY - startY;
+          let startTime = null;
+          function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+          function step(ts) {
+            if (!startTime) startTime = ts;
+            const elapsed  = ts - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            window.scrollTo(0, startY + delta * easeOutCubic(progress));
+            if (progress < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+        })($('beamDiag'), 900);
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.className = 'calc-btn';
+          btn.innerHTML = '▶ Run Calculation';
+        }, 2200);
+      }
+    }, remaining);
   }, 40); // 40ms — enough for one paint frame
 }
 
@@ -838,34 +872,59 @@ function calculate() {
   }
   $('summaryTable').innerHTML = tableHtml;
 
-  // ── DIAGRAMS ──
-  drawCombined(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w);
-  drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, x, lbl1, lbl2);
+  // ── Q6, Q7, Q8 ── (computed first so maxCand can be passed to the diagram)
 
-  // ── Q6, Q7, Q8 ──
+  // Point load positions (as rounded keys) — used to distinguish load-jump zeros
+  // from support-reaction jumps. Only load-jump zeros count as interior SF=0 candidates.
+  const pointLoadSet = new Set([+posP1.toFixed(6), +posP2.toFixed(6)]);
+
   const allSFZeros = [];
+
+  // 1. Smooth crossings WITHIN a section (UDL-driven, no point load at zero point)
   for (let i = 0; i < bounds.length - 1; i++) {
     const a = bounds[i], b = bounds[i+1];
     const sfS = SF(a + 0.001), sfE = SF(b - 0.001);
     if (sfS * sfE < 0) {
       const xz = a + sfS * (b - a) / (sfS - sfE);
-      allSFZeros.push({ x: xz, m: BM(xz), sec: i+1, range: `${f(a,1)}–${f(b,1)} m` });
+      allSFZeros.push({
+        x: xz, m: BM(xz), sec: i+1,
+        range: `${f(a,1)}–${f(b,1)} m`,
+        isJump: false
+      });
     }
   }
 
-  // Q6 — max BM occurs where SF = 0 (dM/dx = F = 0), i.e. the interior smooth maximum.
-  // Support points have SF discontinuities so BM is NOT at a smooth max there.
+  // 2. Jump zeros AT point load boundaries — SF changes sign because of a concentrated load.
+  //    These are valid dM/dx = 0 locations (the zero lies at the load application point).
+  //    Support boundaries (posA, posB) are excluded — their SF jump is a reaction, not a load.
+  for (let i = 1; i < bounds.length - 1; i++) {
+    const pos = +bounds[i].toFixed(6);
+    if (!pointLoadSet.has(pos)) continue;          // skip supports, skip non-load points
+    const sfBefore = SF(bounds[i] - 0.001);
+    const sfAfter  = SF(bounds[i] + 0.001);
+    if (sfBefore * sfAfter < 0) {
+      // Determine which section this point sits at the end of
+      const sec = i; // section i ends at bounds[i]
+      allSFZeros.push({
+        x: bounds[i], m: BM(bounds[i]), sec,
+        range: `${f(bounds[i-1],1)}–${f(bounds[i+1],1)} m`,
+        isJump: true, sfBefore, sfAfter
+      });
+    }
+  }
+
+  // Q6 — pick the SF=0 location with the largest absolute BM
   let maxCand;
   if (allSFZeros.length > 0) {
-    // Among all SF=0 crossings, pick the one with the largest absolute BM
-    maxCand = allSFZeros
-      .map(z => ({ x: z.x, m: BM(z.x), sec: z.sec, range: z.range }))
-      .reduce((best, c) => Math.abs(c.m) > Math.abs(best.m) ? c : best, allSFZeros[0]);
+    maxCand = allSFZeros.reduce(
+      (best, c) => Math.abs(c.m) > Math.abs(best.m) ? c : best,
+      allSFZeros[0]
+    );
   } else {
-    // Fallback: no SF=0 crossing found — use boundary with largest absolute BM
+    // Hard fallback: no SF=0 crossing detected — use the boundary with the largest |BM|
     maxCand = bounds
-      .map(b => ({ x: b, m: BM(b) }))
-      .reduce((best, c) => Math.abs(c.m) > Math.abs(best.m) ? c : best, { x: 0, m: 0 });
+      .map(b => ({ x: b, m: BM(b), isJump: false }))
+      .reduce((best, c) => Math.abs(c.m) > Math.abs(best.m) ? c : best, { x: 0, m: 0, isJump: false });
   }
 
   // Q8 — max positive (upward) shear force only
@@ -886,8 +945,29 @@ function calculate() {
       maxSFsec = `Section ${i+1} (${f(bounds[i],1)}–${f(bounds[i+1],1)} m)`;
   }
 
-  const sfAtMax = SF(maxCand.x);
-  const sfNearZero = Math.abs(sfAtMax) < 1.0;
+  // ── DIAGRAMS (drawn after maxCand is known, so the BMD marker matches Q6) ──
+  drawCombined(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w, maxCand);
+  drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, x, lbl1, lbl2);
+
+  // Q7 — SF description at the max-BM point
+  let q7SfHtml;
+  if (maxCand.isJump) {
+    // Jump zero: SF changes sign at a concentrated load — show before & after values
+    q7SfHtml = `
+      SF at x = ${f(maxCand.x,2)} m changes sign at the concentrated load:<br>
+      &nbsp;&nbsp;Just before: <span class="${sfClass(maxCand.sfBefore)}">${f(maxCand.sfBefore,2)} kN</span>
+      &nbsp;→&nbsp;
+      Just after: <span class="${sfClass(maxCand.sfAfter)}">${f(maxCand.sfAfter,2)} kN</span><br>
+      The shear force passes through zero (changes sign) at the point of maximum bending moment.<br>
+      This is because M is maximum where dM/dx = F = 0.`;
+  } else {
+    const sfAtMax = SF(maxCand.x);
+    q7SfHtml = `
+      SF at x = ${f(maxCand.x,2)} m = <span class="${sfClass(sfAtMax)}">${f(sfAtMax,2)} kN ≈ 0</span><br>
+      The shear force is zero at the point of maximum bending moment.<br>
+      This is because M is maximum where dM/dx = F = 0.`;
+  }
+
   $('answersBody').innerHTML = `
     <div class="answer-row">
       <div class="answer-q">Q6 — At what point is the max bending moment, and what is its value?</div>
@@ -895,11 +975,7 @@ function calculate() {
     </div>
     <div class="answer-row">
       <div class="answer-q">Q7 — Relationship between point of max bending and shear force at that point?</div>
-      <div class="answer-v">
-        SF at x = ${f(maxCand.x,2)} m is <span class="${sfClass(sfAtMax)}">${f(sfAtMax, 2)} kN${sfNearZero ? ' ≈ 0' : ''}</span><br>
-        The shear force is zero (changes sign) at the point of maximum bending moment.<br>
-        This is because M is maximum where dM/dx = F = 0.
-      </div>
+      <div class="answer-v">${q7SfHtml}</div>
     </div>
     <div class="answer-row">
       <div class="answer-q">Q8 — Maximum shear force</div>
@@ -1039,7 +1115,7 @@ function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, xVal, lbl1, lbl2) {
 }
 
 // ── COMBINED SFD + BMD DIAGRAM ────────────────────────────────────────────────
-function drawCombined(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w) {
+function drawCombined(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w, maxBMCand) {
   const svg = $('combinedSvg');
   const W = 820;
 
@@ -1311,8 +1387,10 @@ function drawCombined(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P
               text-anchor="middle" font-family="Space Mono">${bm.toFixed(1)}</text>`;
   });
 
-  // Max BM marker (circle + annotation)
-  const maxBMpt = bmPts.reduce((best, p) => Math.abs(p.y) > Math.abs(best.y) ? p : best, bmPts[0]);
+  // Max BM marker (circle + annotation) — uses the same point as Q6 for consistency
+  const maxBMpt = maxBMCand
+    ? { x: maxBMCand.x, y: BM(maxBMCand.x) }
+    : bmPts.reduce((best, p) => Math.abs(p.y) > Math.abs(best.y) ? p : best, bmPts[0]);
   const msx = toX(maxBMpt.x), msy = toBMy(maxBMpt.y);
   h += `<circle cx="${msx}" cy="${msy}" r="6" fill="none" stroke="#f97316" stroke-width="2"/>`;
   const annY = maxBMpt.y >= 0 ? msy - 12 : msy + 18;
