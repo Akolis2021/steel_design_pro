@@ -44,10 +44,35 @@ body::before {
 }
 .nav-back:hover { border-color: var(--blue3); }
 .nav-title { font-size: 12px; color: var(--text); font-weight: 700; }
-.nav-badge {
-  margin-left: auto; font-size: 9px; padding: 3px 8px;
-  background: rgba(59,130,246,0.15); color: var(--blue3);
-  border: 1px solid rgba(59,130,246,0.3); border-radius: 4px;
+.print-btn {
+  margin-left: auto; font-size: 11px; padding: 6px 14px;
+  background: rgba(249,115,22,0.15); color: #f97316;
+  border: 1px solid rgba(249,115,22,0.4); border-radius: 6px;
+  cursor: pointer; font-family: 'Space Mono', monospace;
+  font-weight: 700; letter-spacing: .04em;
+  transition: background .2s, border-color .2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.print-btn:hover {
+  background: rgba(249,115,22,0.28); border-color: #f97316;
+}
+@media print {
+  #navbar, .calc-btn, #inputSection { display: none !important; }
+  body { background: white !important; color: black !important; }
+  body::before { display: none !important; }
+  .page { padding-top: 0 !important; }
+  .calc-sheet, .diagram-box, .table-wrap, .answers-card,
+  .reactions-box, .reaction-card {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+  .section-label { color: #333 !important; border-color: #ccc !important; }
+  canvas, svg { max-width: 100% !important; }
+  .step-title { color: #333 !important; }
+  .eq-row { color: #111 !important; }
+  .result-box { background: #f0f0f0 !important; color: #111 !important; }
+  #results { display: block !important; }
 }
 
 /* ── LAYOUT ── */
@@ -105,6 +130,37 @@ canvas#beamDiag { display: block; margin: 0 auto; }
   letter-spacing: .05em; transition: background .2s;
 }
 .calc-btn:hover { background: #2563eb; }
+.calc-btn:disabled {
+  background: #1e3a5f; color: #64748b; cursor: not-allowed;
+  border: 1px solid #334155;
+}
+.calc-btn.loading {
+  background: #1e3a5f; color: #93c5fd;
+  border: 1px solid #3b82f6; cursor: not-allowed;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.calc-btn.done {
+  background: #14532d; color: #86efac;
+  border: 1px solid #22c55e;
+}
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+.calc-btn .btn-spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(147,197,253,0.3);
+  border-top-color: #93c5fd;
+  border-radius: 50%;
+  animation: btn-spin .7s linear infinite;
+  flex-shrink: 0;
+}
+.calc-btn:disabled {
+  background: #1e3a5f; color: #64748b; cursor: not-allowed;
+  border: 1px solid #334155;
+}
+.calc-btn.done {
+  background: #14532d; color: #86efac;
+  border: 1px solid #22c55e;
+}
+
 
 /* ── RESULTS ── */
 #results { display: none; }
@@ -222,7 +278,13 @@ svg.diagram { display: block; margin: 0 auto; overflow: visible; }
     Home
   </a>
   <span class="nav-title">SF &amp; BM — Simply Supported + Overhangs</span>
-  <span class="nav-badge">CVE 204</span>
+  <button class="print-btn" onclick="window.print()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+      <rect x="6" y="14" width="12" height="8"/>
+    </svg>
+    Print / Save PDF
+  </button>
 </nav>
 
 <div class="page">
@@ -256,11 +318,11 @@ svg.diagram { display: block; margin: 0 auto; overflow: visible; }
         <label>Figure</label>
         <select id="fig">
           <option value="2" selected>Figure 2 (P at A+0.5x, 1.5P at B-0.75x)</option>
-          <option value="1">Figure 1 (P at B+0.5x, 1.5P at A+0.75x)</option>
+          <option value="1">Figure 1 (1.5P at A+0.75x, P at B+0.5x overhang)</option>
         </select>
       </div>
     </div>
-    <button class="calc-btn" onclick="calculate()">▶ Run Calculation</button>
+    <button class="calc-btn" id="calcBtn" onclick="runWithFeedback()">▶ Run Calculation</button>
   </div>
 
   <!-- BEAM DIAGRAM -->
@@ -343,6 +405,35 @@ function sfClass(v) { return v >= 0 ? 'sf-pos' : 'sf-neg'; }
 function bmClass(v) { return v >= 0 ? 'bm-pos' : 'bm-neg'; }
 
 // ── CALCULATION ENGINE ────────────────────────────────────────────────────────
+function runWithFeedback() {
+  const btn = $('calcBtn');
+
+  // Set loading state
+  btn.disabled = true;
+  btn.className = 'calc-btn loading';
+  btn.innerHTML = '<div class="btn-spinner"></div> Calculating…';
+
+  // Let the browser paint the loading state, then calculate
+  setTimeout(() => {
+    try {
+      calculate();
+      // Success state
+      btn.className = 'calc-btn done';
+      btn.innerHTML = '✓ Done — scroll down';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.className = 'calc-btn';
+        btn.innerHTML = '▶ Run Calculation';
+      }, 2200);
+    } catch (err) {
+      btn.disabled = false;
+      btn.className = 'calc-btn';
+      btn.innerHTML = '▶ Run Calculation';
+      alert('Error: ' + err.message);
+    }
+  }, 40); // 40ms — enough for one paint frame
+}
+
 function calculate() {
   const P   = +$('P').value;
   const w   = +$('w').value;
@@ -356,17 +447,20 @@ function calculate() {
   const posB = x + 3 * x;      // support B = 4x from left
   const span = 3 * x;
 
-  // Point load positions
-  let posP1, posP2;
-  const P1 = P, P2 = 1.5 * P;
+  // Point load positions and magnitudes — figure-dependent
+  let posP1, posP2, P1, P2, lbl1, lbl2;
   if (fig === 2) {
-    // Fig 2: P at A+0.5x, 1.5P at B-0.75x
-    posP1 = posA + 0.5 * x;      // P   = P  at x+0.5x = 1.5x from left
-    posP2 = posB - 0.75 * x;     // 1.5P at 4x-0.75x = 3.25x
+    // Fig 2: P at A+0.5x,  1.5P at B-0.75x  (both inside span)
+    posP1 = posA + 0.5 * x;
+    posP2 = posB - 0.75 * x;
+    P1 = P;         lbl1 = 'P';
+    P2 = 1.5 * P;   lbl2 = '1.5P';
   } else {
-    // Fig 1: P at B+0.5x (right overhang), 1.5P at A+0.75x (in span)
-    posP1 = posA + 0.75 * x;     // 1.5P at 1.75x from left
-    posP2 = posB + 0.5 * x;      // P at right overhang
+    // Fig 1: 1.5P at A+0.75x (inside span),  P at B+0.5x (right overhang)
+    posP1 = posA + 0.75 * x;
+    posP2 = posB + 0.5 * x;
+    P1 = 1.5 * P;   lbl1 = '1.5P';   // corrected: was using P, should be 1.5P
+    P2 = P;         lbl2 = 'P';       // corrected: was using 1.5P, should be P
   }
 
   // Section boundaries (sorted positions of interest)
@@ -507,8 +601,8 @@ function calculate() {
 
     if (posA <= secEnd) drawReaction(posA, 'Rₐ', '#22c55e');
     if (posB <  secEnd) drawReaction(posB, 'R\u1D05', '#22c55e');
-    if (posP1 <= secEnd) drawLoad(posP1, `${f(P1,0)}kN`, '#fbbf24');
-    if (posP2 <  secEnd) drawLoad(posP2, `${f(P2,0)}kN`, '#f97316');
+    if (posP1 <= secEnd) drawLoad(posP1, `${lbl1}=${f(P1,0)}kN`, '#fbbf24');
+    if (posP2 <  secEnd) drawLoad(posP2, `${lbl2}=${f(P2,0)}kN`, '#f97316');
 
     // Cut line
     s += `<line x1="${dR}" y1="${bY-22}" x2="${dR}" y2="${bY+22}"
@@ -746,7 +840,7 @@ function calculate() {
 
   // ── DIAGRAMS ──
   drawCombined(bounds, SF, BM, L, posA, posB, posP1, posP2, RA, RB, P1, P2, w);
-  drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, x);
+  drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, x, lbl1, lbl2);
 
   // ── Q6, Q7, Q8 ──
   const allSFZeros = [];
@@ -820,7 +914,7 @@ function calculate() {
 }
 
 // ── DRAW BEAM DIAGRAM ─────────────────────────────────────────────────────────
-function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, xVal) {
+function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, xVal, lbl1, lbl2) {
   const cvs = $('beamDiag');
   const ctx = cvs.getContext('2d');
   cvs.height = 175;
@@ -905,7 +999,7 @@ function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, xVal) {
   });
 
   // ── Point loads ──
-  [[posP1, P1, '#fbbf24'], [posP2, P2, '#f97316']].forEach(([pos, val, col]) => {
+  [[posP1, P1, '#fbbf24', lbl1], [posP2, P2, '#f97316', lbl2]].forEach(([pos, val, col, symLbl]) => {
     const cx = toX(pos);
     ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(cx, bY - 26); ctx.lineTo(cx, bY); ctx.stroke();
@@ -914,7 +1008,7 @@ function drawBeam(L, posA, posB, posP1, posP2, P1, P2, w, xVal) {
     ctx.closePath(); ctx.fill();
     ctx.fillStyle = col; ctx.font = '10px Space Mono';
     ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-    ctx.fillText(`${val} kN`, cx, bY - 28);
+    ctx.fillText(`${symLbl} = ${val} kN`, cx, bY - 28);
   });
 
   // ── Key positions for dimension rows ──
