@@ -318,7 +318,7 @@ svg.diagram { display: block; margin: 0 auto; overflow: visible; }
         <label>Figure</label>
         <select id="fig">
           <option value="2" selected>Figure 2 (P at A+0.5x, 1.5P at B-0.75x)</option>
-          <option value="1">Figure 1 (1.5P at A+0.75x, P at B+0.5x overhang)</option>
+          <option value="1">Figure 1 (1.5P at B-0.75x, P at B+0.5x overhang)</option>
         </select>
       </div>
     </div>
@@ -490,8 +490,8 @@ function calculate() {
     P1 = P;         lbl1 = 'P';
     P2 = 1.5 * P;   lbl2 = '1.5P';
   } else {
-    // Fig 1: 1.5P at A+0.75x (inside span),  P at B+0.5x (right overhang)
-    posP1 = posA + 0.75 * x;
+    // Fig 1: 1.5P at B-0.75x (inside span, same side as Fig 2),  P at B+0.5x (right overhang)
+    posP1 = posB - 0.75 * x;
     posP2 = posB + 0.5 * x;
     P1 = 1.5 * P;   lbl1 = '1.5P';   // corrected: was using P, should be 1.5P
     P2 = P;         lbl2 = 'P';       // corrected: was using 1.5P, should be P
